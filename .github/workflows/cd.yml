@@ -72,7 +72,7 @@ jobs:
         echo "🔍 Verifying S3 bucket policy..."
         aws s3api get-bucket-policy --bucket ${{ steps.terraform-outputs.outputs.s3_bucket }} || echo "No policy found"
         echo "🔍 Verifying CloudFront OAC..."
-        aws cloudfront list-origin-access-controls --query 'OriginAccessControlList.Items[?Name==`MediSupply OAC 2024`]'
+        aws cloudfront list-origin-access-controls --query 'OriginAccessControlList.Items[?contains(Name, `MediSupply OAC`)]'
     
     - name: Check Build Output
       run: |
