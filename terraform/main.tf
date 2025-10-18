@@ -44,32 +44,7 @@ resource "aws_s3_bucket_public_access_block" "website" {
   restrict_public_buckets = true
 }
 
-# S3 Bucket policy for CloudFront OAC
-resource "aws_s3_bucket_policy" "website" {
-  bucket = aws_s3_bucket.website.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid       = "AllowCloudFrontServicePrincipal"
-        Effect    = "Allow"
-        Principal = {
-          Service = "cloudfront.amazonaws.com"
-        }
-        Action   = "s3:GetObject"
-        Resource = "${aws_s3_bucket.website.arn}/*"
-        Condition = {
-          StringEquals = {
-            "AWS:SourceArn" = aws_cloudfront_distribution.website.arn
-          }
-        }
-      }
-    ]
-  })
-
-  depends_on = [aws_s3_bucket_public_access_block.website]
-}
+# S3 Bucket policy for CloudFront OAC - moved after CloudFront distribution
 
 # S3 Bucket website configuration
 resource "aws_s3_bucket_website_configuration" "website" {
@@ -153,6 +128,33 @@ resource "aws_cloudfront_distribution" "website" {
     Name        = "MediSupply CloudFront"
     Environment = var.environment
   }
+}
+
+# S3 Bucket policy for CloudFront OAC
+resource "aws_s3_bucket_policy" "website" {
+  bucket = aws_s3_bucket.website.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "AllowCloudFrontServicePrincipal"
+        Effect    = "Allow"
+        Principal = {
+          Service = "cloudfront.amazonaws.com"
+        }
+        Action   = "s3:GetObject"
+        Resource = "${aws_s3_bucket.website.arn}/*"
+        Condition = {
+          StringEquals = {
+            "AWS:SourceArn" = aws_cloudfront_distribution.website.arn
+          }
+        }
+      }
+    ]
+  })
+
+  depends_on = [aws_s3_bucket_public_access_block.website, aws_cloudfront_distribution.website]
 }
 
 # Outputs are defined in outputs.tf
