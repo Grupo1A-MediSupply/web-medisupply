@@ -61,7 +61,7 @@ resource "aws_s3_bucket_website_configuration" "website" {
 
 # CloudFront Origin Access Control
 resource "aws_cloudfront_origin_access_control" "website" {
-  name                              = "MediSupply OAC New"
+  name                              = "MediSupply OAC Final"
   description                       = "OAC for MediSupply website"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"

@@ -45,25 +45,15 @@ jobs:
         cd terraform
         terraform init
     
-    - name: Import Existing S3 Bucket (if exists)
-      run: |
-        cd terraform
-        terraform import aws_s3_bucket.website develop-medisupply-web-app || true
-    
-    - name: Terraform Destroy Existing Resources (if any)
-      run: |
-        cd terraform
-        terraform destroy -auto-approve -var="environment=${{ github.ref_name }}" || true
-    
     - name: Terraform Plan
       run: |
         cd terraform
-        terraform plan -var="environment=${{ github.ref_name }}" -out=tfplan
+        terraform plan -var="environment=develop" -out=tfplan
     
     - name: Terraform Apply
       run: |
         cd terraform
-        terraform apply -auto-approve tfplan || terraform apply -auto-approve -replace=aws_s3_bucket.website
+        terraform apply -auto-approve tfplan || terraform apply -auto-approve -replace=aws_cloudfront_origin_access_control.website
     
     - name: Get Terraform Outputs
       id: terraform-outputs
@@ -75,7 +65,7 @@ jobs:
     
     - name: Upload to S3
       run: |
-        aws s3 sync dist/ s3://${{ steps.terraform-outputs.outputs.s3_bucket }} --delete
+        aws s3 sync dist/medical-distribution-prototype/browser/ s3://${{ steps.terraform-outputs.outputs.s3_bucket }} --delete
     
     - name: Invalidate CloudFront
       run: |
