@@ -1,4 +1,4 @@
-name: MediSupply CI/CD Pipeline
+name: MediSupply Web Pipeline
 
 on:
   push:
