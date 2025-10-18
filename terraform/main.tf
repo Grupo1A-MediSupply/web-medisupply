@@ -18,7 +18,7 @@ provider "aws" {
 
 # S3 Bucket for hosting
 resource "aws_s3_bucket" "website" {
-  bucket = "${var.environment}-medisupply-web-app-v2"
+  bucket = "${var.environment}-medisupply-web-app"
 
   tags = {
     Name        = "MediSupply Web App"
@@ -86,7 +86,7 @@ resource "aws_s3_bucket_website_configuration" "website" {
 
 # CloudFront Origin Access Control
 resource "aws_cloudfront_origin_access_control" "website" {
-  name                              = "MediSupply OAC v2"
+  name                              = "MediSupply OAC"
   description                       = "OAC for MediSupply website"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"

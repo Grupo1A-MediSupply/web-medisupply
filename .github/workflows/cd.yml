@@ -45,6 +45,11 @@ jobs:
         cd terraform
         terraform init
     
+    - name: Terraform Destroy Existing Resources (if any)
+      run: |
+        cd terraform
+        terraform destroy -auto-approve -var="environment=${{ github.ref_name }}" || true
+    
     - name: Terraform Plan
       run: |
         cd terraform
