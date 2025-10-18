@@ -45,6 +45,11 @@ jobs:
         cd terraform
         terraform init
     
+    - name: Import Existing S3 Bucket (if exists)
+      run: |
+        cd terraform
+        terraform import aws_s3_bucket.website develop-medisupply-web-app || true
+    
     - name: Terraform Destroy Existing Resources (if any)
       run: |
         cd terraform
@@ -58,7 +63,7 @@ jobs:
     - name: Terraform Apply
       run: |
         cd terraform
-        terraform apply -auto-approve tfplan
+        terraform apply -auto-approve tfplan || terraform apply -auto-approve -replace=aws_s3_bucket.website
     
     - name: Get Terraform Outputs
       id: terraform-outputs
