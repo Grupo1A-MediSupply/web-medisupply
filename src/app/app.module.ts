@@ -21,20 +21,44 @@ import { MatOptionModule } from '@angular/material/core';
 
 
 import { AppComponent } from './app.component';
-import { LoginComponent } from './auth/login.component';
-import { MfaComponent } from './auth/mfa.component';
-import { ChangePasswordComponent } from './auth/change-password.component';
-import { SignupComponent } from './auth/signup.component';
+
+// Vendor Auth Components
+import { VendorLoginComponent } from './vendor/auth/vendor-login.component';
+import { VendorSignupComponent } from './vendor/auth/vendor-signup.component';
+import { VendorMfaComponent } from './vendor/auth/vendor-mfa.component';
+import { VendorChangePasswordComponent } from './vendor/auth/vendor-change-password.component';
+
+// Client Auth Components
+import { ClientLoginComponent } from './client/auth/client-login.component';
+import { ClientSignupComponent } from './client/auth/client-signup.component';
+import { ClientMfaComponent } from './client/auth/client-mfa.component';
+import { ClientChangePasswordComponent } from './client/auth/client-change-password.component';
+
+// Dashboard Components
+import { VendorDashboardComponent } from './vendor/vendor-dashboard.component';
+import { ClientDashboardComponent } from './client/client-dashboard.component';
 
 import { AppRoutingModule } from './app-routing.module';
 
 @NgModule({
   declarations: [
     AppComponent,
-    LoginComponent,
-    MfaComponent,
-    ChangePasswordComponent,
-    SignupComponent
+    
+    // Vendor Auth Components
+    VendorLoginComponent,
+    VendorSignupComponent,
+    VendorMfaComponent,
+    VendorChangePasswordComponent,
+    
+    // Client Auth Components
+    ClientLoginComponent,
+    ClientSignupComponent,
+    ClientMfaComponent,
+    ClientChangePasswordComponent,
+    
+    // Dashboard Components
+    VendorDashboardComponent,
+    ClientDashboardComponent
   ],
          imports: [
            BrowserModule,
