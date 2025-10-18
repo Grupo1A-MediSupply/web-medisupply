@@ -1,7 +1,9 @@
 name: MediSupply CD Pipeline
 
 on:
-  push:
+  workflow_run:
+    workflows: ["MediSupply Web Pipeline"]
+    types: [completed]
     branches: [ main, develop ]
   workflow_dispatch: # Permite ejecución manual
 
@@ -62,6 +64,24 @@ jobs:
         echo "s3_bucket=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT
         echo "cloudfront_id=$(terraform output -raw cloudfront_distribution_id)" >> $GITHUB_OUTPUT
         echo "cloudfront_url=$(terraform output -raw cloudfront_domain_name)" >> $GITHUB_OUTPUT
+    
+    - name: Verify S3 Bucket Policy
+      run: |
+        echo "🔍 Verifying S3 bucket policy..."
+        aws s3api get-bucket-policy --bucket ${{ steps.terraform-outputs.outputs.s3_bucket }} || echo "No policy found"
+        echo "🔍 Verifying CloudFront OAC..."
+        aws cloudfront list-origin-access-controls --query 'OriginAccessControlList.Items[?Name==`MediSupply OAC Final`]'
+    
+    - name: Check Build Output
+      run: |
+        if [ -d "dist/medical-distribution-prototype/browser" ]; then
+          echo "✅ Build output found at dist/medical-distribution-prototype/browser/"
+          ls -la dist/medical-distribution-prototype/browser/
+        else
+          echo "❌ Build output not found. Available directories:"
+          ls -la dist/ || echo "No dist directory found"
+          exit 1
+        fi
     
     - name: Upload to S3
       run: |
