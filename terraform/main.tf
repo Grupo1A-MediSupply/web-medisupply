@@ -14,24 +14,7 @@ provider "aws" {
   region = var.aws_region
 }
 
-# Variables
-variable "aws_region" {
-  description = "AWS region"
-  type        = string
-  default     = "us-east-1"
-}
-
-variable "environment" {
-  description = "Environment name"
-  type        = string
-  default     = "production"
-}
-
-variable "domain_name" {
-  description = "Domain name for the application"
-  type        = string
-  default     = "medisupply.com"
-}
+# Variables are defined in variables.tf
 
 # S3 Bucket for hosting
 resource "aws_s3_bucket" "website" {
@@ -165,28 +148,4 @@ resource "aws_cloudfront_distribution" "website" {
   }
 }
 
-# Outputs
-output "s3_bucket_name" {
-  description = "Name of the S3 bucket"
-  value       = aws_s3_bucket.website.bucket
-}
-
-output "s3_bucket_website_endpoint" {
-  description = "Website endpoint of the S3 bucket"
-  value       = aws_s3_bucket_website_configuration.website.website_endpoint
-}
-
-output "cloudfront_distribution_id" {
-  description = "ID of the CloudFront distribution"
-  value       = aws_cloudfront_distribution.website.id
-}
-
-output "cloudfront_domain_name" {
-  description = "Domain name of the CloudFront distribution"
-  value       = aws_cloudfront_distribution.website.domain_name
-}
-
-output "cloudfront_arn" {
-  description = "ARN of the CloudFront distribution"
-  value       = aws_cloudfront_distribution.website.arn
-}
+# Outputs are defined in outputs.tf
