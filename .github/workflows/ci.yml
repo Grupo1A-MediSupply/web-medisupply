@@ -1,13 +1,13 @@
-name: CI/CD Pipeline
+name: MediSupply CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ '**' ]
   pull_request:
-    branches: [ main ]
+    branches: [ '**' ]
 
 jobs:
-  test:
+  ci-pipeline:
     runs-on: ubuntu-latest
     
     strategy:
