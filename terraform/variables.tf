@@ -9,7 +9,7 @@ variable "aws_region" {
 variable "environment" {
   description = "Environment name (production, staging, development)"
   type        = string
-  default     = "production"
+  default     = "develop"
 }
 
 variable "domain_name" {
@@ -29,7 +29,7 @@ variable "tags" {
   type        = map(string)
   default = {
     Project     = "MediSupply"
-    Environment = "production"
+    Environment = "develop"
     ManagedBy   = "Terraform"
   }
 }
