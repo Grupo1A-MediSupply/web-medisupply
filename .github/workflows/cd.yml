@@ -72,13 +72,21 @@ jobs:
         echo "🔍 Verifying S3 bucket policy..."
         aws s3api get-bucket-policy --bucket ${{ steps.terraform-outputs.outputs.s3_bucket }} || echo "No policy found"
         echo "🔍 Verifying CloudFront OAC..."
-        aws cloudfront list-origin-access-controls --query 'OriginAccessControlList.Items[?Name==`MediSupply OAC Final`]'
+        aws cloudfront list-origin-access-controls --query 'OriginAccessControlList.Items[?Name==`MediSupply OAC 2024`]'
     
     - name: Check Build Output
       run: |
-        if [ -d "dist/medical-distribution-prototype/browser" ]; then
-          echo "✅ Build output found at dist/medical-distribution-prototype/browser/"
-          ls -la dist/medical-distribution-prototype/browser/
+        echo "🔍 Checking build output structure..."
+        ls -la dist/ || echo "No dist directory found"
+        if [ -d "dist/medical-distribution-prototype" ]; then
+          echo "✅ Build output found at dist/medical-distribution-prototype/"
+          ls -la dist/medical-distribution-prototype/
+          if [ -d "dist/medical-distribution-prototype/browser" ]; then
+            echo "✅ Browser directory found"
+            ls -la dist/medical-distribution-prototype/browser/
+          else
+            echo "⚠️ Browser directory not found, using medical-distribution-prototype directly"
+          fi
         else
           echo "❌ Build output not found. Available directories:"
           ls -la dist/ || echo "No dist directory found"
@@ -87,7 +95,13 @@ jobs:
     
     - name: Upload to S3
       run: |
-        aws s3 sync dist/medical-distribution-prototype/browser/ s3://${{ steps.terraform-outputs.outputs.s3_bucket }} --delete
+        if [ -d "dist/medical-distribution-prototype/browser" ]; then
+          echo "📤 Uploading from dist/medical-distribution-prototype/browser/"
+          aws s3 sync dist/medical-distribution-prototype/browser/ s3://${{ steps.terraform-outputs.outputs.s3_bucket }} --delete
+        else
+          echo "📤 Uploading from dist/medical-distribution-prototype/"
+          aws s3 sync dist/medical-distribution-prototype/ s3://${{ steps.terraform-outputs.outputs.s3_bucket }} --delete
+        fi
     
     - name: Invalidate CloudFront
       run: |
