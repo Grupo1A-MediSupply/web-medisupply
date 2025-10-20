@@ -4,3 +4,4 @@ out-tsc
 .DS_Store
 .angular/
 angular/
+coverage/
