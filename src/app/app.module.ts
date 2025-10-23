@@ -37,6 +37,8 @@ import { ClientChangePasswordComponent } from './client/auth/client-change-passw
 // Dashboard Components
 import { VendorDashboardComponent } from './vendor/vendor-dashboard.component';
 import { ClientDashboardComponent } from './client/client-dashboard.component';
+import { OrdersComponent } from './vendor/orders.component';
+import { UploadComponent } from './vendor/upload.component';
 
 import { AppRoutingModule } from './app-routing.module';
 
@@ -58,7 +60,9 @@ import { AppRoutingModule } from './app-routing.module';
     
     // Dashboard Components
     VendorDashboardComponent,
-    ClientDashboardComponent
+    ClientDashboardComponent,
+    OrdersComponent,
+    UploadComponent
   ],
          imports: [
            BrowserModule,
