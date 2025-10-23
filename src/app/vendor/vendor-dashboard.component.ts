@@ -1,5 +1,6 @@
 import { Component, AfterViewInit, ViewChild, ElementRef, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import * as L from 'leaflet';
 import * as Papa from 'papaparse';
 
@@ -229,16 +230,72 @@ export class VendorDashboardComponent implements OnInit, AfterViewInit {
 
          constructor(private router: Router){}
 
-         ngOnInit() {
-           this.updateReportData();
-         }
+  ngOnInit() {
+    this.updateReportData();
+    
+    // Set initial section based on current URL
+    this.updateActiveSectionFromRoute(this.router.url);
+    
+    // Listen to route changes to update active section
+    if (this.router.events) {
+      this.router.events
+        .pipe(filter(event => event instanceof NavigationEnd))
+        .subscribe((event: NavigationEnd) => {
+          this.updateActiveSectionFromRoute(event.url);
+        });
+    }
+  }
 
   ngAfterViewInit() {
     // El mapa se inicializará cuando se abra el modal
   }
 
   setActiveSection(section: string) {
+    // Update activeSection immediately for tests and UI responsiveness
     this.activeSection = section;
+    
+    // Navigate to the corresponding route
+    switch(section) {
+      case 'orders':
+        this.router.navigate(['/vendor/orders'], { replaceUrl: true });
+        break;
+      case 'upload':
+        this.router.navigate(['/vendor/upload'], { replaceUrl: true });
+        break;
+      case 'inventory':
+        this.router.navigate(['/vendor/inventory'], { replaceUrl: true });
+        break;
+      case 'routes':
+        this.router.navigate(['/vendor/routes'], { replaceUrl: true });
+        break;
+      case 'reports':
+        this.router.navigate(['/vendor/reports'], { replaceUrl: true });
+        break;
+      default:
+        this.router.navigate(['/vendor'], { replaceUrl: true });
+        break;
+    }
+  }
+
+  updateActiveSectionFromRoute(url: string) {
+    if (!url) {
+      this.activeSection = 'orders'; // Default section if no URL
+      return;
+    }
+    
+    if (url.includes('/vendor/orders')) {
+      this.activeSection = 'orders';
+    } else if (url.includes('/vendor/upload')) {
+      this.activeSection = 'upload';
+    } else if (url.includes('/vendor/inventory')) {
+      this.activeSection = 'inventory';
+    } else if (url.includes('/vendor/routes')) {
+      this.activeSection = 'routes';
+    } else if (url.includes('/vendor/reports')) {
+      this.activeSection = 'reports';
+    } else if (url === '/vendor') {
+      this.activeSection = 'orders'; // Default section
+    }
   }
 
   logout(){ 
@@ -800,22 +857,24 @@ export class VendorDashboardComponent implements OnInit, AfterViewInit {
            };
          }
 
-         isValidDate(dateString: string): boolean {
-           const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-           if (!dateRegex.test(dateString)) return false;
-           
-           const date = new Date(dateString);
-           if (!(date instanceof Date) || isNaN(date.getTime())) return false;
-           
-           // Check if the date is valid by comparing with the original string
-           const year = date.getFullYear();
-           const month = date.getMonth() + 1; // getMonth() returns 0-11
-           const day = date.getDate();
-           
-           const [originalYear, originalMonth, originalDay] = dateString.split('-').map(Number);
-           
-           return year === originalYear && month === originalMonth && day === originalDay;
-         }
+  isValidDate(dateString: string): boolean {
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(dateString)) return false;
+    
+    // Parse the date components directly to avoid timezone issues
+    const [year, month, day] = dateString.split('-').map(Number);
+    
+    // Create date using local timezone to avoid UTC conversion issues
+    const date = new Date(year, month - 1, day);
+    
+    // Check if the date is valid
+    if (!(date instanceof Date) || isNaN(date.getTime())) return false;
+    
+    // Verify the date components match exactly
+    return date.getFullYear() === year && 
+           date.getMonth() === month - 1 && 
+           date.getDate() === day;
+  }
 
          isValidBatchesFormat(batches: string): boolean {
            if (!batches || batches.trim() === '') return true; // Allow empty batches
