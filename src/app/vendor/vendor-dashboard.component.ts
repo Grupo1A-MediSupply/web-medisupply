@@ -636,6 +636,9 @@ export class VendorDashboardComponent implements OnInit, AfterViewInit {
 
          // Upload methods
          onFileSelected(event: any) {
+           if (!event || !event.target || !event.target.files) {
+             return;
+           }
            const file = event.target.files[0];
            if (file) {
              const fileExtension = file.name.split('.').pop()?.toLowerCase();
@@ -802,7 +805,16 @@ export class VendorDashboardComponent implements OnInit, AfterViewInit {
            if (!dateRegex.test(dateString)) return false;
            
            const date = new Date(dateString);
-           return date instanceof Date && !isNaN(date.getTime());
+           if (!(date instanceof Date) || isNaN(date.getTime())) return false;
+           
+           // Check if the date is valid by comparing with the original string
+           const year = date.getFullYear();
+           const month = date.getMonth() + 1; // getMonth() returns 0-11
+           const day = date.getDate();
+           
+           const [originalYear, originalMonth, originalDay] = dateString.split('-').map(Number);
+           
+           return year === originalYear && month === originalMonth && day === originalDay;
          }
 
          isValidBatchesFormat(batches: string): boolean {
