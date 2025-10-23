@@ -1,6 +1,7 @@
 import { Component, AfterViewInit, ViewChild, ElementRef, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import * as L from 'leaflet';
+import * as Papa from 'papaparse';
 
 @Component({
   selector: 'vendor-dashboard',
@@ -160,6 +161,12 @@ export class VendorDashboardComponent implements OnInit, AfterViewInit {
   isUploading = false;
   uploadMessage = '';
   showUploadSuccess = false;
+
+  // Required columns for CSV validation
+  private readonly REQUIRED_COLUMNS = [
+    'name', 'stock', 'price', 'expiry', 'lot', 'warehouse', 
+    'supplier', 'category', 'description', 'batches'
+  ];
 
   routeOrders = [
     {id: 'ORD-1001', client: 'Hospital San Rafael', address: 'Calle 10 #20-30', date: '2025-09-22', status: 'Sin Ruta', routeId: null},
@@ -691,23 +698,204 @@ export class VendorDashboardComponent implements OnInit, AfterViewInit {
 
            this.isUploading = true;
            this.uploadProgress = 0;
-           this.uploadMessage = 'Procesando archivo...';
+           this.uploadMessage = 'Validando archivo...';
 
-           // Simulate file processing
-           const interval = setInterval(() => {
-             this.uploadProgress += 10;
-             if (this.uploadProgress >= 100) {
-               clearInterval(interval);
-               this.processUploadedFile();
+           // Validate and process file
+           this.validateAndProcessFile();
+         }
+
+         validateAndProcessFile() {
+           if (!this.selectedFile) return;
+
+           const fileExtension = this.selectedFile.name.split('.').pop()?.toLowerCase();
+           
+           if (fileExtension === 'csv') {
+             this.parseCSVFile();
+           } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
+             this.uploadMessage = 'Procesamiento de archivos Excel no implementado aún. Use formato CSV.';
+             this.isUploading = false;
+             this.showUploadSuccess = false;
+           }
+         }
+
+         parseCSVFile() {
+           if (!this.selectedFile) return;
+
+           Papa.parse(this.selectedFile, {
+             header: true,
+             skipEmptyLines: true,
+             complete: (results) => {
+               this.uploadProgress = 50;
+               this.uploadMessage = 'Validando estructura del archivo...';
+               
+               const validationResult = this.validateCSVData(results.data, results.meta.fields || []);
+               
+               if (validationResult.isValid) {
+                 this.uploadProgress = 100;
+                 this.uploadMessage = 'Archivo válido. Procesando datos...';
+                 setTimeout(() => {
+                   this.processValidatedData(results.data);
+                 }, 500);
+               } else {
+                 this.handleValidationErrors(validationResult.errors);
+               }
+             },
+             error: (error) => {
+               this.handleFileError('Error al leer el archivo CSV: ' + error.message);
              }
-           }, 200);
+           });
+         }
+
+         validateCSVData(data: any[], headers: string[]): {isValid: boolean, errors: string[]} {
+           const errors: string[] = [];
+
+           // Check required columns
+           const missingColumns = this.REQUIRED_COLUMNS.filter(col => !headers.includes(col));
+           if (missingColumns.length > 0) {
+             errors.push(`Faltan las siguientes columnas requeridas: ${missingColumns.join(', ')}`);
+           }
+
+           // Check for empty data
+           if (data.length === 0) {
+             errors.push('El archivo está vacío o no contiene datos válidos');
+           }
+
+           // Validate each row
+           data.forEach((row, index) => {
+             const rowNumber = index + 2; // +2 because CSV starts from row 2 (after header)
+
+             // Check required fields are not empty
+             this.REQUIRED_COLUMNS.forEach(column => {
+               if (headers.includes(column) && (!row[column] || row[column].toString().trim() === '')) {
+                 errors.push(`Fila ${rowNumber}: El campo '${column}' está vacío`);
+               }
+             });
+
+             // Validate specific field formats
+             if (row.stock && isNaN(Number(row.stock))) {
+               errors.push(`Fila ${rowNumber}: El campo 'stock' debe ser un número válido`);
+             }
+
+             if (row.price && isNaN(Number(row.price))) {
+               errors.push(`Fila ${rowNumber}: El campo 'price' debe ser un número válido`);
+             }
+
+             // Validate date format (YYYY-MM-DD)
+             if (row.expiry && !this.isValidDate(row.expiry)) {
+               errors.push(`Fila ${rowNumber}: El campo 'expiry' debe tener formato YYYY-MM-DD (fecha encontrada: ${row.expiry})`);
+             }
+
+             // Validate batches format (LOTE:CANTIDAD:FECHA:UBICACIÓN)
+             if (row.batches && !this.isValidBatchesFormat(row.batches)) {
+               errors.push(`Fila ${rowNumber}: El campo 'batches' debe tener formato LOTE:CANTIDAD:FECHA:UBICACIÓN separado por punto y coma`);
+             }
+           });
+
+           return {
+             isValid: errors.length === 0,
+             errors: errors
+           };
+         }
+
+         isValidDate(dateString: string): boolean {
+           const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+           if (!dateRegex.test(dateString)) return false;
+           
+           const date = new Date(dateString);
+           return date instanceof Date && !isNaN(date.getTime());
+         }
+
+         isValidBatchesFormat(batches: string): boolean {
+           if (!batches || batches.trim() === '') return true; // Allow empty batches
+           
+           const batchEntries = batches.split(';');
+           const batchRegex = /^[^:]+:\d+:\d{4}-\d{2}-\d{2}:[^:]+$/;
+           
+           return batchEntries.every(entry => batchRegex.test(entry.trim()));
+         }
+
+         handleValidationErrors(errors: string[]) {
+           this.isUploading = false;
+           this.uploadProgress = 0;
+           this.showUploadSuccess = false;
+           
+           const errorMessage = 'Errores encontrados en el archivo:\n\n' + errors.slice(0, 10).join('\n');
+           if (errors.length > 10) {
+             this.uploadMessage = errorMessage + `\n\n... y ${errors.length - 10} errores más.`;
+           } else {
+             this.uploadMessage = errorMessage;
+           }
+         }
+
+         handleFileError(errorMessage: string) {
+           this.isUploading = false;
+           this.uploadProgress = 0;
+           this.showUploadSuccess = false;
+           this.uploadMessage = errorMessage;
+         }
+
+         processValidatedData(data: any[]) {
+           // Process the validated CSV data
+           this.processUploadedFileWithData(data);
+         }
+
+         processUploadedFileWithData(csvData: any[]) {
+           // Add validated CSV data to inventory
+           csvData.forEach(item => {
+             this.inventory.push({
+               name: item.name,
+               stock: Number(item.stock),
+               price: Number(item.price),
+               expiry: item.expiry,
+               lot: item.lot,
+               warehouse: item.warehouse,
+               supplier: item.supplier,
+               category: item.category,
+               description: item.description,
+               batches: this.parseBatches(item.batches)
+             });
+           });
+
+           this.updateReportData();
+
+           this.isUploading = false;
+           this.uploadMessage = `Archivo procesado exitosamente. Se agregaron ${csvData.length} productos al inventario.`;
+           this.showUploadSuccess = true;
+           this.selectedFile = null;
+
+           // Reset form
+           const fileInput = document.getElementById('fileInput') as HTMLInputElement;
+           if (fileInput) {
+             fileInput.value = '';
+           }
+
+           // Hide success message after 5 seconds
+           setTimeout(() => {
+             this.showUploadSuccess = false;
+             this.uploadMessage = '';
+             this.uploadProgress = 0;
+           }, 5000);
+         }
+
+         parseBatches(batchesString: string): any[] {
+           if (!batchesString || batchesString.trim() === '') return [];
+           
+           return batchesString.split(';').map(batch => {
+             const parts = batch.trim().split(':');
+             return {
+               batch: parts[0],
+               quantity: Number(parts[1]),
+               expiry: parts[2],
+               location: parts[3]
+             };
+           });
          }
 
          processUploadedFile() {
            // Simulate processing CSV/Excel file
            // In a real application, you would parse the file and update inventory
            
-           // Mock data for demonstration
+           // Mock data for demonstration (in real app, this would come from validated CSV data)
            const newInventoryItems = [
              {
                name: 'Paracetamol',

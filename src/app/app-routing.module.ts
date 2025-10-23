@@ -16,6 +16,7 @@ import { ClientChangePasswordComponent } from './client/auth/client-change-passw
 
 // Dashboard Components
 import { VendorDashboardComponent } from './vendor/vendor-dashboard.component';
+import { UploadComponent } from './vendor/upload.component';
 import { ClientDashboardComponent } from './client/client-dashboard.component';
 
 const routes: Routes = [
@@ -28,6 +29,7 @@ const routes: Routes = [
   { path: 'vendor/mfa', component: VendorMfaComponent },
   { path: 'vendor/change-password', component: VendorChangePasswordComponent },
   { path: 'vendor/orders', component: VendorDashboardComponent },
+  { path: 'vendor/upload', component: UploadComponent },
   
   // Client routes
   { path: 'client/login', component: ClientLoginComponent },
