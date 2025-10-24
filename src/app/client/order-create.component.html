@@ -1,0 +1,155 @@
+<div class="order-create-container">
+  <h2 class="page-title">Crear Nuevo Pedido</h2>
+  
+  <mat-card class="order-form-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>shopping_cart</mat-icon>
+        Formulario de Pedido
+      </mat-card-title>
+      <mat-card-subtitle>Complete la información para crear su pedido</mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content [formGroup]="orderForm">
+      <!-- Client Information -->
+      <div class="form-section">
+        <h3>Información del Cliente</h3>
+        <div class="form-group">
+          <label class="form-label">Nombre de la Institución *</label>
+          <input type="text" class="form-input" formControlName="institutionName" placeholder="Nombre de su institución">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Dirección de Entrega *</label>
+          <textarea class="form-input" formControlName="deliveryAddress" placeholder="Dirección completa de entrega" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha de Entrega Deseada *</label>
+          <input type="date" class="form-input" formControlName="deliveryDate">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contacto</label>
+          <input type="text" class="form-input" formControlName="contact" placeholder="Persona de contacto">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teléfono</label>
+          <input type="tel" class="form-input" formControlName="phone" placeholder="Número de teléfono">
+        </div>
+      </div>
+
+      <!-- Products Section -->
+      <div class="form-section">
+        <div class="section-header">
+          <h3>Productos (Máximo 5)</h3>
+          <button mat-stroked-button (click)="updateInventoryStock()" class="refresh-btn">
+            <mat-icon>refresh</mat-icon>
+            Actualizar Inventario
+          </button>
+        </div>
+        
+        <div class="products-container" formArrayName="products">
+          <div class="product-item" *ngFor="let product of productsArray.controls; let i = index" [formGroupName]="i">
+            <div class="product-select">
+              <label class="form-label">Producto {{i + 1}}</label>
+              <select class="form-input product-dropdown" formControlName="product" (change)="onProductChange(i)">
+                <option value="">Seleccionar producto</option>
+                <option *ngFor="let item of getAvailableProducts()" [value]="item.name" [disabled]="item.stock === 0">
+                  {{item.name}} - Stock: {{item.stock}} unidades - ${{item.price | number:'1.2-2'}}
+                </option>
+              </select>
+              <div class="product-info" *ngIf="product.get('product')?.value">
+                <small class="stock-info">
+                  <span [ngClass]="getStockClass(getProductStock(product.get('product')?.value))">
+                    Stock disponible: {{getProductStock(product.get('product')?.value)}} unidades
+                  </span>
+                </small>
+              </div>
+            </div>
+            
+            <div class="quantity-select">
+              <label class="form-label">Cantidad</label>
+              <input type="number" class="form-input" formControlName="quantity" min="1" [max]="getProductStock(product.get('product')?.value)" placeholder="Cantidad">
+            </div>
+            
+            <button mat-icon-button color="warn" (click)="removeProduct(i)" class="remove-btn" *ngIf="productsArray.length > 1">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+          
+          <button mat-stroked-button (click)="addProduct()" [disabled]="productsArray.length >= 5" class="add-product-btn">
+            <mat-icon>add</mat-icon>
+            Agregar Producto
+          </button>
+        </div>
+      </div>
+
+      <!-- Notes Section -->
+      <div class="form-section">
+        <h3>Observaciones</h3>
+        <div class="form-group">
+          <label class="form-label">Notas Adicionales</label>
+          <textarea class="form-input" formControlName="notes" placeholder="Cualquier información adicional sobre el pedido" rows="3"></textarea>
+        </div>
+      </div>
+    </mat-card-content>
+    
+    <mat-card-actions class="form-actions">
+      <button mat-button (click)="clearForm()" class="clear-btn">
+        <mat-icon>clear</mat-icon>
+        Limpiar
+      </button>
+      <button mat-raised-button color="primary" (click)="createOrder()" [disabled]="!isFormValid()" class="create-btn">
+        <mat-icon>shopping_cart</mat-icon>
+        Crear Pedido
+      </button>
+    </mat-card-actions>
+  </mat-card>
+
+  <!-- Success Modal -->
+  <div class="success-modal-overlay" *ngIf="showSuccessModal" (click)="closeSuccessModal()">
+    <div class="success-modal" (click)="$event.stopPropagation()">
+      <div class="success-modal-header">
+        <div class="success-icon">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+        <h2>¡Pedido Creado Exitosamente!</h2>
+      </div>
+      
+      <div class="success-modal-content" *ngIf="createdOrder">
+        <div class="order-details">
+          <div class="detail-item">
+            <label>ID del Pedido:</label>
+            <span class="order-id">{{createdOrder.id}}</span>
+          </div>
+          <div class="detail-item">
+            <label>Institución:</label>
+            <span>{{createdOrder.institutionName}}</span>
+          </div>
+          <div class="detail-item">
+            <label>Productos:</label>
+            <span>{{createdOrder.product}}</span>
+          </div>
+          <div class="detail-item">
+            <label>Fecha de Entrega:</label>
+            <span>{{createdOrder.deliveryDate}}</span>
+          </div>
+          <div class="detail-item">
+            <label>Dirección:</label>
+            <span>{{createdOrder.deliveryAddress}}</span>
+          </div>
+        </div>
+        
+        <div class="success-message">
+          <p>Su pedido ha sido creado y el vendedor será notificado. Recibirá una confirmación por correo electrónico.</p>
+        </div>
+      </div>
+      
+      <div class="success-modal-actions">
+        <button mat-raised-button color="primary" (click)="closeSuccessModal()" class="close-btn">
+          <mat-icon>done</mat-icon>
+          Entendido
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

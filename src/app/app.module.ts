@@ -39,6 +39,7 @@ import { VendorDashboardComponent } from './vendor/vendor-dashboard.component';
 import { ClientDashboardComponent } from './client/client-dashboard.component';
 import { OrdersComponent } from './vendor/orders.component';
 import { UploadComponent } from './vendor/upload.component';
+import { OrderCreateComponent } from './client/order-create.component';
 
 import { AppRoutingModule } from './app-routing.module';
 
@@ -62,7 +63,8 @@ import { AppRoutingModule } from './app-routing.module';
     VendorDashboardComponent,
     ClientDashboardComponent,
     OrdersComponent,
-    UploadComponent
+    UploadComponent,
+    OrderCreateComponent
   ],
          imports: [
            BrowserModule,

@@ -230,8 +230,8 @@ export class VendorDashboardComponent implements OnInit, AfterViewInit {
 
          constructor(private router: Router){}
 
-  ngOnInit() {
-    this.updateReportData();
+         ngOnInit() {
+           this.updateReportData();
     
     // Set initial section based on current URL
     this.updateActiveSectionFromRoute(this.router.url);
@@ -244,7 +244,7 @@ export class VendorDashboardComponent implements OnInit, AfterViewInit {
           this.updateActiveSectionFromRoute(event.url);
         });
     }
-  }
+         }
 
   ngAfterViewInit() {
     // El mapa se inicializará cuando se abra el modal

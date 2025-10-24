@@ -18,6 +18,7 @@ import { ClientChangePasswordComponent } from './client/auth/client-change-passw
 import { VendorDashboardComponent } from './vendor/vendor-dashboard.component';
 import { UploadComponent } from './vendor/upload.component';
 import { ClientDashboardComponent } from './client/client-dashboard.component';
+import { OrderCreateComponent } from './client/order-create.component';
 import { OrdersComponent } from './vendor/orders.component';
 
 const routes: Routes = [
@@ -41,7 +42,16 @@ const routes: Routes = [
   { path: 'client/signup', component: ClientSignupComponent },
   { path: 'client/mfa', component: ClientMfaComponent },
   { path: 'client/change-password', component: ClientChangePasswordComponent },
-  { path: 'client/create-order', component: ClientDashboardComponent },
+  { 
+    path: 'client', 
+    component: ClientDashboardComponent,
+    children: [
+      { path: '', redirectTo: 'create-order', pathMatch: 'full' },
+      { path: 'create-order', component: OrderCreateComponent },
+      { path: 'history', component: ClientDashboardComponent },
+      { path: 'track', component: ClientDashboardComponent }
+    ]
+  },
   
   // Redirect any unknown routes to vendor login
   { path: '**', redirectTo: '/vendor/login' }
