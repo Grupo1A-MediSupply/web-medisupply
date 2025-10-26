@@ -20,6 +20,8 @@ import { UploadComponent } from './vendor/upload.component';
 import { ClientDashboardComponent } from './client/client-dashboard.component';
 import { OrderCreateComponent } from './client/order-create.component';
 import { OrdersComponent } from './vendor/orders.component';
+import { InventoryComponent } from './vendor/inventory.component';
+import { RoutesComponent } from './vendor/routes.component';
 
 const routes: Routes = [
   // Default redirect to vendor login
