@@ -71,7 +71,7 @@ describe('ClientMfaComponent', () => {
 
     component.verify();
 
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/client/create-order']);
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/client']);
   });
 
   it('should not navigate when form is invalid', () => {
@@ -90,7 +90,7 @@ describe('ClientMfaComponent', () => {
     validCodes.forEach(code => {
       component._form.patchValue({ code });
       component.verify();
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/client/create-order']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/client']);
     });
   });
 
@@ -175,7 +175,7 @@ describe('ClientMfaComponent', () => {
     // Second attempt with valid code
     component._form.patchValue({ code: '123456' });
     component.verify();
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/client/create-order']);
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/client']);
   });
 
   it('should handle form validation for all code lengths', () => {
@@ -237,7 +237,7 @@ describe('ClientMfaComponent', () => {
     
     component.verify();
     
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/client/create-order']);
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/client']);
   });
 
   it('should handle form submission with invalid data', () => {

@@ -84,6 +84,22 @@ export class ClientDashboardComponent {
 
   setActiveSection(section: string) {
     this.activeSection = section;
+    
+    // Navigate to the corresponding route
+    switch(section) {
+      case 'create-order':
+        this.router.navigate(['/client/create-order'], { replaceUrl: true });
+        break;
+      case 'history':
+        this.router.navigate(['/client/history'], { replaceUrl: true });
+        break;
+      case 'track':
+        this.router.navigate(['/client/track'], { replaceUrl: true });
+        break;
+      default:
+        this.router.navigate(['/client'], { replaceUrl: true });
+        break;
+    }
   }
 
   logout(){ 

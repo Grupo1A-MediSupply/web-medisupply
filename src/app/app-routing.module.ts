@@ -16,7 +16,12 @@ import { ClientChangePasswordComponent } from './client/auth/client-change-passw
 
 // Dashboard Components
 import { VendorDashboardComponent } from './vendor/vendor-dashboard.component';
+import { UploadComponent } from './vendor/upload.component';
 import { ClientDashboardComponent } from './client/client-dashboard.component';
+import { OrderCreateComponent } from './client/order-create.component';
+import { OrdersComponent } from './vendor/orders.component';
+import { InventoryComponent } from './vendor/inventory.component';
+import { RoutesComponent } from './vendor/routes.component';
 
 const routes: Routes = [
   // Default redirect to vendor login
@@ -27,14 +32,28 @@ const routes: Routes = [
   { path: 'vendor/signup', component: VendorSignupComponent },
   { path: 'vendor/mfa', component: VendorMfaComponent },
   { path: 'vendor/change-password', component: VendorChangePasswordComponent },
+  { path: 'vendor', component: VendorDashboardComponent },
   { path: 'vendor/orders', component: VendorDashboardComponent },
+  { path: 'vendor/upload', component: VendorDashboardComponent },
+  { path: 'vendor/inventory', component: VendorDashboardComponent },
+  { path: 'vendor/routes', component: VendorDashboardComponent },
+  { path: 'vendor/reports', component: VendorDashboardComponent },
   
   // Client routes
   { path: 'client/login', component: ClientLoginComponent },
   { path: 'client/signup', component: ClientSignupComponent },
   { path: 'client/mfa', component: ClientMfaComponent },
   { path: 'client/change-password', component: ClientChangePasswordComponent },
-  { path: 'client/create-order', component: ClientDashboardComponent },
+  { 
+    path: 'client', 
+    component: ClientDashboardComponent,
+    children: [
+      { path: '', redirectTo: 'create-order', pathMatch: 'full' },
+      { path: 'create-order', component: OrderCreateComponent },
+      { path: 'history', component: ClientDashboardComponent },
+      { path: 'track', component: ClientDashboardComponent }
+    ]
+  },
   
   // Redirect any unknown routes to vendor login
   { path: '**', redirectTo: '/vendor/login' }

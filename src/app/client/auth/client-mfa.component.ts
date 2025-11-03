@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 @Component({
+  selector: 'app-client-mfa',
   template: `
   <div class="mfa-page">
     <!-- Left Section - Logo and Branding -->
@@ -74,7 +75,7 @@ export class ClientMfaComponent {
   verify(){
     if (this._form.valid) {
       // Verify MFA code and navigate to client dashboard
-      this.router.navigate(['/client/create-order']);
+      this.router.navigate(['/client']);
     } else {
       // Mark all fields as touched to show validation errors
       this._form.markAllAsTouched();
