@@ -1,20 +1,27 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { of } from 'rxjs';
+import { AuthService } from '../services/auth.service';
 import { VendorDashboardComponent } from './vendor-dashboard.component';
 
 describe('VendorDashboardComponent', () => {
   let component: VendorDashboardComponent;
   let fixture: ComponentFixture<VendorDashboardComponent>;
   let mockRouter: jasmine.SpyObj<Router>;
+  let mockAuthService: jasmine.SpyObj<AuthService>;
 
   beforeEach(async () => {
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
+    mockAuthService = jasmine.createSpyObj('AuthService', ['logout']);
 
     await TestBed.configureTestingModule({
       declarations: [VendorDashboardComponent],
+      imports: [HttpClientTestingModule],
       providers: [
-        { provide: Router, useValue: mockRouter }
+        { provide: Router, useValue: mockRouter },
+        { provide: AuthService, useValue: mockAuthService }
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     }).compileComponents();
@@ -38,9 +45,13 @@ describe('VendorDashboardComponent', () => {
   });
 
   it('should logout and navigate to home', () => {
+    spyOn(localStorage, 'removeItem');
     spyOn(sessionStorage, 'clear');
+    mockAuthService.logout.and.returnValue(of({}));
+    
     component.logout();
 
+    expect(mockAuthService.logout).toHaveBeenCalled();
     expect(sessionStorage.clear).toHaveBeenCalled();
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/']);
   });
@@ -83,15 +94,20 @@ describe('VendorDashboardComponent', () => {
   });
 
   it('should handle session storage operations', () => {
+    spyOn(localStorage, 'removeItem');
     spyOn(sessionStorage, 'clear');
     spyOn(sessionStorage, 'getItem');
+    spyOn(sessionStorage, 'setItem');
+    mockAuthService.logout.and.returnValue(of({}));
     
     // Test logout clears session storage
     component.logout();
+    expect(mockAuthService.logout).toHaveBeenCalled();
     expect(sessionStorage.clear).toHaveBeenCalled();
     
     // Test that component can handle session storage operations
     sessionStorage.setItem('test', 'value');
+    expect(sessionStorage.setItem).toHaveBeenCalledWith('test', 'value');
     
     // Mock getItem to return the value
     (sessionStorage.getItem as jasmine.Spy).and.returnValue('value');
@@ -135,22 +151,28 @@ describe('VendorDashboardComponent', () => {
   });
 
   it('should handle multiple logout calls', () => {
+    spyOn(localStorage, 'removeItem');
     spyOn(sessionStorage, 'clear');
+    mockAuthService.logout.and.returnValue(of({}));
     
     // Call logout multiple times
     component.logout();
     component.logout();
     component.logout();
     
+    expect(mockAuthService.logout).toHaveBeenCalledTimes(3);
     expect(sessionStorage.clear).toHaveBeenCalledTimes(3);
     expect(mockRouter.navigate).toHaveBeenCalledTimes(3);
   });
 
   it('should handle navigation after logout', () => {
+    spyOn(localStorage, 'removeItem');
     spyOn(sessionStorage, 'clear');
+    mockAuthService.logout.and.returnValue(of({}));
     
     component.logout();
     
+    expect(mockAuthService.logout).toHaveBeenCalled();
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/']);
     expect(sessionStorage.clear).toHaveBeenCalled();
   });
@@ -215,6 +237,10 @@ describe('VendorDashboardComponent', () => {
   });
 
   it('should handle component methods without errors', () => {
+    spyOn(localStorage, 'removeItem');
+    spyOn(sessionStorage, 'clear');
+    mockAuthService.logout.and.returnValue(of({}));
+    
     // Test all public methods exist and can be called
     expect(() => component.setActiveSection('test')).not.toThrow();
     expect(() => component.logout()).not.toThrow();
@@ -276,12 +302,15 @@ describe('VendorDashboardComponent', () => {
   });
 
   it('should handle session storage operations', () => {
+    spyOn(localStorage, 'removeItem');
     spyOn(sessionStorage, 'getItem').and.returnValue('vendor');
     spyOn(sessionStorage, 'setItem');
     spyOn(sessionStorage, 'clear');
+    mockAuthService.logout.and.returnValue(of({}));
 
     // Test logout functionality
     component.logout();
+    expect(mockAuthService.logout).toHaveBeenCalled();
     expect(sessionStorage.clear).toHaveBeenCalled();
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/']);
   });

@@ -119,7 +119,7 @@ export class ClientMfaComponent implements OnInit {
             sessionStorage.setItem('role', 'client');
             sessionStorage.setItem('userType', 'client');
             // Navigate to client dashboard
-            this.router.navigate(['/client']);
+      this.router.navigate(['/client']);
           } else {
             // Si no tiene access_token, mostrar error
             this.errorMessage = response?.message || 'Código de verificación inválido';

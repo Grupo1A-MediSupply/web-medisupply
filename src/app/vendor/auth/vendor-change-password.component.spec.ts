@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { VendorChangePasswordComponent } from './vendor-change-password.component';
 
 describe('VendorChangePasswordComponent', () => {
@@ -14,7 +15,7 @@ describe('VendorChangePasswordComponent', () => {
 
     await TestBed.configureTestingModule({
       declarations: [VendorChangePasswordComponent],
-      imports: [ReactiveFormsModule],
+      imports: [ReactiveFormsModule, HttpClientTestingModule],
       providers: [
         { provide: Router, useValue: mockRouter }
       ],

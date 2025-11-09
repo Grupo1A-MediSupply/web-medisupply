@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RoutesComponent } from './routes.component';
 
 describe('RoutesComponent', () => {
@@ -22,7 +23,8 @@ describe('RoutesComponent', () => {
         MatButtonModule,
         MatSelectModule,
         MatOptionModule,
-        NoopAnimationsModule
+        NoopAnimationsModule,
+        HttpClientTestingModule
       ]
     })
     .compileComponents();

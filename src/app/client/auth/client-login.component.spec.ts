@@ -2,21 +2,30 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { of } from 'rxjs';
+import { tap } from 'rxjs/operators';
+import { AuthService } from '../../services/auth.service';
 import { ClientLoginComponent } from './client-login.component';
 
 describe('ClientLoginComponent', () => {
   let component: ClientLoginComponent;
   let fixture: ComponentFixture<ClientLoginComponent>;
   let mockRouter: jasmine.SpyObj<Router>;
+  let mockAuthService: jasmine.SpyObj<AuthService>;
 
   beforeEach(async () => {
-    mockRouter = jasmine.createSpyObj('Router', ['navigate']);
+    mockRouter = jasmine.createSpyObj('Router', ['navigate', 'navigateByUrl']);
+    mockRouter.navigate.and.returnValue(Promise.resolve(true));
+    mockRouter.navigateByUrl.and.returnValue(Promise.resolve(true));
+    mockAuthService = jasmine.createSpyObj('AuthService', ['login']);
 
         await TestBed.configureTestingModule({
           declarations: [ClientLoginComponent],
-          imports: [ReactiveFormsModule],
+          imports: [ReactiveFormsModule, HttpClientTestingModule],
           providers: [
-            { provide: Router, useValue: mockRouter }
+            { provide: Router, useValue: mockRouter },
+            { provide: AuthService, useValue: mockAuthService }
           ],
           schemas: [CUSTOM_ELEMENTS_SCHEMA]
         }).compileComponents();
@@ -61,12 +70,14 @@ describe('ClientLoginComponent', () => {
   it('should set client role and navigate to client MFA on valid login', () => {
     spyOn(sessionStorage, 'setItem');
     component._form.patchValue({ user: 'cliente', pass: 'password123' });
+    mockAuthService.login.and.returnValue(of({ message: 'Código enviado', user_id: 'test-user-id' }));
     
     component.login();
     
+    expect(mockAuthService.login).toHaveBeenCalledWith('cliente', 'password123');
     expect(sessionStorage.setItem).toHaveBeenCalledWith('role', 'client');
     expect(sessionStorage.setItem).toHaveBeenCalledWith('userType', 'client');
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/client/mfa']);
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/client/mfa'], { replaceUrl: false });
   });
 
   it('should not navigate when form is invalid', () => {
@@ -87,12 +98,14 @@ describe('ClientLoginComponent', () => {
   it('should handle login with different user credentials', () => {
     spyOn(sessionStorage, 'setItem');
     component._form.patchValue({ user: 'testuser', pass: 'testpass123' });
+    mockAuthService.login.and.returnValue(of({ message: 'Código enviado', user_id: 'test-user-id' }));
     
     component.login();
     
+    expect(mockAuthService.login).toHaveBeenCalledWith('testuser', 'testpass123');
     expect(sessionStorage.setItem).toHaveBeenCalledWith('role', 'client');
     expect(sessionStorage.setItem).toHaveBeenCalledWith('userType', 'client');
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/client/mfa']);
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/client/mfa'], { replaceUrl: false });
   });
 
   it('should show validation errors for empty form', () => {
@@ -124,11 +137,19 @@ describe('ClientLoginComponent', () => {
   it('should handle form submission with valid data', () => {
     spyOn(sessionStorage, 'setItem');
     component._form.patchValue({ user: 'clientuser', pass: 'clientpass123' });
+    mockAuthService.login.and.returnValue(
+      of({ message: 'Código enviado', user_id: 'test-user-id' }).pipe(
+        tap(() => {
+          sessionStorage.setItem('pending_user_id', 'test-user-id');
+        })
+      )
+    );
     
     component.login();
     
-    expect(sessionStorage.setItem).toHaveBeenCalledTimes(2);
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/client/mfa']);
+    expect(mockAuthService.login).toHaveBeenCalledWith('clientuser', 'clientpass123');
+    expect(sessionStorage.setItem).toHaveBeenCalledTimes(3); // role, userType, pending_user_id
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/client/mfa'], { replaceUrl: false });
   });
 
   it('should handle form submission with invalid data', () => {
@@ -196,22 +217,25 @@ describe('ClientLoginComponent', () => {
 
   it('should handle login with different user types', () => {
     spyOn(sessionStorage, 'setItem');
+    mockAuthService.login.and.returnValue(of({ message: 'Código enviado', user_id: 'test-user-id' }));
 
     // Test client login
     component._form.patchValue({ user: 'cliente', pass: 'password' });
     component.login();
 
+    expect(mockAuthService.login).toHaveBeenCalledWith('cliente', 'password');
     expect(sessionStorage.setItem).toHaveBeenCalledWith('role', 'client');
     expect(sessionStorage.setItem).toHaveBeenCalledWith('userType', 'client');
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/client/mfa']);
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/client/mfa'], { replaceUrl: false });
   });
 
   it('should handle invalid login credentials', () => {
     component._form.patchValue({ user: 'invalid', pass: 'wrong' });
+    mockAuthService.login.and.returnValue(of({ message: 'Código enviado', user_id: 'test-user-id' }));
     component.login();
     
-    // The component navigates to MFA regardless of credentials when form is valid
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/client/mfa']);
+    expect(mockAuthService.login).toHaveBeenCalledWith('invalid', 'wrong');
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/client/mfa'], { replaceUrl: false });
   });
 
   it('should handle form reset', () => {

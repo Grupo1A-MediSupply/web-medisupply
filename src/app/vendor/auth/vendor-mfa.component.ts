@@ -119,7 +119,7 @@ export class VendorMfaComponent implements OnInit {
             sessionStorage.setItem('role', 'vendor');
             sessionStorage.setItem('userType', 'vendor');
             // Navigate to vendor dashboard
-            this.router.navigate(['/vendor/orders']);
+      this.router.navigate(['/vendor/orders']);
           } else {
             // Si no tiene access_token, mostrar error
             this.errorMessage = response?.message || 'Código de verificación inválido';

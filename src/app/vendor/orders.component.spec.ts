@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { OrdersComponent } from './orders.component';
 
 describe('OrdersComponent', () => {
@@ -20,7 +21,8 @@ describe('OrdersComponent', () => {
         MatButtonModule,
         MatTableModule,
         MatTooltipModule,
-        BrowserAnimationsModule
+        BrowserAnimationsModule,
+        HttpClientTestingModule
       ]
     }).compileComponents();
 

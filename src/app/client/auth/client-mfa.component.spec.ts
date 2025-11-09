@@ -2,27 +2,36 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { of } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
 import { ClientMfaComponent } from './client-mfa.component';
 
 describe('ClientMfaComponent', () => {
   let component: ClientMfaComponent;
   let fixture: ComponentFixture<ClientMfaComponent>;
   let mockRouter: jasmine.SpyObj<Router>;
+  let mockAuthService: jasmine.SpyObj<AuthService>;
 
   beforeEach(async () => {
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
+    mockAuthService = jasmine.createSpyObj('AuthService', ['verifyCode', 'resendCode']);
 
     await TestBed.configureTestingModule({
       declarations: [ClientMfaComponent],
-      imports: [ReactiveFormsModule],
+      imports: [ReactiveFormsModule, HttpClientTestingModule],
       providers: [
-        { provide: Router, useValue: mockRouter }
+        { provide: Router, useValue: mockRouter },
+        { provide: AuthService, useValue: mockAuthService }
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     }).compileComponents();
 
     fixture = TestBed.createComponent(ClientMfaComponent);
     component = fixture.componentInstance;
+    // Set userId for tests
+    component.userId = 'test-user-id';
+    sessionStorage.setItem('pending_user_id', 'test-user-id');
     fixture.detectChanges();
   });
 
@@ -68,9 +77,11 @@ describe('ClientMfaComponent', () => {
 
   it('should navigate to client create-order when code is valid', () => {
     component._form.patchValue({ code: '123456' });
+    mockAuthService.verifyCode.and.returnValue(of({ access_token: 'test-token', refresh_token: 'test-refresh', user: {} }));
 
     component.verify();
 
+    expect(mockAuthService.verifyCode).toHaveBeenCalledWith('test-user-id', '123456');
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/client']);
   });
 
@@ -80,6 +91,7 @@ describe('ClientMfaComponent', () => {
 
     component.verify();
 
+    expect(mockAuthService.verifyCode).not.toHaveBeenCalled();
     expect(mockRouter.navigate).not.toHaveBeenCalled();
     expect(component._form.markAllAsTouched).toHaveBeenCalled();
   });
@@ -88,8 +100,12 @@ describe('ClientMfaComponent', () => {
     const validCodes = ['123456', '654321', '111111', '999999'];
     
     validCodes.forEach(code => {
+      (mockAuthService.verifyCode as jasmine.Spy).calls.reset();
+      (mockRouter.navigate as jasmine.Spy).calls.reset();
       component._form.patchValue({ code });
+      mockAuthService.verifyCode.and.returnValue(of({ access_token: 'test-token', refresh_token: 'test-refresh', user: {} }));
       component.verify();
+      expect(mockAuthService.verifyCode).toHaveBeenCalledWith('test-user-id', code);
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/client']);
     });
   });
@@ -98,9 +114,10 @@ describe('ClientMfaComponent', () => {
     const invalidCodes = ['12345', '1234567', 'abc123', '12345a', '123-456'];
     
     invalidCodes.forEach(code => {
+      (mockAuthService.verifyCode as jasmine.Spy).calls.reset();
       component._form.patchValue({ code });
       component.verify();
-      expect(mockRouter.navigate).not.toHaveBeenCalled();
+      expect(mockAuthService.verifyCode).not.toHaveBeenCalled();
     });
   });
 
@@ -110,6 +127,7 @@ describe('ClientMfaComponent', () => {
     
     component.verify();
     
+    expect(mockAuthService.verifyCode).not.toHaveBeenCalled();
     expect(component._form.markAllAsTouched).toHaveBeenCalled();
     expect(mockRouter.navigate).not.toHaveBeenCalled();
   });
@@ -120,6 +138,7 @@ describe('ClientMfaComponent', () => {
     
     component.verify();
     
+    expect(mockAuthService.verifyCode).not.toHaveBeenCalled();
     expect(component._form.markAllAsTouched).toHaveBeenCalled();
     expect(mockRouter.navigate).not.toHaveBeenCalled();
   });
@@ -149,9 +168,10 @@ describe('ClientMfaComponent', () => {
     const specialCodes = ['!@#$%^', '123-456', '123.456', '123/456'];
     
     specialCodes.forEach(code => {
+      (mockAuthService.verifyCode as jasmine.Spy).calls.reset();
       component._form.patchValue({ code });
       component.verify();
-      expect(mockRouter.navigate).not.toHaveBeenCalled();
+      expect(mockAuthService.verifyCode).not.toHaveBeenCalled();
     });
   });
 
@@ -162,19 +182,26 @@ describe('ClientMfaComponent', () => {
     
     component.verify();
     
+    expect(mockAuthService.verifyCode).not.toHaveBeenCalled();
     expect(component._form.markAllAsTouched).toHaveBeenCalled();
     expect(mockRouter.navigate).not.toHaveBeenCalled();
   });
 
   it('should handle multiple verification attempts', () => {
-    // First attempt with invalid code
-    component._form.patchValue({ code: '123' });
+    // First attempt with invalid code (no access_token)
+    component._form.patchValue({ code: '000000' });
+    mockAuthService.verifyCode.and.returnValue(of({ message: 'Código inválido' }));
     component.verify();
+    expect(mockAuthService.verifyCode).toHaveBeenCalledWith('test-user-id', '000000');
     expect(mockRouter.navigate).not.toHaveBeenCalled();
     
     // Second attempt with valid code
+    (mockRouter.navigate as jasmine.Spy).calls.reset();
+    (mockAuthService.verifyCode as jasmine.Spy).calls.reset();
     component._form.patchValue({ code: '123456' });
+    mockAuthService.verifyCode.and.returnValue(of({ access_token: 'test-token', refresh_token: 'test-refresh', user: {} }));
     component.verify();
+    expect(mockAuthService.verifyCode).toHaveBeenCalledWith('test-user-id', '123456');
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/client']);
   });
 
@@ -234,9 +261,11 @@ describe('ClientMfaComponent', () => {
 
   it('should handle form submission with valid data', () => {
     component._form.patchValue({ code: '123456' });
+    mockAuthService.verifyCode.and.returnValue(of({ access_token: 'test-token', refresh_token: 'test-refresh', user: {} }));
     
     component.verify();
     
+    expect(mockAuthService.verifyCode).toHaveBeenCalledWith('test-user-id', '123456');
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/client']);
   });
 
@@ -246,6 +275,7 @@ describe('ClientMfaComponent', () => {
     
     component.verify();
     
+    expect(mockAuthService.verifyCode).not.toHaveBeenCalled();
     expect(component._form.markAllAsTouched).toHaveBeenCalled();
     expect(mockRouter.navigate).not.toHaveBeenCalled();
   });

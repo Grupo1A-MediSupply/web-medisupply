@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { RouterTestingModule } from '@angular/router/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { AppRoutingModule } from './app-routing.module';
 
 describe('AppRoutingModule', () => {
@@ -10,7 +11,8 @@ describe('AppRoutingModule', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [RouterTestingModule.withRoutes([
+      imports: [
+        RouterTestingModule.withRoutes([
         { path: '', redirectTo: '/vendor/login', pathMatch: 'full' },
         { path: 'vendor/login', component: {} as any },
         { path: 'vendor/signup', component: {} as any },
@@ -23,7 +25,9 @@ describe('AppRoutingModule', () => {
         { path: 'client/change-password', component: {} as any },
         { path: 'client/create-order', component: {} as any },
         { path: '**', redirectTo: '/vendor/login' }
-      ])]
+      ]),
+      HttpClientTestingModule
+      ]
     });
 
     router = TestBed.inject(Router);

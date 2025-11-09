@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { VendorDashboardComponent } from './vendor-dashboard.component';
 
 describe('VendorDashboardComponent - Upload Functionality', () => {
@@ -9,6 +10,7 @@ describe('VendorDashboardComponent - Upload Functionality', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [VendorDashboardComponent],
+      imports: [HttpClientTestingModule],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     }).compileComponents();
 

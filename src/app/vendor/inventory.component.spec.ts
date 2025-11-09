@@ -3,6 +3,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { InventoryComponent } from './inventory.component';
 
 describe('InventoryComponent', () => {
@@ -16,7 +17,8 @@ describe('InventoryComponent', () => {
         MatTableModule,
         MatCardModule,
         MatIconModule,
-        NoopAnimationsModule
+        NoopAnimationsModule,
+        HttpClientTestingModule
       ]
     })
     .compileComponents();

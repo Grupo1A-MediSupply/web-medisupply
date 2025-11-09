@@ -2,21 +2,30 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { of } from 'rxjs';
+import { tap } from 'rxjs/operators';
+import { AuthService } from '../../services/auth.service';
 import { VendorLoginComponent } from './vendor-login.component';
 
 describe('VendorLoginComponent', () => {
   let component: VendorLoginComponent;
   let fixture: ComponentFixture<VendorLoginComponent>;
   let mockRouter: jasmine.SpyObj<Router>;
+  let mockAuthService: jasmine.SpyObj<AuthService>;
 
   beforeEach(async () => {
-    mockRouter = jasmine.createSpyObj('Router', ['navigate']);
+    mockRouter = jasmine.createSpyObj('Router', ['navigate', 'navigateByUrl']);
+    mockRouter.navigate.and.returnValue(Promise.resolve(true));
+    mockRouter.navigateByUrl.and.returnValue(Promise.resolve(true));
+    mockAuthService = jasmine.createSpyObj('AuthService', ['login']);
 
         await TestBed.configureTestingModule({
           declarations: [VendorLoginComponent],
-          imports: [ReactiveFormsModule],
+          imports: [ReactiveFormsModule, HttpClientTestingModule],
           providers: [
-            { provide: Router, useValue: mockRouter }
+            { provide: Router, useValue: mockRouter },
+            { provide: AuthService, useValue: mockAuthService }
           ],
           schemas: [CUSTOM_ELEMENTS_SCHEMA]
         }).compileComponents();
@@ -61,12 +70,14 @@ describe('VendorLoginComponent', () => {
   it('should set vendor role and navigate to vendor MFA on valid login', () => {
     spyOn(sessionStorage, 'setItem');
     component._form.patchValue({ user: 'vendedor', pass: 'password123' });
+    mockAuthService.login.and.returnValue(of({ message: 'Código enviado', user_id: 'test-user-id' }));
     
     component.login();
     
+    expect(mockAuthService.login).toHaveBeenCalledWith('vendedor', 'password123');
     expect(sessionStorage.setItem).toHaveBeenCalledWith('role', 'vendor');
     expect(sessionStorage.setItem).toHaveBeenCalledWith('userType', 'vendor');
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/vendor/mfa']);
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/vendor/mfa'], { replaceUrl: false });
   });
 
   it('should not navigate when form is invalid', () => {
@@ -87,12 +98,14 @@ describe('VendorLoginComponent', () => {
   it('should handle login with different vendor credentials', () => {
     spyOn(sessionStorage, 'setItem');
     component._form.patchValue({ user: 'vendoruser', pass: 'vendorpass123' });
+    mockAuthService.login.and.returnValue(of({ message: 'Código enviado', user_id: 'test-user-id' }));
     
     component.login();
     
+    expect(mockAuthService.login).toHaveBeenCalledWith('vendoruser', 'vendorpass123');
     expect(sessionStorage.setItem).toHaveBeenCalledWith('role', 'vendor');
     expect(sessionStorage.setItem).toHaveBeenCalledWith('userType', 'vendor');
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/vendor/mfa']);
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/vendor/mfa'], { replaceUrl: false });
   });
 
   it('should show validation errors for empty form', () => {
@@ -124,11 +137,19 @@ describe('VendorLoginComponent', () => {
   it('should handle form submission with valid data', () => {
     spyOn(sessionStorage, 'setItem');
     component._form.patchValue({ user: 'vendoruser', pass: 'vendorpass123' });
+    mockAuthService.login.and.returnValue(
+      of({ message: 'Código enviado', user_id: 'test-user-id' }).pipe(
+        tap(() => {
+          sessionStorage.setItem('pending_user_id', 'test-user-id');
+        })
+      )
+    );
     
     component.login();
     
-    expect(sessionStorage.setItem).toHaveBeenCalledTimes(2);
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/vendor/mfa']);
+    expect(mockAuthService.login).toHaveBeenCalledWith('vendoruser', 'vendorpass123');
+    expect(sessionStorage.setItem).toHaveBeenCalledTimes(3); // role, userType, pending_user_id
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/vendor/mfa'], { replaceUrl: false });
   });
 
   it('should handle form submission with invalid data', () => {
@@ -179,6 +200,13 @@ describe('VendorLoginComponent', () => {
 
   it('should handle multiple login attempts', () => {
     spyOn(sessionStorage, 'setItem');
+    mockAuthService.login.and.returnValue(
+      of({ message: 'Código enviado', user_id: 'test-user-id' }).pipe(
+        tap(() => {
+          sessionStorage.setItem('pending_user_id', 'test-user-id');
+        })
+      )
+    );
     
     // First login attempt
     component._form.patchValue({ user: 'vendor1', pass: 'pass123' });
@@ -188,7 +216,8 @@ describe('VendorLoginComponent', () => {
     component._form.patchValue({ user: 'vendor2', pass: 'pass456' });
     component.login();
     
-    expect(sessionStorage.setItem).toHaveBeenCalledTimes(4);
+    expect(mockAuthService.login).toHaveBeenCalledTimes(2);
+    expect(sessionStorage.setItem).toHaveBeenCalledTimes(6); // 3 per attempt (role, userType, pending_user_id)
     expect(mockRouter.navigate).toHaveBeenCalledTimes(2);
   });
 
@@ -221,22 +250,25 @@ describe('VendorLoginComponent', () => {
 
   it('should handle login with different user types', () => {
     spyOn(sessionStorage, 'setItem');
+    mockAuthService.login.and.returnValue(of({ message: 'Código enviado', user_id: 'test-user-id' }));
     
     // Test vendor login
     component._form.patchValue({ user: 'proveedor', pass: 'password' });
     component.login();
     
+    expect(mockAuthService.login).toHaveBeenCalledWith('proveedor', 'password');
     expect(sessionStorage.setItem).toHaveBeenCalledWith('role', 'vendor');
     expect(sessionStorage.setItem).toHaveBeenCalledWith('userType', 'vendor');
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/vendor/mfa']);
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/vendor/mfa'], { replaceUrl: false });
   });
 
   it('should handle invalid login credentials', () => {
     component._form.patchValue({ user: 'invalid', pass: 'wrong' });
+    mockAuthService.login.and.returnValue(of({ message: 'Código enviado', user_id: 'test-user-id' }));
     component.login();
     
-    // The component navigates to MFA regardless of credentials when form is valid
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/vendor/mfa']);
+    expect(mockAuthService.login).toHaveBeenCalledWith('invalid', 'wrong');
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/vendor/mfa'], { replaceUrl: false });
   });
 
   it('should handle form reset', () => {

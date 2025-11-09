@@ -307,7 +307,7 @@ export class VendorDashboardComponent implements OnInit, AfterViewInit {
     this.authService.logout().subscribe({
       next: () => {
         // Limpiar sessionStorage y navegar a la página principal
-        sessionStorage.clear();
+    sessionStorage.clear(); 
         localStorage.removeItem('current_user');
         this.router.navigate(['/']);
       },
@@ -316,7 +316,7 @@ export class VendorDashboardComponent implements OnInit, AfterViewInit {
         console.error('Error al cerrar sesión:', error);
         sessionStorage.clear();
         localStorage.removeItem('current_user');
-        this.router.navigate(['/']);
+    this.router.navigate(['/']); 
       }
     });
   }

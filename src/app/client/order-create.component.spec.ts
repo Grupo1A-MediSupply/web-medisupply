@@ -8,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { OrderCreateComponent } from './order-create.component';
 
 describe('OrderCreateComponent', () => {
@@ -26,7 +27,8 @@ describe('OrderCreateComponent', () => {
         MatInputModule,
         MatSelectModule,
         MatOptionModule,
-        BrowserAnimationsModule
+        BrowserAnimationsModule,
+        HttpClientTestingModule
       ]
     }).compileComponents();
 

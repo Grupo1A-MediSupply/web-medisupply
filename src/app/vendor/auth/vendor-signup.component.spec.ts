@@ -2,21 +2,27 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { of } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
 import { VendorSignupComponent } from './vendor-signup.component';
 
 describe('VendorSignupComponent', () => {
   let component: VendorSignupComponent;
   let fixture: ComponentFixture<VendorSignupComponent>;
   let mockRouter: jasmine.SpyObj<Router>;
+  let mockAuthService: jasmine.SpyObj<AuthService>;
 
   beforeEach(async () => {
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
+    mockAuthService = jasmine.createSpyObj('AuthService', ['register']);
 
     await TestBed.configureTestingModule({
       declarations: [VendorSignupComponent],
-      imports: [ReactiveFormsModule],
+      imports: [ReactiveFormsModule, HttpClientTestingModule],
       providers: [
-        { provide: Router, useValue: mockRouter }
+        { provide: Router, useValue: mockRouter },
+        { provide: AuthService, useValue: mockAuthService }
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     }).compileComponents();
@@ -69,7 +75,6 @@ describe('VendorSignupComponent', () => {
   });
 
   it('should create account successfully with matching passwords', () => {
-    spyOn(sessionStorage, 'setItem');
     spyOn(window, 'alert');
     component.signupForm.patchValue({
       fullName: 'John Doe',
@@ -80,17 +85,16 @@ describe('VendorSignupComponent', () => {
       password: 'password123',
       confirmPassword: 'password123'
     });
+    mockAuthService.register.and.returnValue(of({ id: '123', email: 'john@example.com', username: 'vendedor' }));
 
     component.createAccount();
 
-    expect(sessionStorage.setItem).toHaveBeenCalledWith('role', 'vendor');
-    expect(sessionStorage.setItem).toHaveBeenCalledWith('userType', 'vendor');
+    expect(mockAuthService.register).toHaveBeenCalled();
     expect(window.alert).toHaveBeenCalledWith('Cuenta de vendedor creada exitosamente');
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/vendor/login']);
   });
 
   it('should show error when passwords do not match', () => {
-    spyOn(window, 'alert');
     component.signupForm.patchValue({
       fullName: 'John Doe',
       email: 'john@example.com',
@@ -103,7 +107,8 @@ describe('VendorSignupComponent', () => {
 
     component.createAccount();
 
-    expect(window.alert).toHaveBeenCalledWith('Las contraseñas no coinciden');
+    expect(mockAuthService.register).not.toHaveBeenCalled();
+    expect(component.errorMessage).toBe('Las contraseñas no coinciden');
     expect(mockRouter.navigate).not.toHaveBeenCalled();
   });
 
@@ -275,10 +280,10 @@ describe('VendorSignupComponent', () => {
   });
 
   it('should handle multiple account creation attempts', () => {
-    spyOn(sessionStorage, 'setItem');
     spyOn(window, 'alert');
     
     // First attempt
+    mockAuthService.register.and.returnValue(of({ id: '123', email: 'vendor1@example.com', username: 'vendor1' }));
     component.signupForm.patchValue({
       fullName: 'Vendor 1',
       email: 'vendor1@example.com',
@@ -289,8 +294,10 @@ describe('VendorSignupComponent', () => {
       confirmPassword: 'password123'
     });
     component.createAccount();
+    expect(mockAuthService.register).toHaveBeenCalledTimes(1);
     
     // Second attempt
+    mockAuthService.register.and.returnValue(of({ id: '456', email: 'vendor2@example.com', username: 'vendor2' }));
     component.signupForm.patchValue({
       fullName: 'Vendor 2',
       email: 'vendor2@example.com',
@@ -302,8 +309,9 @@ describe('VendorSignupComponent', () => {
     });
     component.createAccount();
     
-    expect(sessionStorage.setItem).toHaveBeenCalledTimes(4);
-    expect(window.alert).toHaveBeenCalledTimes(2);
+    expect(mockAuthService.register).toHaveBeenCalledTimes(2);
+    expect(window.alert).toHaveBeenCalledTimes(4); // 2 per attempt (Iniciando registro + Cuenta creada)
+    expect(mockRouter.navigate).toHaveBeenCalledTimes(2);
   });
 
   it('should handle form field updates', () => {

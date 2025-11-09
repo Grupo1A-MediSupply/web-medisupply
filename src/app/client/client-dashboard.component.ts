@@ -118,9 +118,9 @@ export class ClientDashboardComponent {
       error: (error) => {
         // Aunque falle el logout en el backend, limpiar todo localmente
         console.error('Error al cerrar sesión:', error);
-        sessionStorage.clear();
+    sessionStorage.clear(); 
         localStorage.removeItem('current_user');
-        this.router.navigate(['/']);
+    this.router.navigate(['/']); 
       }
     });
   }

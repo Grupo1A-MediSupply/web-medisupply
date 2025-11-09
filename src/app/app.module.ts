@@ -83,14 +83,14 @@ import { SignupComponent } from './auth/signup.component';
     InventoryComponent,
     RoutesComponent
   ],
-  imports: [
-    BrowserModule,
-    BrowserAnimationsModule,
+         imports: [
+           BrowserModule,
+           BrowserAnimationsModule,
     HttpClientModule,
-    ReactiveFormsModule,
-    FormsModule,
-    RouterModule,
-    AppRoutingModule,
+           ReactiveFormsModule,
+           FormsModule,
+           RouterModule,
+           AppRoutingModule,
     MatSidenavModule,
     MatToolbarModule,
     MatIconModule,
