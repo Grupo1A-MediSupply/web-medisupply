@@ -3,25 +3,25 @@ import { RouterModule, Routes } from '@angular/router';
 
 
 // Vendor Auth Components
-import { VendorLoginComponent } from './vendor/auth/vendor-login.component';
-import { VendorSignupComponent } from './vendor/auth/vendor-signup.component';
-import { VendorMfaComponent } from './vendor/auth/vendor-mfa.component';
-import { VendorChangePasswordComponent } from './vendor/auth/vendor-change-password.component';
+import { VendorLoginComponent } from './features/vendor/auth/components/login/vendor-login.component';
+import { VendorSignupComponent } from './features/vendor/auth/components/signup/vendor-signup.component';
+import { VendorMfaComponent } from './features/vendor/auth/components/mfa/vendor-mfa.component';
+import { VendorChangePasswordComponent } from './features/vendor/auth/components/change-password/vendor-change-password.component';
 
 // Client Auth Components
-import { ClientLoginComponent } from './client/auth/client-login.component';
-import { ClientSignupComponent } from './client/auth/client-signup.component';
-import { ClientMfaComponent } from './client/auth/client-mfa.component';
-import { ClientChangePasswordComponent } from './client/auth/client-change-password.component';
+import { ClientLoginComponent } from './features/client/auth/components/login/client-login.component';
+import { ClientSignupComponent } from './features/client/auth/components/signup/client-signup.component';
+import { ClientMfaComponent } from './features/client/auth/components/mfa/client-mfa.component';
+import { ClientChangePasswordComponent } from './features/client/auth/components/change-password/client-change-password.component';
 
 // Dashboard Components
-import { VendorDashboardComponent } from './vendor/vendor-dashboard.component';
-import { UploadComponent } from './vendor/upload.component';
-import { ClientDashboardComponent } from './client/client-dashboard.component';
-import { OrderCreateComponent } from './client/order-create.component';
-import { OrdersComponent } from './vendor/orders.component';
-import { InventoryComponent } from './vendor/inventory.component';
-import { RoutesComponent } from './vendor/routes.component';
+import { VendorDashboardComponent } from './features/vendor/pages/dashboard/vendor-dashboard.component';
+import { UploadComponent } from './features/vendor/pages/upload/upload.component';
+import { ClientDashboardComponent } from './features/client/pages/dashboard/client-dashboard.component';
+import { OrderCreateComponent } from './features/client/pages/order-create/order-create.component';
+import { OrdersComponent } from './features/vendor/pages/orders/orders.component';
+import { InventoryComponent } from './features/vendor/pages/inventory/inventory.component';
+import { RoutesComponent } from './features/vendor/pages/routes/routes.component';
 
 const routes: Routes = [
   // Default redirect to vendor login

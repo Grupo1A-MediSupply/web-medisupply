@@ -1,0 +1,8 @@
+  <h2>Carga de Inventario</h2>
+  <p class="small-note">Carga masiva (CSV/Excel) para actualizar inventario, fichas técnicas, certificados y precios.</p>
+  <div class="upload-card">
+    <input type="file" (change)="onFile($event)" />
+    <div style="margin-top:12px">
+      <button mat-stroked-button (click)="downloadTemplate()">Descargar plantilla CSV</button>
+    </div>
+  </div>
