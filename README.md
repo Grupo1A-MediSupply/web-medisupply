@@ -47,6 +47,22 @@ El proyecto estará disponible en `http://localhost:4200`
 npm test
 ```
 
+### Pruebas End-to-End (Playwright)
+
+```bash
+# Instalar navegadores de Playwright (una sola vez)
+npx playwright install
+
+# Ejecutar todas las suites en modo headless
+npm run test:e2e
+
+# Ejecutar en modo headed
+npm run test:e2e:headed
+
+# Explorar con el Trace Viewer
+npm run test:e2e:ui
+```
+
 ### Ejecutar Pruebas en Modo Watch
 ```bash
 npm run test:watch
