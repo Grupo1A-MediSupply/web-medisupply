@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-vendor-mfa',
@@ -46,12 +47,19 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
             </div>
           </div>
 
+          <div class="error-message" *ngIf="errorMessage" style="color: red; margin-bottom: 1rem;">
+            {{ errorMessage }}
+          </div>
+
           <div class="mfa-actions">
             <div class="resend-link-container">
-              <a href="#" class="resend-link">Enviar código de nuevo</a>
+              <a href="#" class="resend-link" (click)="resendCode(); $event.preventDefault()" [class.disabled]="loading">
+                Enviar código de nuevo
+              </a>
             </div>
-            <button type="submit" class="btn-primary" [disabled]="!_form.valid">
-              Verificar y continuar
+            <button type="submit" class="btn-primary" [disabled]="!_form.valid || loading">
+              <span *ngIf="loading">Verificando...</span>
+              <span *ngIf="!loading">Verificar y continuar</span>
             </button>
         </div>
       </form>
@@ -60,7 +68,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
   </div>
   `
 })
-export class VendorMfaComponent {
+export class VendorMfaComponent implements OnInit {
   _form = new FormGroup({ 
     code: new FormControl('', [
       Validators.required, 
@@ -70,15 +78,85 @@ export class VendorMfaComponent {
     ])
   });
   
-  constructor(private router: Router){}
+  loading = false;
+  errorMessage = '';
+  userId: string | null = null;
+
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) {}
+
+  ngOnInit() {
+    // Obtener user_id del sessionStorage (guardado en login)
+    this.userId = sessionStorage.getItem('pending_user_id');
+    console.log('✅ VendorMfaComponent.ngOnInit - userId:', this.userId);
+    if (!this.userId) {
+      // Si no hay user_id, redirigir a login
+      console.warn('⚠️ No se encontró user_id en sessionStorage, redirigiendo a login');
+      this.router.navigate(['/vendor/login']);
+    } else {
+      console.log('✅ VendorMfaComponent.ngOnInit - user_id encontrado, continuando con MFA');
+    }
+  }
   
   verify(){
-    if (this._form.valid) {
-      // Verify MFA code and navigate to vendor dashboard
-      this.router.navigate(['/vendor/orders']);
+    if (this._form.valid && this.userId) {
+      const code = this._form.value.code;
+      
+      this.loading = true;
+      this.errorMessage = '';
+
+      // Verificar código MFA
+      this.authService.verifyCode(this.userId, code || '').subscribe({
+        next: (response) => {
+          this.loading = false;
+          // El backend retorna { access_token, refresh_token, user } cuando el código es correcto
+          // Verificar si la respuesta tiene access_token (indica éxito)
+          if (response && response.access_token) {
+            // El token se guarda automáticamente en localStorage por AuthService
+            // Store vendor role
+            sessionStorage.setItem('role', 'vendor');
+            sessionStorage.setItem('userType', 'vendor');
+            // Navigate to vendor dashboard
+            this.router.navigate(['/vendor/orders']);
+          } else {
+            // Si no tiene access_token, mostrar error
+            this.errorMessage = response?.message || 'Código de verificación inválido';
+          }
+        },
+        error: (error) => {
+          this.loading = false;
+          this.errorMessage = error.message || 'Código de verificación inválido. Por favor, intenta de nuevo.';
+          console.error('Error al verificar código:', error);
+        }
+      });
     } else {
       // Mark all fields as touched to show validation errors
       this._form.markAllAsTouched();
+    }
+  }
+
+  resendCode() {
+    if (this.userId) {
+      this.loading = true;
+      this.errorMessage = '';
+      
+      this.authService.resendCode(this.userId).subscribe({
+        next: (response) => {
+          this.loading = false;
+          if (response.success) {
+            alert('Código de verificación reenviado. Revisa tu correo electrónico.');
+          } else {
+            this.errorMessage = response.message || 'Error al reenviar el código';
+          }
+        },
+        error: (error) => {
+          this.loading = false;
+          this.errorMessage = error.message || 'Error al reenviar el código. Por favor, intenta de nuevo.';
+          console.error('Error al reenviar código:', error);
+        }
+      });
     }
   }
 }

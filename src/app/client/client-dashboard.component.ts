@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'client-dashboard',
@@ -80,7 +81,10 @@ export class ClientDashboardComponent {
     description: ''
   };
 
-  constructor(private router: Router){}
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) {}
 
   setActiveSection(section: string) {
     this.activeSection = section;
@@ -103,8 +107,22 @@ export class ClientDashboardComponent {
   }
 
   logout(){ 
-    sessionStorage.clear(); 
-    this.router.navigate(['/']); 
+    // Llamar al endpoint de logout del backend
+    this.authService.logout().subscribe({
+      next: () => {
+        // Limpiar sessionStorage y navegar a la página principal
+        sessionStorage.clear();
+        localStorage.removeItem('current_user');
+        this.router.navigate(['/']);
+      },
+      error: (error) => {
+        // Aunque falle el logout en el backend, limpiar todo localmente
+        console.error('Error al cerrar sesión:', error);
+        sessionStorage.clear();
+        localStorage.removeItem('current_user');
+        this.router.navigate(['/']);
+      }
+    });
   }
 
   getTotalOrders(): number {

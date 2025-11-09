@@ -30,6 +30,13 @@
           },
           "configurations": {
             "production": {
+              "baseHref": "/",
+              "fileReplacements": [
+                {
+                  "replace": "src/config/environments/environment.ts",
+                  "with": "src/config/environments/environment.prod.ts"
+                }
+              ],
               "budgets": [
                 {
                   "type": "initial",
@@ -58,7 +65,8 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "medical-distribution-prototype:build"
+            "browserTarget": "medical-distribution-prototype:build",
+            "proxyConfig": "proxy.conf.json"
           },
           "configurations": {
             "production": {

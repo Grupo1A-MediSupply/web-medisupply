@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 @Component({
+  selector: 'app-signup',
   template: `
   <div class="signup-page">
     <!-- Left Section - Logo and Branding -->

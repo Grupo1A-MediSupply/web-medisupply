@@ -5,3 +5,5 @@ out-tsc
 .angular/
 angular/
 coverage/
+*.backup
+src/config/environments/environment.prod.ts.backup

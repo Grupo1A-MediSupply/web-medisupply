@@ -11,6 +11,12 @@ on:
 
 env:
   AWS_REGION: us-east-1
+  # Variables de entorno del backend (desde GitHub Secrets)
+  PROD_AUTH_URL: ${{ secrets.PROD_AUTH_URL }}
+  PROD_PRODUCT_URL: ${{ secrets.PROD_PRODUCT_URL }}
+  PROD_ORDER_URL: ${{ secrets.PROD_ORDER_URL }}
+  PROD_LOGISTICS_URL: ${{ secrets.PROD_LOGISTICS_URL }}
+  PROD_NOTIFICATIONS_URL: ${{ secrets.PROD_NOTIFICATIONS_URL }}
 
 jobs:
   deploy:
@@ -28,6 +34,35 @@ jobs:
     
     - name: Install dependencies
       run: npm ci
+    
+    - name: Verify environment variables
+      run: |
+        echo "Verifying environment variables..."
+        if [ -z "$PROD_AUTH_URL" ]; then
+          echo "⚠️  Warning: PROD_AUTH_URL is not set"
+        else
+          echo "✓ PROD_AUTH_URL is set"
+        fi
+        if [ -z "$PROD_PRODUCT_URL" ]; then
+          echo "⚠️  Warning: PROD_PRODUCT_URL is not set"
+        else
+          echo "✓ PROD_PRODUCT_URL is set"
+        fi
+        if [ -z "$PROD_ORDER_URL" ]; then
+          echo "⚠️  Warning: PROD_ORDER_URL is not set"
+        else
+          echo "✓ PROD_ORDER_URL is set"
+        fi
+        if [ -z "$PROD_LOGISTICS_URL" ]; then
+          echo "⚠️  Warning: PROD_LOGISTICS_URL is not set"
+        else
+          echo "✓ PROD_LOGISTICS_URL is set"
+        fi
+        if [ -z "$PROD_NOTIFICATIONS_URL" ]; then
+          echo "⚠️  Warning: PROD_NOTIFICATIONS_URL is not set"
+        else
+          echo "✓ PROD_NOTIFICATIONS_URL is set"
+        fi
     
     - name: Build application
       run: npm run build

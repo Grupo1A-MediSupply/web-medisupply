@@ -3,6 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { HttpClientModule } from '@angular/common/http';
 
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -45,9 +46,21 @@ import { RoutesComponent } from './vendor/routes.component';
 
 import { AppRoutingModule } from './app-routing.module';
 
+// Auth Components
+import { ChangePasswordComponent } from './auth/change-password.component';
+import { LoginComponent } from './auth/login.component';
+import { MfaComponent } from './auth/mfa.component';
+import { SignupComponent } from './auth/signup.component';
+
 @NgModule({
   declarations: [
     AppComponent,
+    
+    // Auth Components
+    ChangePasswordComponent,
+    LoginComponent,
+    MfaComponent,
+    SignupComponent,
     
     // Vendor Auth Components
     VendorLoginComponent,
@@ -70,13 +83,14 @@ import { AppRoutingModule } from './app-routing.module';
     InventoryComponent,
     RoutesComponent
   ],
-         imports: [
-           BrowserModule,
-           BrowserAnimationsModule,
-           ReactiveFormsModule,
-           FormsModule,
-           RouterModule,
-           AppRoutingModule,
+  imports: [
+    BrowserModule,
+    BrowserAnimationsModule,
+    HttpClientModule,
+    ReactiveFormsModule,
+    FormsModule,
+    RouterModule,
+    AppRoutingModule,
     MatSidenavModule,
     MatToolbarModule,
     MatIconModule,

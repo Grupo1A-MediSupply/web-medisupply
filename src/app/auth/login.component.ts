@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 @Component({
+  selector: 'app-login',
   template: `
   <div class="login-page">
     <!-- Left Section - Logo and Branding -->

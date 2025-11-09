@@ -1,0 +1,32 @@
+{
+  "/api/v1/auth": {
+    "target": "http://localhost:8001",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/api/v1/products": {
+    "target": "http://localhost:8002",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/api/v1/orders": {
+    "target": "http://localhost:8003",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/api/v1/routes": {
+    "target": "http://localhost:8004",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/api/v1/notifications": {
+    "target": "http://localhost:8005",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}

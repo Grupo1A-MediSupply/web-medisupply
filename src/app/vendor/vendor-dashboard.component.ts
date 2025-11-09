@@ -3,6 +3,7 @@ import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import * as L from 'leaflet';
 import * as Papa from 'papaparse';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'vendor-dashboard',
@@ -228,7 +229,10 @@ export class VendorDashboardComponent implements OnInit, AfterViewInit {
     {id: 'Camión-003', type: 'Furgón 5T', capacity: '5 toneladas', status: 'Disponible'}
   ];
 
-         constructor(private router: Router){}
+         constructor(
+           private router: Router,
+           private authService: AuthService
+         ) {}
 
          ngOnInit() {
            this.updateReportData();
@@ -299,8 +303,22 @@ export class VendorDashboardComponent implements OnInit, AfterViewInit {
   }
 
   logout(){ 
-    sessionStorage.clear(); 
-    this.router.navigate(['/']); 
+    // Llamar al endpoint de logout del backend
+    this.authService.logout().subscribe({
+      next: () => {
+        // Limpiar sessionStorage y navegar a la página principal
+        sessionStorage.clear();
+        localStorage.removeItem('current_user');
+        this.router.navigate(['/']);
+      },
+      error: (error) => {
+        // Aunque falle el logout en el backend, limpiar todo localmente
+        console.error('Error al cerrar sesión:', error);
+        sessionStorage.clear();
+        localStorage.removeItem('current_user');
+        this.router.navigate(['/']);
+      }
+    });
   }
 
          createOrder(){

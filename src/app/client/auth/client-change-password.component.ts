@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 @Component({
+  selector: 'app-client-change-password',
   template: `
   <div class="change-password-page">
     <!-- Left Section - Logo and Branding -->

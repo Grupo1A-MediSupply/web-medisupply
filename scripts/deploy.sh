@@ -51,9 +51,45 @@ check_requirements() {
     print_success "All requirements are met!"
 }
 
+# Check environment variables for production build
+check_env_vars() {
+    print_status "Checking environment variables..."
+    
+    if [ -z "$PROD_AUTH_URL" ]; then
+        print_warning "PROD_AUTH_URL is not set. Build will use placeholder."
+    else
+        print_success "PROD_AUTH_URL is set"
+    fi
+    
+    if [ -z "$PROD_PRODUCT_URL" ]; then
+        print_warning "PROD_PRODUCT_URL is not set. Build will use placeholder."
+    else
+        print_success "PROD_PRODUCT_URL is set"
+    fi
+    
+    if [ -z "$PROD_ORDER_URL" ]; then
+        print_warning "PROD_ORDER_URL is not set. Build will use placeholder."
+    else
+        print_success "PROD_ORDER_URL is set"
+    fi
+    
+    if [ -z "$PROD_LOGISTICS_URL" ]; then
+        print_warning "PROD_LOGISTICS_URL is not set. Build will use placeholder."
+    else
+        print_success "PROD_LOGISTICS_URL is set"
+    fi
+    
+    if [ -z "$PROD_NOTIFICATIONS_URL" ]; then
+        print_warning "PROD_NOTIFICATIONS_URL is not set. Build will use placeholder."
+    else
+        print_success "PROD_NOTIFICATIONS_URL is set"
+    fi
+}
+
 # Build the application
 build_app() {
     print_status "Building Angular application..."
+    check_env_vars
     npm ci
     npm run build
     print_success "Application built successfully!"

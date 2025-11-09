@@ -17,6 +17,10 @@
     "lib": [
       "es2020",
       "dom"
-    ]
+    ],
+    "paths": {
+      "@app/services/*": ["src/app/services/*"],
+      "@app/*": ["src/app/*"]
+    }
   }
 }
