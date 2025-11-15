@@ -4,12 +4,7 @@ import { Component } from '@angular/core';
   templateUrl: './orders.component.html'
 })
 export class OrdersComponent {
-  orders = [
-    {id: 'ORD-1001', product: 'Insulina - Lote A1', status: 'Creado'},
-    {id: 'ORD-1000', product: 'Equipo de monitoreo', status: 'Programado'},
-    {id: 'ORD-0999', product: 'Jeringas estériles', status: 'Completado'},
-    {id: 'ORD-0998', product: 'Guantes médicos', status: 'Pendiente'}
-  ];
+  orders: any[] = [];
 
   createOrder(){
     const newOrder = {

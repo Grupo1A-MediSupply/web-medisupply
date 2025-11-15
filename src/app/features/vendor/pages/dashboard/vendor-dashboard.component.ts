@@ -15,93 +15,9 @@ export class VendorDashboardComponent implements OnInit, AfterViewInit {
   private map: L.Map | null = null;
   private routeLayers: L.LayerGroup[] = [];
   
-  orders = [
-    {id: 'ORD-1001', product: 'Insulina - Lote A1', status: 'Creado'},
-    {id: 'ORD-1000', product: 'Equipo de monitoreo', status: 'Programado'},
-    {id: 'ORD-0999', product: 'Jeringas estériles', status: 'Completado'},
-    {id: 'ORD-0998', product: 'Guantes médicos', status: 'Pendiente'},
-    {id: 'ORD-0997', product: 'Mascarillas N95', status: 'Programado'},
-    {
-      id: 'ORD-0996', 
-      product: 'Pedido múltiple', 
-      status: 'Programado',
-      products: [
-        {product: 'Insulina', quantity: 10},
-        {product: 'Jeringas', quantity: 50},
-        {product: 'Guantes', quantity: 100}
-      ]
-    },
-    {
-      id: 'ORD-0995', 
-      product: 'Pedido hospital', 
-      status: 'En Tránsito',
-      products: [
-        {product: 'Equipo de monitoreo', quantity: 2},
-        {product: 'Mascarillas N95', quantity: 200}
-      ]
-    }
-  ];
+  orders: any[] = [];
 
-  inventory = [
-    {
-      name: 'Insulina', 
-      stock: 45, 
-      price: 25.50, 
-      expiry: '2025-12-15',
-      lot: 'INS-2024-001',
-      warehouse: 'Bodega Principal - Zona A',
-      supplier: 'MedSupply Corp',
-      category: 'Medicamento',
-      description: 'Insulina de acción rápida para tratamiento de diabetes',
-      batches: [
-        {batch: 'INS-2024-001-A', quantity: 25, expiry: '2025-12-15', location: 'Estante A1'},
-        {batch: 'INS-2024-001-B', quantity: 20, expiry: '2025-12-20', location: 'Estante A2'}
-      ]
-    },
-    {
-      name: 'Jeringas', 
-      stock: 8, 
-      price: 0.50, 
-      expiry: '2026-01-20',
-      lot: 'JER-2024-002',
-      warehouse: 'Bodega Secundaria - Zona B',
-      supplier: 'MedEquip Solutions',
-      category: 'Equipo Médico',
-      description: 'Jeringas estériles desechables de 10ml',
-      batches: [
-        {batch: 'JER-2024-002-A', quantity: 8, expiry: '2026-01-20', location: 'Estante B3'}
-      ]
-    },
-    {
-      name: 'Guantes', 
-      stock: 120, 
-      price: 0.25, 
-      expiry: '2025-11-30',
-      lot: 'GUA-2024-003',
-      warehouse: 'Bodega Principal - Zona C',
-      supplier: 'SafetyMed Inc',
-      category: 'Protección',
-      description: 'Guantes de nitrilo desechables talla M',
-      batches: [
-        {batch: 'GUA-2024-003-A', quantity: 50, expiry: '2025-11-30', location: 'Estante C1'},
-        {batch: 'GUA-2024-003-B', quantity: 70, expiry: '2025-12-05', location: 'Estante C2'}
-      ]
-    },
-    {
-      name: 'Mascarillas', 
-      stock: 5, 
-      price: 1.20, 
-      expiry: '2025-10-15',
-      lot: 'MAS-2024-004',
-      warehouse: 'Bodega Secundaria - Zona D',
-      supplier: 'ProtectMed Ltd',
-      category: 'Protección',
-      description: 'Mascarillas N95 para protección respiratoria',
-      batches: [
-        {batch: 'MAS-2024-004-A', quantity: 5, expiry: '2025-10-15', location: 'Estante D1'}
-      ]
-    }
-  ];
+  inventory: any[] = [];
 
   // Routes module properties
   showRouteGeneration = false;
@@ -169,64 +85,13 @@ export class VendorDashboardComponent implements OnInit, AfterViewInit {
     'supplier', 'category', 'description', 'batches'
   ];
 
-  routeOrders = [
-    {id: 'ORD-1001', client: 'Hospital San Rafael', address: 'Calle 10 #20-30', date: '2025-09-22', status: 'Sin Ruta', routeId: null},
-    {id: 'ORD-1002', client: 'Clínica Los Andes', address: 'Av 68 #45-12', date: '2025-09-22', status: 'Sin Ruta', routeId: null},
-    {id: 'ORD-1003', client: 'Centro Médico', address: 'Carrera 15 #80-25', date: '2025-09-21', status: 'En Tránsito', routeId: 'R-501'},
-    {id: 'ORD-1004', client: 'Hospital Central', address: 'Calle 100 #15-20', date: '2025-09-20', status: 'Entregado', routeId: 'R-502', returnRequested: true, returnReason: 'Producto defectuoso', returnStatus: 'Pendiente', deliveryDate: '2025-09-20'},
-    {id: 'ORD-1005', client: 'Clínica del Norte', address: 'Av 19 #120-45', date: '2025-09-19', status: 'Entregado', routeId: 'R-503', returnRequested: false, deliveryDate: '2025-09-19'}
-  ];
+  routeOrders: any[] = [];
 
-  routes = [
-    {id: 'R-501', vehicle: 'Camión-001', driver: 'Juan Pérez', status: 'En Tránsito', progress: 65},
-    {id: 'R-502', vehicle: 'Camión-002', driver: 'María García', status: 'Completado', progress: 100},
-    {id: 'R-503', vehicle: 'Camión-003', driver: 'Carlos López', status: 'Completado', progress: 100}
-  ];
+  routes: any[] = [];
 
-  suggestedRoutes = [
-    {
-      id: 'R-OPT-1',
-      distance: '12.5',
-      duration: '45 min',
-      fuel: '8.2',
-      stops: 3,
-      route: ['Almacén', 'Hospital San Rafael', 'Clínica Los Andes', 'Centro Médico'],
-      coordinates: [
-        [4.6097, -74.0817], // Almacén (Bogotá centro)
-        [4.6500, -74.1000], // Hospital San Rafael
-        [4.6200, -74.0900], // Clínica Los Andes
-        [4.6400, -74.0800]  // Centro Médico
-      ]
-    },
-    {
-      id: 'R-OPT-2',
-      distance: '15.2',
-      duration: '52 min',
-      fuel: '9.8',
-      stops: 3,
-      route: ['Almacén', 'Centro Médico', 'Hospital San Rafael', 'Clínica Los Andes'],
-      coordinates: [
-        [4.6097, -74.0817], // Almacén (Bogotá centro)
-        [4.6400, -74.0800], // Centro Médico
-        [4.6500, -74.1000], // Hospital San Rafael
-        [4.6200, -74.0900]  // Clínica Los Andes
-      ]
-    }
-  ];
-
-  // Ubicaciones de los destinos
-  locations = {
-    'Almacén': { lat: 4.6097, lng: -74.0817, name: 'Almacén Principal' },
-    'Hospital San Rafael': { lat: 4.6500, lng: -74.1000, name: 'Hospital San Rafael' },
-    'Clínica Los Andes': { lat: 4.6200, lng: -74.0900, name: 'Clínica Los Andes' },
-    'Centro Médico': { lat: 4.6400, lng: -74.0800, name: 'Centro Médico' }
-  };
-
-  availableVehicles = [
-    {id: 'Camión-001', type: 'Camión 12T', capacity: '12 toneladas', status: 'Disponible'},
-    {id: 'Camión-002', type: 'Camión 8T', capacity: '8 toneladas', status: 'Disponible'},
-    {id: 'Camión-003', type: 'Furgón 5T', capacity: '5 toneladas', status: 'Disponible'}
-  ];
+  suggestedRoutes: any[] = [];
+  locations: any = {};
+  availableVehicles: any[] = [];
 
          constructor(private router: Router){}
 

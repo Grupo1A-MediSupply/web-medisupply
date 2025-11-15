@@ -21,6 +21,55 @@ describe('VendorDashboardComponent', () => {
 
     fixture = TestBed.createComponent(VendorDashboardComponent);
     component = fixture.componentInstance;
+    
+    // Initialize mock data for tests
+    component.orders = [
+      {id: 'ORD-1001', product: 'Insulina - Lote A1', status: 'Creado'},
+      {id: 'ORD-1000', product: 'Equipo de monitoreo', status: 'Programado'},
+      {id: 'ORD-0999', product: 'Jeringas estériles', status: 'Completado'},
+      {id: 'ORD-0998', product: 'Guantes médicos', status: 'Pendiente'},
+      {id: 'ORD-0997', product: 'Mascarillas N95', status: 'Programado'}
+    ];
+    component.inventory = [
+      {name: 'Insulina', stock: 45, price: 25.50, category: 'Medicamento'},
+      {name: 'Jeringas', stock: 8, price: 0.50, category: 'Equipo Médico'},
+      {name: 'Guantes', stock: 120, price: 0.25, category: 'Protección'},
+      {name: 'Mascarillas', stock: 5, price: 1.20, category: 'Protección'}
+    ];
+    component.routeOrders = [
+      {id: 'ORD-1001', client: 'Hospital San Rafael', address: 'Calle 10 #20-30', date: '2025-09-22', status: 'Sin Ruta', routeId: null},
+      {id: 'ORD-1002', client: 'Clínica Los Andes', address: 'Av 68 #45-12', date: '2025-09-22', status: 'Sin Ruta', routeId: null},
+      {id: 'ORD-1003', client: 'Centro Médico', address: 'Carrera 15 #80-25', date: '2025-09-21', status: 'En Tránsito', routeId: 'R-501'},
+      {id: 'ORD-1004', client: 'Hospital Central', address: 'Calle 100 #15-20', date: '2025-09-20', status: 'Entregado', routeId: 'R-502', returnRequested: true, returnReason: 'Producto defectuoso', returnStatus: 'Pendiente', deliveryDate: '2025-09-20'},
+      {id: 'ORD-1005', client: 'Clínica del Norte', address: 'Av 19 #120-45', date: '2025-09-19', status: 'Entregado', routeId: 'R-503', returnRequested: false, deliveryDate: '2025-09-19'}
+    ];
+    component.routes = [
+      {id: 'R-501', vehicle: 'Camión-001', driver: 'Juan Pérez', status: 'En Tránsito', progress: 65},
+      {id: 'R-502', vehicle: 'Camión-002', driver: 'María García', status: 'Completado', progress: 100},
+      {id: 'R-503', vehicle: 'Camión-003', driver: 'Carlos López', status: 'Completado', progress: 100}
+    ];
+    component.suggestedRoutes = [
+      {
+        id: 'R-OPT-1',
+        distance: '12.5',
+        duration: '45 min',
+        fuel: '8.2',
+        stops: 3,
+        route: ['Almacén', 'Hospital San Rafael', 'Clínica Los Andes', 'Centro Médico'],
+        coordinates: [
+          [4.6097, -74.0817],
+          [4.6500, -74.1000],
+          [4.6200, -74.0900],
+          [4.6400, -74.0800]
+        ]
+      }
+    ];
+    component.availableVehicles = [
+      {id: 'Camión-001', type: 'Camión 12T', capacity: '12 toneladas', status: 'Disponible'},
+      {id: 'Camión-002', type: 'Camión 8T', capacity: '8 toneladas', status: 'Disponible'},
+      {id: 'Camión-003', type: 'Furgón 5T', capacity: '5 toneladas', status: 'Disponible'}
+    ];
+    
     fixture.detectChanges();
   });
 

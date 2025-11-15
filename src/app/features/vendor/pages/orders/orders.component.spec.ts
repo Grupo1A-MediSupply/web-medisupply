@@ -26,6 +26,15 @@ describe('OrdersComponent', () => {
 
     fixture = TestBed.createComponent(OrdersComponent);
     component = fixture.componentInstance;
+    
+    // Initialize mock data for tests
+    component.orders = [
+      {id: 'ORD-1001', product: 'Insulina - Lote A1', status: 'Creado'},
+      {id: 'ORD-1000', product: 'Equipo de monitoreo', status: 'Programado'},
+      {id: 'ORD-0999', product: 'Jeringas estériles', status: 'Completado'},
+      {id: 'ORD-0998', product: 'Guantes médicos', status: 'Pendiente'}
+    ];
+    
     fixture.detectChanges();
   });
 

@@ -1,0 +1,99 @@
+# Cloud Build configuration para MediSupply
+# Este pipeline se ejecuta automáticamente cuando se hace push a las ramas configuradas
+
+steps:
+  # Paso 1: Instalar dependencias y ejecutar tests
+  - name: 'node:18-alpine'
+    entrypoint: 'npm'
+    args: ['ci']
+    id: 'install-dependencies'
+
+  # Paso 2: Ejecutar tests unitarios
+  - name: 'node:18-alpine'
+    entrypoint: 'npm'
+    args: ['run', 'test:ci']
+    id: 'run-tests'
+    env:
+      - 'CHROME_BIN=/usr/bin/chromium-browser'
+      - 'CHROME_PATH=/usr/bin/chromium-browser'
+
+  # Paso 3: Construir la aplicación Angular
+  - name: 'node:18-alpine'
+    entrypoint: 'npm'
+    args: ['run', 'build']
+    id: 'build-app'
+    env:
+      - 'NODE_ENV=production'
+
+  # Paso 4: Construir la imagen Docker
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/medisupply-web:$SHORT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/medisupply-web:latest'
+      - '.'
+    id: 'build-image'
+
+  # Paso 5: Subir la imagen a Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/medisupply-web:$SHORT_SHA'
+    id: 'push-image-sha'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/medisupply-web:latest'
+    id: 'push-image-latest'
+
+  # Paso 6: Desplegar en Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'medisupply-web'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/medisupply-web:$SHORT_SHA'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8080'
+      - '--memory'
+      - '512Mi'
+      - '--cpu'
+      - '1'
+      - '--min-instances'
+      - '0'
+      - '--max-instances'
+      - '10'
+      - '--set-env-vars'
+      - 'NODE_ENV=production'
+    id: 'deploy-cloud-run'
+
+# Configuración de opciones
+options:
+  machineType: 'E2_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
+
+# Timeout del build (en segundos)
+timeout: '1200s'
+
+# Imágenes que se crearán
+images:
+  - 'gcr.io/$PROJECT_ID/medisupply-web:$SHORT_SHA'
+  - 'gcr.io/$PROJECT_ID/medisupply-web:latest'
+
+# Sustituciones de variables (se pueden configurar en Cloud Build)
+substitutions:
+  _SERVICE_NAME: 'medisupply-web'
+  _REGION: 'us-central1'
+  _MEMORY: '512Mi'
+  _CPU: '1'
+

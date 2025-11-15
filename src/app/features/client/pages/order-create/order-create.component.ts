@@ -10,19 +10,7 @@ export class OrderCreateComponent implements OnInit {
   createdOrder: any = null;
   private static orderIdCounter = 2000;
 
-  // Mock inventory data (similar to vendor - real-time access)
-  availableProducts = [
-    {name: 'Insulina', stock: 45, price: 25.50, category: 'Medicamento'},
-    {name: 'Jeringas', stock: 8, price: 0.50, category: 'Equipo Médico'},
-    {name: 'Guantes', stock: 120, price: 0.25, category: 'Protección'},
-    {name: 'Mascarillas', stock: 5, price: 1.20, category: 'Protección'},
-    {name: 'Paracetamol', stock: 100, price: 2.50, category: 'Medicamento'},
-    {name: 'Termómetro Digital', stock: 25, price: 15.00, category: 'Equipo Médico'},
-    {name: 'Alcohol Isopropílico', stock: 30, price: 3.50, category: 'Desinfectante'},
-    {name: 'Gasas Estériles', stock: 200, price: 0.15, category: 'Curación'},
-    {name: 'Vendas Elásticas', stock: 50, price: 2.00, category: 'Curación'},
-    {name: 'Oxímetro de Pulso', stock: 15, price: 45.00, category: 'Equipo Médico'}
-  ];
+  availableProducts: any[] = [];
 
 
   constructor(private fb: FormBuilder) {}

@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { AuthService } from '../../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-vendor-mfa',
@@ -15,15 +16,48 @@ export class VendorMfaComponent {
       Validators.pattern(/^[0-9]+$/)
     ])
   });
-  
-  constructor(private router: Router){}
-  
-  verify(){
+
+  isLoading = false;
+  errorMessage = '';
+
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) {}
+
+  verify() {
     if (this._form.valid) {
-      // Verify MFA code and navigate to vendor dashboard
-      this.router.navigate(['/vendor/orders']);
+      this.isLoading = true;
+      this.errorMessage = '';
+
+      const userId = sessionStorage.getItem('mfaUserId');
+      const code = this._form.value.code || '';
+
+      if (!userId) {
+        this.errorMessage = 'Error: No se encontró información de usuario';
+        this.isLoading = false;
+        this.router.navigate(['/vendor/login']);
+        return;
+      }
+
+      this.authService.verifyMFA(userId, code).subscribe({
+        next: (response) => {
+          this.isLoading = false;
+          
+          if (response.token && response.user) {
+            // Limpiar userId temporal
+            sessionStorage.removeItem('mfaUserId');
+            // Navegar al dashboard
+            this.router.navigate(['/vendor/orders']);
+          }
+        },
+        error: (error) => {
+          this.isLoading = false;
+          this.errorMessage = error.message || 'Código MFA inválido';
+          console.error('MFA verification error:', error);
+        }
+      });
     } else {
-      // Mark all fields as touched to show validation errors
       this._form.markAllAsTouched();
     }
   }

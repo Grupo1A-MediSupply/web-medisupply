@@ -1,0 +1,65 @@
+# Este archivo especifica archivos que deben ser ignorados por gcloud
+# Similar a .gitignore pero para Cloud Build
+
+# Dependencias
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Build outputs
+dist/
+*.js.map
+*.css.map
+
+# Testing
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+playwright/.cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+
+# Terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/.terraform.lock.hcl
+
+# Git
+.git/
+.gitignore
+
+# Documentation (opcional, incluir si quieres)
+# README.md
+# *.md
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Build artifacts
+*.tgz
+*.tar.gz
+
