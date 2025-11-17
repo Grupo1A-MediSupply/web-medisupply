@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { VendorDashboardComponent } from './vendor-dashboard.component';
+import { VendorDashboardComponent } from '../dashboard/vendor-dashboard.component';
 
 describe('VendorDashboardComponent - Upload Functionality', () => {
   let component: VendorDashboardComponent;
