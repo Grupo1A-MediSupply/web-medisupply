@@ -29,7 +29,15 @@ module.exports = function (config) {
         { type: 'html' },
         { type: 'text-summary' },
         { type: 'lcov' } // For CI/CD integration
-      ]
+      ],
+      check: {
+        global: {
+          statements: 0,
+          branches: 0,
+          functions: 0,
+          lines: 0
+        }
+      }
     },
     reporters: ['progress', 'coverage'],
     browsers: ['ChromeHeadless'],
