@@ -1,26 +1,43 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ClientDashboardComponent } from './client-dashboard.component';
+import { OrderService } from '../../../../core/services/order.service';
+import { AuthService } from '../../../../core/services/auth.service';
+import { of } from 'rxjs';
 
 describe('ClientDashboardComponent', () => {
   let component: ClientDashboardComponent;
   let fixture: ComponentFixture<ClientDashboardComponent>;
   let mockRouter: jasmine.SpyObj<Router>;
+  let mockOrderService: jasmine.SpyObj<OrderService>;
+  let mockAuthService: jasmine.SpyObj<AuthService>;
 
   beforeEach(async () => {
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
+    mockOrderService = jasmine.createSpyObj('OrderService', ['getOrders', 'requestReturn']);
+    mockAuthService = jasmine.createSpyObj('AuthService', ['getUser']);
 
     await TestBed.configureTestingModule({
       declarations: [ClientDashboardComponent],
+      imports: [HttpClientTestingModule],
       providers: [
-        { provide: Router, useValue: mockRouter }
+        { provide: Router, useValue: mockRouter },
+        { provide: OrderService, useValue: mockOrderService },
+        { provide: AuthService, useValue: mockAuthService }
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     }).compileComponents();
 
     fixture = TestBed.createComponent(ClientDashboardComponent);
     component = fixture.componentInstance;
+    
+    // Mock AuthService.getUser
+    mockAuthService.getUser.and.returnValue({ id: '1', email: 'test@test.com', role: 'client', name: 'Test User' });
+    
+    // Mock OrderService.getOrders
+    mockOrderService.getOrders.and.returnValue(of({ orders: [] }));
     
     // Initialize mock data for tests
     component.orders = [

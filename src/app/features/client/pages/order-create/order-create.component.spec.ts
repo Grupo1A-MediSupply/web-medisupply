@@ -8,13 +8,25 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { OrderCreateComponent } from './order-create.component';
+import { ProductService } from '../../../../core/services/product.service';
+import { OrderService } from '../../../../core/services/order.service';
+import { AuthService } from '../../../../core/services/auth.service';
+import { of } from 'rxjs';
 
 describe('OrderCreateComponent', () => {
   let component: OrderCreateComponent;
   let fixture: ComponentFixture<OrderCreateComponent>;
+  let mockProductService: jasmine.SpyObj<ProductService>;
+  let mockOrderService: jasmine.SpyObj<OrderService>;
+  let mockAuthService: jasmine.SpyObj<AuthService>;
 
   beforeEach(async () => {
+    mockProductService = jasmine.createSpyObj('ProductService', ['getProducts']);
+    mockOrderService = jasmine.createSpyObj('OrderService', ['createOrder']);
+    mockAuthService = jasmine.createSpyObj('AuthService', ['getUser']);
+
     await TestBed.configureTestingModule({
       declarations: [OrderCreateComponent],
       imports: [
@@ -26,12 +38,22 @@ describe('OrderCreateComponent', () => {
         MatInputModule,
         MatSelectModule,
         MatOptionModule,
-        BrowserAnimationsModule
+        BrowserAnimationsModule,
+        HttpClientTestingModule
+      ],
+      providers: [
+        { provide: ProductService, useValue: mockProductService },
+        { provide: OrderService, useValue: mockOrderService },
+        { provide: AuthService, useValue: mockAuthService }
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(OrderCreateComponent);
     component = fixture.componentInstance;
+    
+    // Mock services
+    mockAuthService.getUser.and.returnValue({ id: '1', email: 'test@test.com', role: 'client', name: 'Test User' });
+    mockProductService.getProducts.and.returnValue(of({ products: [] }));
     
     // Initialize mock data for tests
     component.availableProducts = [

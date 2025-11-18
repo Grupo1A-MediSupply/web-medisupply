@@ -2,21 +2,30 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ClientSignupComponent } from './client-signup.component';
+import { AuthService } from '../../../../../core/services/auth.service';
+import { of } from 'rxjs';
 
 describe('ClientSignupComponent', () => {
   let component: ClientSignupComponent;
   let fixture: ComponentFixture<ClientSignupComponent>;
   let mockRouter: jasmine.SpyObj<Router>;
+  let mockAuthService: jasmine.SpyObj<AuthService>;
 
   beforeEach(async () => {
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
+    mockAuthService = jasmine.createSpyObj('AuthService', ['signup']);
 
     await TestBed.configureTestingModule({
       declarations: [ClientSignupComponent],
-      imports: [ReactiveFormsModule],
+      imports: [
+        ReactiveFormsModule,
+        HttpClientTestingModule
+      ],
       providers: [
-        { provide: Router, useValue: mockRouter }
+        { provide: Router, useValue: mockRouter },
+        { provide: AuthService, useValue: mockAuthService }
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     }).compileComponents();
@@ -71,8 +80,13 @@ describe('ClientSignupComponent', () => {
   });
 
   it('should create account successfully with matching passwords', () => {
-    spyOn(sessionStorage, 'setItem');
     spyOn(window, 'alert');
+    mockAuthService.signup.and.returnValue(of({
+      message: 'Cuenta creada exitosamente',
+      token: 'test-token',
+      user: { id: '1', email: 'john@example.com', role: 'client', name: 'John Doe' }
+    }));
+    
     component.signupForm.patchValue({
       fullName: 'John Doe',
       email: 'john@example.com',
@@ -86,14 +100,12 @@ describe('ClientSignupComponent', () => {
 
     component.createAccount();
 
-    expect(sessionStorage.setItem).toHaveBeenCalledWith('role', 'client');
-    expect(sessionStorage.setItem).toHaveBeenCalledWith('userType', 'client');
+    expect(mockAuthService.signup).toHaveBeenCalled();
     expect(window.alert).toHaveBeenCalledWith('Cuenta de cliente creada exitosamente');
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/client/login']);
   });
 
   it('should show error when passwords do not match', () => {
-    spyOn(window, 'alert');
     component.signupForm.patchValue({
       fullName: 'John Doe',
       email: 'john@example.com',
@@ -107,7 +119,8 @@ describe('ClientSignupComponent', () => {
 
     component.createAccount();
 
-    expect(window.alert).toHaveBeenCalledWith('Las contraseñas no coinciden');
+    expect(component.errorMessage).toBe('Las contraseñas no coinciden');
+    expect(mockAuthService.signup).not.toHaveBeenCalled();
     expect(mockRouter.navigate).not.toHaveBeenCalled();
   });
 
