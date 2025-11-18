@@ -35,7 +35,9 @@ export interface Order {
   providedIn: 'root'
 })
 export class OrderService {
-  private orderServiceUrl = environment.services.order;
+  private orderServiceUrl = environment.useProxy && !environment.production 
+    ? environment.proxyServices?.order || environment.services.order
+    : environment.services.order;
 
   constructor(private api: ApiService) {}
 

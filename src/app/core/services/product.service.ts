@@ -27,7 +27,9 @@ export interface Product {
   providedIn: 'root'
 })
 export class ProductService {
-  private productServiceUrl = environment.services.product;
+  private productServiceUrl = environment.useProxy && !environment.production 
+    ? environment.proxyServices?.product || environment.services.product
+    : environment.services.product;
 
   constructor(private api: ApiService) {}
 

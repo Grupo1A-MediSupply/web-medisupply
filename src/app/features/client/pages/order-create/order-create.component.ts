@@ -1,5 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { ProductService } from '../../../../core/services/product.service';
+import { OrderService } from '../../../../core/services/order.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   templateUrl: './order-create.component.html'
@@ -11,9 +14,16 @@ export class OrderCreateComponent implements OnInit {
   private static orderIdCounter = 2000;
 
   availableProducts: any[] = [];
+  isLoadingProducts = false;
+  productsError = '';
+  isSubmitting = false;
 
-
-  constructor(private fb: FormBuilder) {}
+  constructor(
+    private fb: FormBuilder,
+    private productService: ProductService,
+    private orderService: OrderService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit() {
     this.orderForm = this.fb.group({
@@ -29,6 +39,36 @@ export class OrderCreateComponent implements OnInit {
         })
       ]),
       notes: ['']
+    });
+    
+    this.loadProducts();
+  }
+  
+  loadProducts() {
+    this.isLoadingProducts = true;
+    this.productsError = '';
+    
+    this.productService.getProducts().subscribe({
+      next: (response) => {
+        this.availableProducts = response.products.map(product => ({
+          _id: product._id,
+          name: product.name,
+          stock: product.stock,
+          price: product.price,
+          expiry: product.expiry,
+          lot: product.lot,
+          warehouse: product.warehouse,
+          supplier: product.supplier,
+          category: product.category,
+          description: product.description
+        }));
+        this.isLoadingProducts = false;
+      },
+      error: (error) => {
+        console.error('Error loading products:', error);
+        this.productsError = 'Error al cargar productos';
+        this.isLoadingProducts = false;
+      }
     });
   }
 
@@ -119,31 +159,86 @@ export class OrderCreateComponent implements OnInit {
   }
 
   createOrder() {
-    if (this.isFormValid()) {
-      const formValue = this.orderForm.value;
-      const selectedProducts = formValue.products.filter((p: any) => p.product && p.product.trim() !== '' && p.quantity && p.quantity > 0);
-      const productText = selectedProducts.map((p: any) => `${p.product} (${p.quantity})`).join(', ');
-      
-      // Increment the counter and create the order
-      OrderCreateComponent.orderIdCounter++;
-      this.createdOrder = {
-        id: 'C-' + OrderCreateComponent.orderIdCounter,
-        product: productText,
-        date: new Date().toISOString().split('T')[0],
-        status: 'Creado',
-        institutionName: formValue.institutionName,
-        deliveryAddress: formValue.deliveryAddress,
-        deliveryDate: formValue.deliveryDate
-      };
-
-      this.showSuccessModal = true;
-      document.body.classList.add('modal-open');
-      
-      // Clear form after successful order creation
-      this.clearForm();
-    } else {
+    if (!this.isFormValid()) {
       alert('Por favor complete todos los campos requeridos');
+      return;
     }
+    
+    if (this.isSubmitting) {
+      return; // Evitar múltiples envíos
+    }
+    
+    const user = this.authService.getUser();
+    if (!user || !user.id) {
+      alert('Error: Usuario no autenticado');
+      return;
+    }
+    
+    this.isSubmitting = true;
+    const formValue = this.orderForm.value;
+    const selectedProducts = formValue.products.filter((p: any) => p.product && p.product.trim() !== '' && p.quantity && p.quantity > 0);
+    
+    // Buscar productos en el inventario para obtener IDs y precios
+    const orderProducts = selectedProducts.map((p: any) => {
+      const product = this.availableProducts.find(item => item.name === p.product);
+      return {
+        productId: product?._id || '',
+        productName: p.product,
+        quantity: p.quantity,
+        price: product?.price || 0
+      };
+    }).filter(p => p.productId);
+    
+    if (orderProducts.length === 0) {
+      alert('Error: No se encontraron productos válidos');
+      this.isSubmitting = false;
+      return;
+    }
+    
+    const totalAmount = orderProducts.reduce((sum, p) => sum + (p.price * p.quantity), 0);
+    
+    // Crear pedido usando el servicio
+    const newOrderData = {
+      vendorId: '', // Se asignará en el backend según el producto
+      clientId: user.id,
+      products: orderProducts,
+      deliveryAddress: formValue.deliveryAddress,
+      deliveryDate: formValue.deliveryDate,
+      contactName: formValue.institutionName,
+      contactPhone: formValue.phone || '',
+      notes: formValue.notes || '',
+      status: 'Creado' as const,
+      totalAmount: totalAmount
+    };
+    
+    this.orderService.createOrder(newOrderData).subscribe({
+      next: (response) => {
+        const productText = selectedProducts.map((p: any) => `${p.product} (${p.quantity})`).join(', ');
+        
+        this.createdOrder = {
+          id: response.order.orderNumber || response.order._id,
+          product: productText,
+          date: new Date().toISOString().split('T')[0],
+          status: response.order.status,
+          institutionName: formValue.institutionName,
+          deliveryAddress: formValue.deliveryAddress,
+          deliveryDate: formValue.deliveryDate
+        };
+
+        this.showSuccessModal = true;
+        document.body.classList.add('modal-open');
+        this.isSubmitting = false;
+        
+        // Clear form after successful order creation
+        this.clearForm();
+        this.loadProducts(); // Recargar productos para actualizar stock
+      },
+      error: (error) => {
+        console.error('Error creating order:', error);
+        alert('Error al crear el pedido: ' + (error.message || 'Error desconocido'));
+        this.isSubmitting = false;
+      }
+    });
   }
 
   clearForm() {

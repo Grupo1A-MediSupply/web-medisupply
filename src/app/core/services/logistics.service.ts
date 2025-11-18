@@ -50,7 +50,9 @@ export interface SuggestedRoute {
   providedIn: 'root'
 })
 export class LogisticsService {
-  private logisticsServiceUrl = environment.services.logistics;
+  private logisticsServiceUrl = environment.useProxy && !environment.production 
+    ? environment.proxyServices?.logistics || environment.services.logistics
+    : environment.services.logistics;
 
   constructor(private api: ApiService) {}
 

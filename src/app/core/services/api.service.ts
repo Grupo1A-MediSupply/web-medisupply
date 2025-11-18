@@ -11,6 +11,18 @@ export class ApiService {
   private apiUrl = environment.apiUrl || 'http://localhost:3000/api';
 
   constructor(private http: HttpClient) {}
+  
+  /**
+   * Obtener la URL base del servicio, usando proxy en desarrollo si está configurado
+   */
+  private getServiceUrl(serviceName: keyof typeof environment.services): string {
+    if (!environment.production && environment.useProxy && environment.proxyServices) {
+      // Usar proxy en desarrollo
+      return environment.proxyServices[serviceName] || environment.services[serviceName];
+    }
+    // Usar URL directa (producción o si proxy está deshabilitado)
+    return environment.services[serviceName];
+  }
 
   private getHeaders(): HttpHeaders {
     const token = sessionStorage.getItem('token');

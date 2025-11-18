@@ -3,6 +3,10 @@ import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import * as L from 'leaflet';
 import * as Papa from 'papaparse';
+import { OrderService } from '../../../../core/services/order.service';
+import { ProductService } from '../../../../core/services/product.service';
+import { LogisticsService } from '../../../../core/services/logistics.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'vendor-dashboard',
@@ -16,8 +20,12 @@ export class VendorDashboardComponent implements OnInit, AfterViewInit {
   private routeLayers: L.LayerGroup[] = [];
   
   orders: any[] = [];
+  isLoadingOrders = false;
+  ordersError = '';
 
   inventory: any[] = [];
+  isLoadingInventory = false;
+  inventoryError = '';
 
   // Routes module properties
   showRouteGeneration = false;
@@ -88,15 +96,23 @@ export class VendorDashboardComponent implements OnInit, AfterViewInit {
   routeOrders: any[] = [];
 
   routes: any[] = [];
+  isLoadingRoutes = false;
+  routesError = '';
 
   suggestedRoutes: any[] = [];
   locations: any = {};
   availableVehicles: any[] = [];
 
-         constructor(private router: Router){}
+  constructor(
+    private router: Router,
+    private orderService: OrderService,
+    private productService: ProductService,
+    private logisticsService: LogisticsService,
+    private authService: AuthService
+  ) {}
 
-         ngOnInit() {
-           this.updateReportData();
+  ngOnInit() {
+    this.updateReportData();
     
     // Set initial section based on current URL
     this.updateActiveSectionFromRoute(this.router.url);
@@ -109,7 +125,132 @@ export class VendorDashboardComponent implements OnInit, AfterViewInit {
           this.updateActiveSectionFromRoute(event.url);
         });
     }
-         }
+    
+    // Cargar datos del backend
+    this.loadOrders();
+    this.loadInventory();
+    this.loadRoutes();
+  }
+  
+  loadOrders() {
+    this.isLoadingOrders = true;
+    this.ordersError = '';
+    
+    this.orderService.getOrders().subscribe({
+      next: (response) => {
+        this.orders = response.orders.map(order => ({
+          id: order.orderNumber || order._id,
+          product: order.products?.map((p: any) => `${p.productName} (${p.quantity})`).join(', ') || 'Sin productos',
+          status: order.status,
+          products: order.products,
+          deliveryAddress: order.deliveryAddress,
+          deliveryDate: order.deliveryDate,
+          contactName: order.contactName,
+          contactPhone: order.contactPhone,
+          notes: order.notes,
+          routeId: order.routeId,
+          returnRequested: order.returnRequested,
+          returnReason: order.returnReason,
+          returnStatus: order.returnStatus
+        }));
+        this.isLoadingOrders = false;
+        this.updateReportData();
+      },
+      error: (error) => {
+        console.error('Error loading orders:', error);
+        this.ordersError = 'Error al cargar pedidos';
+        this.isLoadingOrders = false;
+      }
+    });
+  }
+  
+  loadInventory() {
+    this.isLoadingInventory = true;
+    this.inventoryError = '';
+    
+    this.productService.getProducts().subscribe({
+      next: (response) => {
+        this.inventory = response.products.map(product => ({
+          name: product.name,
+          stock: product.stock,
+          price: product.price,
+          expiry: product.expiry,
+          lot: product.lot,
+          warehouse: product.warehouse,
+          supplier: product.supplier,
+          category: product.category,
+          description: product.description,
+          batches: product.batches || []
+        }));
+        this.isLoadingInventory = false;
+        this.updateReportData();
+      },
+      error: (error) => {
+        console.error('Error loading inventory:', error);
+        this.inventoryError = 'Error al cargar inventario';
+        this.isLoadingInventory = false;
+      }
+    });
+  }
+  
+  loadRoutes() {
+    this.isLoadingRoutes = true;
+    this.routesError = '';
+    
+    this.logisticsService.getRoutes().subscribe({
+      next: (response) => {
+        this.routes = response.routes.map(route => ({
+          id: route.routeNumber || route._id,
+          vehicle: route.vehicleType,
+          driver: route.driverName,
+          status: route.status,
+          progress: route.progress,
+          vehicleId: route.vehicleId,
+          vehicleType: route.vehicleType,
+          driverPhone: route.driverPhone,
+          estimatedDistance: route.estimatedDistance,
+          estimatedDuration: route.estimatedDuration,
+          estimatedFuel: route.estimatedFuel,
+          actualDistance: route.actualDistance,
+          actualDuration: route.actualDuration,
+          actualFuel: route.actualFuel,
+          startTime: route.startTime,
+          endTime: route.endTime,
+          stops: route.stops
+        }));
+        
+        // Actualizar routeOrders con información de rutas
+        this.updateRouteOrders();
+        this.isLoadingRoutes = false;
+      },
+      error: (error) => {
+        console.error('Error loading routes:', error);
+        this.routesError = 'Error al cargar rutas';
+        this.isLoadingRoutes = false;
+      }
+    });
+  }
+  
+  updateRouteOrders() {
+    // Obtener pedidos sin ruta para mostrar en la sección de rutas
+    this.orderService.getOrders({ status: 'Creado' }).subscribe({
+      next: (response) => {
+        this.routeOrders = response.orders
+          .filter(order => !order.routeId)
+          .map(order => ({
+            id: order.orderNumber || order._id,
+            client: order.contactName || 'Cliente',
+            address: order.deliveryAddress,
+            date: order.deliveryDate,
+            status: 'Sin Ruta',
+            routeId: null
+          }));
+      },
+      error: (error) => {
+        console.error('Error loading route orders:', error);
+      }
+    });
+  }
 
   ngAfterViewInit() {
     // El mapa se inicializará cuando se abra el modal
@@ -255,98 +396,153 @@ export class VendorDashboardComponent implements OnInit, AfterViewInit {
            }
          }
 
-         finalizeOrderCreation() {
-           const selectedProducts = this.orderForm.products.filter((p: any) => p.product && p.quantity > 0);
-           
-           // Create new order
-           const newOrder = {
-             id: 'ORD-' + (1000 + this.orders.length + 1),
-             product: selectedProducts.map((p: any) => `${p.product} (${p.quantity})`).join(', '),
-             status: this.orderForm.generateRoute ? 'Sin Ruta' : 'Creado',
-             products: selectedProducts
-           } as any;
-
-           this.orders.unshift(newOrder);
-
-           // Update inventory (simulate)
-           selectedProducts.forEach((selectedProduct: any) => {
-             const inventoryItem = this.inventory.find(item => item.name === selectedProduct.product);
-             if (inventoryItem) {
-               inventoryItem.stock -= selectedProduct.quantity;
-             }
-           });
-
-           // If route generation is requested, add to route orders
-           if (this.orderForm.generateRoute) {
-             this.routeOrders.unshift({
-               id: newOrder.id,
-               client: this.orderForm.clientName,
-               address: this.orderForm.clientAddress,
-               date: this.orderForm.deliveryDate,
-               status: 'Sin Ruta',
-               routeId: null
-             });
-           }
-
-           alert('Pedido creado exitosamente');
-           this.closeOrderCreation();
-         }
+  finalizeOrderCreation() {
+    const selectedProducts = this.orderForm.products.filter((p: any) => p.product && p.quantity > 0);
+    const user = this.authService.getUser();
+    
+    if (!user || !user.id) {
+      alert('Error: Usuario no autenticado');
+      return;
+    }
+    
+    // Buscar productos en el inventario para obtener IDs y precios
+    const orderProducts = selectedProducts.map((p: any) => {
+      const inventoryItem = this.inventory.find(item => item.name === p.product);
+      return {
+        productId: inventoryItem?._id || '',
+        productName: p.product,
+        quantity: p.quantity,
+        price: inventoryItem?.price || 0
+      };
+    }).filter(p => p.productId); // Solo productos que existen en inventario
+    
+    if (orderProducts.length === 0) {
+      alert('Error: No se encontraron productos válidos en el inventario');
+      return;
+    }
+    
+    const totalAmount = orderProducts.reduce((sum, p) => sum + (p.price * p.quantity), 0);
+    
+    // Crear pedido usando el servicio
+    const newOrderData = {
+      vendorId: user.id,
+      clientId: '', // Se puede obtener del formulario si hay campo para cliente
+      products: orderProducts,
+      deliveryAddress: this.orderForm.clientAddress,
+      deliveryDate: this.orderForm.deliveryDate,
+      contactName: this.orderForm.clientName,
+      contactPhone: '',
+      notes: '',
+      status: 'Creado' as const,
+      totalAmount: totalAmount
+    };
+    
+    this.orderService.createOrder(newOrderData).subscribe({
+      next: (response) => {
+        alert('Pedido creado exitosamente');
+        this.closeOrderCreation();
+        this.loadOrders(); // Recargar pedidos
+        this.loadInventory(); // Recargar inventario
+      },
+      error: (error) => {
+        console.error('Error creating order:', error);
+        alert('Error al crear el pedido: ' + (error.message || 'Error desconocido'));
+      }
+    });
+  }
 
          selectRouteInOrder(route: any) {
            this.selectedRouteInOrder = route;
            this.highlightSelectedRouteInOrder(route);
          }
 
-         assignRouteInOrder() {
-           if (this.selectedRouteInOrder && this.selectedVehicleInOrder) {
-             const selectedProducts = this.orderForm.products.filter((p: any) => p.product && p.quantity > 0);
-             
-             // Create new order with route assigned
-             const newOrder = {
-               id: 'ORD-' + (1000 + this.orders.length + 1),
-               product: selectedProducts.map((p: any) => `${p.product} (${p.quantity})`).join(', '),
-               status: 'Programado',
-               products: selectedProducts
-             } as any;
-
-             this.orders.unshift(newOrder);
-
-             // Update inventory (simulate)
-             selectedProducts.forEach((selectedProduct: any) => {
-               const inventoryItem = this.inventory.find(item => item.name === selectedProduct.product);
-               if (inventoryItem) {
-                 inventoryItem.stock -= selectedProduct.quantity;
-               }
-             });
-             
-             // Add to route orders with assigned route
-             const newRouteOrder = {
-               id: newOrder.id,
-               client: this.orderForm.clientName,
-               address: this.orderForm.clientAddress,
-               date: this.orderForm.deliveryDate,
-               status: 'Programado',
-               routeId: this.selectedRouteInOrder.id
-             };
-             
-             this.routeOrders.unshift(newRouteOrder);
-
-             // Create new route
-             const newRoute = {
-               id: this.selectedRouteInOrder.id,
-               vehicle: this.selectedVehicleInOrder.id,
-               driver: 'Conductor Asignado',
-               status: 'Programado',
-               progress: 0
-             };
-             this.routes.push(newRoute);
-
-             alert('Pedido creado y programado exitosamente');
-             this.closeOrderCreation();
-           } else {
-             alert('Debe seleccionar una ruta y un vehículo');
-           }
-         }
+  assignRouteInOrder() {
+    if (this.selectedRouteInOrder && this.selectedVehicleInOrder) {
+      const user = this.authService.getUser();
+      if (!user || !user.id) {
+        alert('Error: Usuario no autenticado');
+        return;
+      }
+      
+      const selectedProducts = this.orderForm.products.filter((p: any) => p.product && p.quantity > 0);
+      
+      // Buscar productos en el inventario para obtener IDs y precios
+      const orderProducts = selectedProducts.map((p: any) => {
+        const inventoryItem = this.inventory.find(item => item.name === p.product);
+        return {
+          productId: inventoryItem?._id || '',
+          productName: p.product,
+          quantity: p.quantity,
+          price: inventoryItem?.price || 0
+        };
+      }).filter(p => p.productId);
+      
+      if (orderProducts.length === 0) {
+        alert('Error: No se encontraron productos válidos en el inventario');
+        return;
+      }
+      
+      const totalAmount = orderProducts.reduce((sum, p) => sum + (p.price * p.quantity), 0);
+      
+      // Crear la ruta primero
+      const routeData = {
+        vendorId: user.id,
+        vehicleId: this.selectedVehicleInOrder.id,
+        vehicleType: this.selectedVehicleInOrder.type || this.selectedVehicleInOrder.id,
+        driverName: 'Conductor Asignado',
+        stops: this.selectedRouteInOrder.coordinates?.map((coord: [number, number], index: number) => ({
+          orderId: '', // Se actualizará después de crear el pedido
+          address: this.orderForm.clientAddress,
+          coordinates: { lat: coord[0], lng: coord[1] },
+          sequence: index + 1
+        })) || [],
+        estimatedDistance: parseFloat(this.selectedRouteInOrder.distance) || 0,
+        estimatedDuration: parseInt(this.selectedRouteInOrder.duration) || 0,
+        estimatedFuel: parseFloat(this.selectedRouteInOrder.fuel) || 0,
+        status: 'Programado' as const,
+        progress: 0
+      };
+      
+      this.logisticsService.createRoute(routeData).subscribe({
+        next: (routeResponse) => {
+          // Crear el pedido con la ruta asignada
+          const newOrderData = {
+            vendorId: user.id,
+            clientId: '',
+            products: orderProducts,
+            deliveryAddress: this.orderForm.clientAddress,
+            deliveryDate: this.orderForm.deliveryDate,
+            contactName: this.orderForm.clientName,
+            contactPhone: '',
+            notes: '',
+            status: 'Programado' as const,
+            routeId: routeResponse.route._id,
+            totalAmount: totalAmount
+          };
+          
+          this.orderService.createOrder(newOrderData).subscribe({
+            next: () => {
+              alert('Pedido creado y programado exitosamente');
+              this.closeOrderCreation();
+              this.loadOrders();
+              this.loadInventory();
+              this.loadRoutes();
+            },
+            error: (error) => {
+              console.error('Error creating order:', error);
+              alert('Error al crear el pedido');
+            }
+          });
+        },
+        error: (error) => {
+          console.error('Error creating route:', error);
+          alert('Error al crear la ruta');
+        }
+      });
+    } else {
+      alert('Debe seleccionar una ruta y un vehículo');
+    }
+  }
 
          backToOrderForm() {
            this.showRouteGenerationInOrder = false;
@@ -972,20 +1168,33 @@ export class VendorDashboardComponent implements OnInit, AfterViewInit {
     return this.routeOrders.filter(order => order.returnRequested === true);
   }
 
-         generateOptimalRoutes(order: any) {
-           this.selectedOrder = order;
-           this.showRouteGeneration = true;
-           this.selectedRoute = null;
-           this.selectedVehicle = null;
-           // Add class to body to hide sidebar
-           document.body.classList.add('modal-open');
-           
-           // Initialize map after modal opens
-           setTimeout(() => {
-             this.initializeMap();
-             this.showAllRoutes();
-           }, 100);
-         }
+  generateOptimalRoutes(order: any) {
+    this.selectedOrder = order;
+    this.showRouteGeneration = true;
+    this.selectedRoute = null;
+    this.selectedVehicle = null;
+    
+    // Generar rutas optimizadas usando el servicio
+    if (order.id) {
+      this.logisticsService.generateOptimalRoutes([order.id]).subscribe({
+        next: (response) => {
+          this.suggestedRoutes = response.suggestedRoutes;
+          // Add class to body to hide sidebar
+          document.body.classList.add('modal-open');
+          
+          // Initialize map after modal opens
+          setTimeout(() => {
+            this.initializeMap();
+            this.showAllRoutes();
+          }, 100);
+        },
+        error: (error) => {
+          console.error('Error generating routes:', error);
+          alert('Error al generar rutas optimizadas');
+        }
+      });
+    }
+  }
 
          closeRouteGeneration() {
            this.showRouteGeneration = false;
@@ -1010,45 +1219,120 @@ export class VendorDashboardComponent implements OnInit, AfterViewInit {
 
   assignRoute() {
     if (this.selectedRoute && this.selectedVehicle && this.selectedOrder) {
-      // Update order status
-      const orderIndex = this.routeOrders.findIndex(o => o.id === this.selectedOrder.id);
-      if (orderIndex !== -1) {
-        this.routeOrders[orderIndex].status = 'En Tránsito';
-        this.routeOrders[orderIndex].routeId = this.selectedRoute.id;
+      const user = this.authService.getUser();
+      if (!user || !user.id) {
+        alert('Error: Usuario no autenticado');
+        return;
       }
-
-      // Create new route
-      const newRoute = {
-        id: this.selectedRoute.id,
-        vehicle: this.selectedVehicle.id,
-        driver: 'Conductor Asignado',
-        status: 'En Tránsito',
+      
+      // Crear la ruta usando el servicio
+      const routeData = {
+        vendorId: user.id,
+        vehicleId: this.selectedVehicle.id,
+        vehicleType: this.selectedVehicle.type || this.selectedVehicle.id,
+        driverName: 'Conductor Asignado',
+        stops: this.selectedRoute.coordinates?.map((coord: [number, number], index: number) => ({
+          orderId: this.selectedOrder.id,
+          address: this.selectedOrder.address || '',
+          coordinates: { lat: coord[0], lng: coord[1] },
+          sequence: index + 1
+        })) || [],
+        estimatedDistance: parseFloat(this.selectedRoute.distance) || 0,
+        estimatedDuration: parseInt(this.selectedRoute.duration) || 0,
+        estimatedFuel: parseFloat(this.selectedRoute.fuel) || 0,
+        status: 'Programado' as const,
         progress: 0
       };
-      this.routes.push(newRoute);
-
-      alert('Ruta asignada exitosamente');
-      this.closeRouteGeneration();
+      
+      this.logisticsService.createRoute(routeData).subscribe({
+        next: (response) => {
+          // Actualizar el pedido con el routeId
+          if (this.selectedOrder.id) {
+            this.orderService.updateOrder(this.selectedOrder.id, {
+              routeId: response.route._id,
+              status: 'Programado'
+            }).subscribe({
+              next: () => {
+                alert('Ruta asignada exitosamente');
+                this.closeRouteGeneration();
+                this.loadOrders();
+                this.loadRoutes();
+              },
+              error: (error) => {
+                console.error('Error updating order:', error);
+                alert('Ruta creada pero error al actualizar pedido');
+              }
+            });
+          }
+        },
+        error: (error) => {
+          console.error('Error creating route:', error);
+          alert('Error al asignar ruta: ' + (error.message || 'Error desconocido'));
+        }
+      });
     }
   }
 
   markAsDelivered(route: any) {
-    route.status = 'Completado';
-    route.progress = 100;
-
-    // Update order status
-    const orderIndex = this.routeOrders.findIndex(o => o.routeId === route.id);
-    if (orderIndex !== -1) {
-      this.routeOrders[orderIndex].status = 'Entregado';
+    if (!route._id && !route.id) {
+      alert('Error: Ruta inválida');
+      return;
     }
-
-    alert('Entrega marcada como completada');
+    
+    const routeId = route._id || route.id;
+    
+    // Actualizar la ruta
+    this.logisticsService.updateRoute(routeId, {
+      status: 'Completado',
+      progress: 100,
+      endTime: new Date().toISOString()
+    }).subscribe({
+      next: () => {
+        // Actualizar pedidos asociados
+        const ordersToUpdate = this.routeOrders.filter(o => o.routeId === routeId);
+        ordersToUpdate.forEach(order => {
+          if (order.id) {
+            this.orderService.updateOrder(order.id, {
+              status: 'Completado'
+            }).subscribe({
+              error: (error) => console.error('Error updating order:', error)
+            });
+          }
+        });
+        
+        alert('Entrega marcada como completada');
+        this.loadRoutes();
+        this.loadOrders();
+      },
+      error: (error) => {
+        console.error('Error marking route as delivered:', error);
+        alert('Error al marcar entrega como completada');
+      }
+    });
   }
 
-         processReturn(order: any) {
-           order.returnStatus = 'Procesada';
-           alert('Devolución procesada');
-         }
+  processReturn(order: any) {
+    if (!order.id && !order._id) {
+      alert('Error: Pedido inválido');
+      return;
+    }
+    
+    const orderId = order._id || order.id;
+    
+    // Actualizar el pedido con el estado de devolución procesada
+    this.orderService.updateOrder(orderId, {
+      returnStatus: 'Procesada'
+    }).subscribe({
+      next: () => {
+        alert('Devolución procesada');
+        this.loadOrders();
+      },
+      error: (error) => {
+        console.error('Error processing return:', error);
+        alert('Error al procesar devolución');
+      }
+    });
+  }
 
   // Map methods
   private initializeMap() {

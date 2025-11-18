@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { AuthService } from '../../../../../core/services/auth.service';
 
 @Component({
   templateUrl: './client-signup.component.html'
@@ -17,23 +18,49 @@ export class ClientSignupComponent {
     confirmPassword: new FormControl('', [Validators.required])
   });
 
-  constructor(private router: Router) {}
+  isLoading = false;
+  errorMessage = '';
+
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) {}
 
   createAccount() {
     if (this.signupForm.valid) {
-      const { password, confirmPassword } = this.signupForm.value;
+      const { password, confirmPassword, email, fullName, phone, institution } = this.signupForm.value;
       
-      if (password === confirmPassword) {
-        // Store client role in sessionStorage
-        sessionStorage.setItem('role', 'client');
-        sessionStorage.setItem('userType', 'client');
-        
-        // Simulate successful account creation
-        alert('Cuenta de cliente creada exitosamente');
-        this.router.navigate(['/client/login']);
-      } else {
-        alert('Las contraseñas no coinciden');
+      if (password !== confirmPassword) {
+        this.errorMessage = 'Las contraseñas no coinciden';
+        return;
       }
+      
+      this.isLoading = true;
+      this.errorMessage = '';
+      
+      const signupData = {
+        email: email?.toLowerCase() || '',
+        password: password || '',
+        role: 'client' as const,
+        name: fullName || '',
+        phone: phone || '',
+        institutionName: institution || ''
+      };
+      
+      this.authService.signup(signupData).subscribe({
+        next: (response) => {
+          this.isLoading = false;
+          alert('Cuenta de cliente creada exitosamente');
+          this.router.navigate(['/client/login']);
+        },
+        error: (error) => {
+          this.isLoading = false;
+          this.errorMessage = error.message || 'Error al crear la cuenta';
+          console.error('Signup error:', error);
+        }
+      });
+    } else {
+      this.signupForm.markAllAsTouched();
     }
   }
 

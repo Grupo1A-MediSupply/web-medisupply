@@ -48,7 +48,9 @@ export interface UserProfile {
   providedIn: 'root'
 })
 export class AuthService {
-  private authServiceUrl = environment.services.auth;
+  private authServiceUrl = environment.useProxy && !environment.production 
+    ? environment.proxyServices?.auth || environment.services.auth
+    : environment.services.auth;
 
   constructor(
     private api: ApiService,

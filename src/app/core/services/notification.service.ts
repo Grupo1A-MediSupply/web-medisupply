@@ -18,7 +18,9 @@ export interface Notification {
   providedIn: 'root'
 })
 export class NotificationService {
-  private notificationsServiceUrl = environment.services.notifications;
+  private notificationsServiceUrl = environment.useProxy && !environment.production 
+    ? environment.proxyServices?.notifications || environment.services.notifications
+    : environment.services.notifications;
 
   constructor(private api: ApiService) {}
 
