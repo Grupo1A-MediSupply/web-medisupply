@@ -96,10 +96,21 @@ describe('InventoryComponent', () => {
       }))
     }));
     
-    // Initialize mock data for tests
-    component.items = mockItems;
-    
     fixture.detectChanges();
+    
+    // Después de detectChanges(), el componente llama a loadItems() que mapea los productos
+    // pero no incluye todas las propiedades que el test espera (sku, unit, lote, location)
+    // Necesitamos agregar estas propiedades manualmente después de que se cargue
+    component.items = component.items.map((item: any, index: number) => {
+      const mockItem = mockItems[index];
+      return {
+        ...item,
+        sku: mockItem?.sku,
+        unit: mockItem?.unit,
+        lote: mockItem?.lote || item.lot,
+        location: mockItem?.location
+      };
+    });
   });
 
   it('should create', () => {

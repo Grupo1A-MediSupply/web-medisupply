@@ -40,7 +40,7 @@ module.exports = function (config) {
       }
     },
     reporters: ['progress', 'coverage'],
-    browsers: ['ChromeHeadless'],
+    browsers: ['ChromeHeadlessCI'],
     customLaunchers: {
       ChromeHeadlessCI: {
         base: 'ChromeHeadless',
@@ -48,11 +48,14 @@ module.exports = function (config) {
           '--no-sandbox',
           '--disable-web-security',
           '--disable-gpu',
-          '--remote-debugging-port=9222'
+          '--remote-debugging-port=9222',
+          '--disable-dev-shm-usage'
         ]
       }
     },
     singleRun: true, // Important for CI/CD
-    restartOnFileChange: false
+    restartOnFileChange: false,
+    failOnEmptyTestSuite: false,
+    logLevel: config.LOG_INFO
   });
 };

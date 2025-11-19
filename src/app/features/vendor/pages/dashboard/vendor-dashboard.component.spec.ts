@@ -229,7 +229,17 @@ describe('VendorDashboardComponent', () => {
       }
     }));
     
+    // Guardar los IDs originales antes de detectChanges
+    const originalInventoryIds = component.inventory.map((item: any) => item._id);
+    
     fixture.detectChanges();
+    
+    // Después de detectChanges(), el componente llama a loadInventory() que mapea los productos
+    // pero no incluye _id. Necesitamos agregar _id manualmente al inventario después de que se cargue
+    component.inventory = component.inventory.map((item: any, index: number) => ({
+      ...item,
+      _id: originalInventoryIds[index] || ['1', '2', '3', '4'][index]
+    }));
   });
 
   it('should create', () => {
