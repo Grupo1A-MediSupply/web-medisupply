@@ -26,6 +26,24 @@ describe('OrderCreateComponent', () => {
     mockProductService = jasmine.createSpyObj('ProductService', ['getProducts']);
     mockOrderService = jasmine.createSpyObj('OrderService', ['createOrder']);
     mockAuthService = jasmine.createSpyObj('AuthService', ['getUser']);
+    
+    // Mock createOrder por defecto - el formato debe ser C-\d+
+    mockOrderService.createOrder.and.returnValue(of({
+      message: 'Order created successfully',
+      order: {
+        orderNumber: 'C-1234',
+        _id: '1234',
+        status: 'Creado' as const,
+        clientId: '1',
+        vendorId: 'vendor-1',
+        products: [],
+        deliveryAddress: '',
+        deliveryDate: new Date().toISOString(),
+        totalAmount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    }));
 
     await TestBed.configureTestingModule({
       declarations: [OrderCreateComponent],
@@ -53,10 +71,9 @@ describe('OrderCreateComponent', () => {
     
     // Mock services
     mockAuthService.getUser.and.returnValue({ id: '1', email: 'test@test.com', role: 'client', name: 'Test User' });
-    mockProductService.getProducts.and.returnValue(of({ products: [] }));
     
-    // Initialize mock data for tests
-    component.availableProducts = [
+    // Mock products data
+    const mockProducts = [
       {name: 'Insulina', stock: 45, price: 25.50, category: 'Medicamento'},
       {name: 'Jeringas', stock: 8, price: 0.50, category: 'Equipo Médico'},
       {name: 'Guantes', stock: 120, price: 0.25, category: 'Protección'},
@@ -68,6 +85,25 @@ describe('OrderCreateComponent', () => {
       {name: 'Vendas Elásticas', stock: 50, price: 2.00, category: 'Curación'},
       {name: 'Oxímetro de Pulso', stock: 15, price: 45.00, category: 'Equipo Médico'}
     ];
+    
+    // Configurar mock para retornar los productos
+    mockProductService.getProducts.and.returnValue(of({ 
+      products: mockProducts.map(p => ({
+        _id: '1',
+        name: p.name,
+        stock: p.stock,
+        price: p.price,
+        category: p.category,
+        expiry: new Date().toISOString(),
+        lot: 'LOT-001',
+        warehouse: 'Bodega 1',
+        supplier: 'Proveedor 1',
+        description: `Descripción de ${p.name}`
+      }))
+    }));
+    
+    // Initialize mock data for tests
+    component.availableProducts = mockProducts;
     
     fixture.detectChanges();
   });
@@ -410,6 +446,24 @@ describe('OrderCreateComponent', () => {
     // Ensure form is valid
     expect(component.isFormValid()).toBeTrue();
     
+    // Mock para el primer pedido
+    mockOrderService.createOrder.and.returnValue(of({
+      message: 'Order created successfully',
+      order: {
+        orderNumber: 'C-1234',
+        _id: '1234',
+        status: 'Creado' as const,
+        clientId: '1',
+        vendorId: 'vendor-1',
+        products: [],
+        deliveryAddress: '',
+        deliveryDate: new Date().toISOString(),
+        totalAmount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    }));
+    
     component.createOrder();
     const firstId = component.createdOrder.id;
     expect(firstId).toMatch(/^C-\d+$/);
@@ -424,6 +478,24 @@ describe('OrderCreateComponent', () => {
     newProduct.get('quantity')?.setValue(3);
     component.orderForm.markAsTouched();
     newProduct.markAsTouched();
+    
+    // Mock para el segundo pedido con ID diferente
+    mockOrderService.createOrder.and.returnValue(of({
+      message: 'Order created successfully',
+      order: {
+        orderNumber: 'C-5678',
+        _id: '5678',
+        status: 'Creado' as const,
+        clientId: '1',
+        vendorId: 'vendor-1',
+        products: [],
+        deliveryAddress: '',
+        deliveryDate: new Date().toISOString(),
+        totalAmount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    }));
     
     component.createOrder();
     const secondId = component.createdOrder.id;

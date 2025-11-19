@@ -1,14 +1,46 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { VendorDashboardComponent } from '../dashboard/vendor-dashboard.component';
+import { OrderService } from '../../../../core/services/order.service';
+import { ProductService } from '../../../../core/services/product.service';
+import { LogisticsService } from '../../../../core/services/logistics.service';
+import { AuthService } from '../../../../core/services/auth.service';
+import { Router } from '@angular/router';
+import { of } from 'rxjs';
 
 describe('VendorDashboardComponent - Upload Functionality', () => {
   let component: VendorDashboardComponent;
   let fixture: ComponentFixture<VendorDashboardComponent>;
+  let mockRouter: jasmine.SpyObj<Router>;
+  let mockOrderService: jasmine.SpyObj<OrderService>;
+  let mockProductService: jasmine.SpyObj<ProductService>;
+  let mockLogisticsService: jasmine.SpyObj<LogisticsService>;
+  let mockAuthService: jasmine.SpyObj<AuthService>;
 
   beforeEach(async () => {
+    mockRouter = jasmine.createSpyObj('Router', ['navigate']);
+    mockOrderService = jasmine.createSpyObj('OrderService', ['getOrders', 'createOrder', 'updateOrder']);
+    mockProductService = jasmine.createSpyObj('ProductService', ['getProducts']);
+    mockLogisticsService = jasmine.createSpyObj('LogisticsService', ['getRoutes', 'createRoute', 'updateRoute', 'generateOptimalRoutes']);
+    mockAuthService = jasmine.createSpyObj('AuthService', ['getUser']);
+    
+    // Mock services básicos
+    mockAuthService.getUser.and.returnValue({ id: '1', email: 'test@test.com', role: 'vendor', name: 'Test Vendor' });
+    mockOrderService.getOrders.and.returnValue(of({ orders: [] }));
+    mockProductService.getProducts.and.returnValue(of({ products: [] }));
+    mockLogisticsService.getRoutes.and.returnValue(of({ routes: [] }));
+    
     await TestBed.configureTestingModule({
       declarations: [VendorDashboardComponent],
+      imports: [HttpClientTestingModule],
+      providers: [
+        { provide: Router, useValue: mockRouter },
+        { provide: OrderService, useValue: mockOrderService },
+        { provide: ProductService, useValue: mockProductService },
+        { provide: LogisticsService, useValue: mockLogisticsService },
+        { provide: AuthService, useValue: mockAuthService }
+      ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     }).compileComponents();
 

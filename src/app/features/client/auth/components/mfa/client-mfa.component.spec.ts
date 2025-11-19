@@ -2,27 +2,41 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ClientMfaComponent } from './client-mfa.component';
+import { AuthService } from '../../../../../core/services/auth.service';
+import { of } from 'rxjs';
 
 describe('ClientMfaComponent', () => {
   let component: ClientMfaComponent;
   let fixture: ComponentFixture<ClientMfaComponent>;
   let mockRouter: jasmine.SpyObj<Router>;
+  let mockAuthService: jasmine.SpyObj<AuthService>;
 
   beforeEach(async () => {
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
+    mockAuthService = jasmine.createSpyObj('AuthService', ['verifyMFA']);
 
     await TestBed.configureTestingModule({
       declarations: [ClientMfaComponent],
-      imports: [ReactiveFormsModule],
+      imports: [
+        ReactiveFormsModule,
+        HttpClientTestingModule
+      ],
       providers: [
-        { provide: Router, useValue: mockRouter }
+        { provide: Router, useValue: mockRouter },
+        { provide: AuthService, useValue: mockAuthService }
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     }).compileComponents();
 
     fixture = TestBed.createComponent(ClientMfaComponent);
     component = fixture.componentInstance;
+    
+    // Configurar sessionStorage para los tests
+    spyOn(sessionStorage, 'getItem').and.returnValue('1');
+    spyOn(sessionStorage, 'removeItem');
+    
     fixture.detectChanges();
   });
 
@@ -67,10 +81,17 @@ describe('ClientMfaComponent', () => {
   });
 
   it('should navigate to client create-order when code is valid', () => {
+    mockAuthService.verifyMFA.and.returnValue(of({
+      message: 'MFA verificado exitosamente',
+      token: 'test-token',
+      user: { id: '1', email: 'test@test.com', role: 'client', name: 'Test Client' }
+    }));
+    
     component._form.patchValue({ code: '123456' });
 
     component.verify();
 
+    expect(mockAuthService.verifyMFA).toHaveBeenCalledWith('1', '123456');
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/client']);
   });
 
@@ -85,12 +106,19 @@ describe('ClientMfaComponent', () => {
   });
 
   it('should handle different valid MFA codes', () => {
+    mockAuthService.verifyMFA.and.returnValue(of({
+      message: 'MFA verificado exitosamente',
+      token: 'test-token',
+      user: { id: '1', email: 'test@test.com', role: 'client', name: 'Test Client' }
+    }));
+    
     const validCodes = ['123456', '654321', '111111', '999999'];
     
     validCodes.forEach(code => {
       component._form.patchValue({ code });
       component.verify();
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/client']);
+      (mockRouter.navigate as jasmine.Spy).calls.reset();
     });
   });
 
@@ -167,7 +195,13 @@ describe('ClientMfaComponent', () => {
   });
 
   it('should handle multiple verification attempts', () => {
-    // First attempt with invalid code
+    mockAuthService.verifyMFA.and.returnValue(of({
+      message: 'MFA verificado exitosamente',
+      token: 'test-token',
+      user: { id: '1', email: 'test@test.com', role: 'client', name: 'Test Client' }
+    }));
+    
+    // First attempt with invalid code (form validation fails)
     component._form.patchValue({ code: '123' });
     component.verify();
     expect(mockRouter.navigate).not.toHaveBeenCalled();
@@ -233,6 +267,12 @@ describe('ClientMfaComponent', () => {
   });
 
   it('should handle form submission with valid data', () => {
+    mockAuthService.verifyMFA.and.returnValue(of({
+      message: 'MFA verificado exitosamente',
+      token: 'test-token',
+      user: { id: '1', email: 'test@test.com', role: 'client', name: 'Test Client' }
+    }));
+    
     component._form.patchValue({ code: '123456' });
     
     component.verify();

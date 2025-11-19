@@ -3,20 +3,30 @@ import { MatTableModule } from '@angular/material/table';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { InventoryComponent } from './inventory.component';
+import { ProductService } from '../../../../core/services/product.service';
+import { of } from 'rxjs';
 
 describe('InventoryComponent', () => {
   let component: InventoryComponent;
   let fixture: ComponentFixture<InventoryComponent>;
+  let mockProductService: jasmine.SpyObj<ProductService>;
 
   beforeEach(async () => {
+    mockProductService = jasmine.createSpyObj('ProductService', ['getProducts']);
+
     await TestBed.configureTestingModule({
       declarations: [InventoryComponent],
       imports: [
         MatTableModule,
         MatCardModule,
         MatIconModule,
-        NoopAnimationsModule
+        NoopAnimationsModule,
+        HttpClientTestingModule
+      ],
+      providers: [
+        { provide: ProductService, useValue: mockProductService }
       ]
     })
     .compileComponents();
@@ -24,8 +34,8 @@ describe('InventoryComponent', () => {
     fixture = TestBed.createComponent(InventoryComponent);
     component = fixture.componentInstance;
     
-    // Initialize mock data for tests
-    component.items = [
+    // Initialize mock data for tests PRIMERO
+    const mockItems = [
       {
         sku: 'INS-001', 
         name: 'Insulina U100', 
@@ -53,7 +63,8 @@ describe('InventoryComponent', () => {
         stock: 5, 
         unit: 'cajas',
         lote: 'C2', 
-        venc: '2025-06-15',
+        // Fecha que expire en menos de 3 meses desde hoy
+        venc: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         location: 'Bodega A - Estante 2'
       },
       {
@@ -67,6 +78,26 @@ describe('InventoryComponent', () => {
         location: 'Bodega C - Estante 4'
       }
     ];
+    
+    // Ahora configurar mock con los datos inicializados
+    // El componente mapea: name, stock, price, venc (expiry), lot, warehouse, supplier, category, description, _id
+    mockProductService.getProducts.and.returnValue(of({ 
+      products: mockItems.map((item: any) => ({
+        _id: item.sku,
+        name: item.name,
+        stock: item.stock,
+        price: item.price || 0,
+        category: item.category,
+        expiry: item.venc || new Date().toISOString(),
+        lot: item.lote || 'LOT-001',
+        warehouse: item.location?.split(' - ')[0] || 'Bodega 1',
+        supplier: 'Proveedor 1',
+        description: `Descripción de ${item.name}`
+      }))
+    }));
+    
+    // Initialize mock data for tests
+    component.items = mockItems;
     
     fixture.detectChanges();
   });

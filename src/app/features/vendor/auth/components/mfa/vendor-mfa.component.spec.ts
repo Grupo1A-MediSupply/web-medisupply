@@ -2,27 +2,41 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { VendorMfaComponent } from './vendor-mfa.component';
+import { AuthService } from '../../../../../core/services/auth.service';
+import { of } from 'rxjs';
 
 describe('VendorMfaComponent', () => {
   let component: VendorMfaComponent;
   let fixture: ComponentFixture<VendorMfaComponent>;
   let mockRouter: jasmine.SpyObj<Router>;
+  let mockAuthService: jasmine.SpyObj<AuthService>;
 
   beforeEach(async () => {
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
+    mockAuthService = jasmine.createSpyObj('AuthService', ['verifyMFA']);
 
     await TestBed.configureTestingModule({
       declarations: [VendorMfaComponent],
-      imports: [ReactiveFormsModule],
+      imports: [
+        ReactiveFormsModule,
+        HttpClientTestingModule
+      ],
       providers: [
-        { provide: Router, useValue: mockRouter }
+        { provide: Router, useValue: mockRouter },
+        { provide: AuthService, useValue: mockAuthService }
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     }).compileComponents();
 
     fixture = TestBed.createComponent(VendorMfaComponent);
     component = fixture.componentInstance;
+    
+    // Configurar sessionStorage para los tests
+    spyOn(sessionStorage, 'getItem').and.returnValue('1');
+    spyOn(sessionStorage, 'removeItem');
+    
     fixture.detectChanges();
   });
 
@@ -67,10 +81,17 @@ describe('VendorMfaComponent', () => {
   });
 
   it('should navigate to vendor orders when code is valid', () => {
+    mockAuthService.verifyMFA.and.returnValue(of({
+      message: 'MFA verificado exitosamente',
+      token: 'test-token',
+      user: { id: '1', email: 'test@test.com', role: 'vendor', name: 'Test Vendor' }
+    }));
+    
     component._form.patchValue({ code: '123456' });
 
     component.verify();
 
+    expect(mockAuthService.verifyMFA).toHaveBeenCalledWith('1', '123456');
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/vendor/orders']);
   });
 
@@ -134,10 +155,15 @@ describe('VendorMfaComponent', () => {
   });
 
   it('should handle multiple MFA attempts', () => {
-    // First attempt with invalid code
+    mockAuthService.verifyMFA.and.returnValue(of({
+      message: 'MFA verificado exitosamente',
+      token: 'test-token',
+      user: { id: '1', email: 'test@test.com', role: 'vendor', name: 'Test Vendor' }
+    }));
+    
+    // First attempt with valid code
     component._form.patchValue({ code: '000000' });
     component.verify();
-    // The component navigates to orders regardless of code when form is valid
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/vendor/orders']);
 
     // Second attempt with valid code
