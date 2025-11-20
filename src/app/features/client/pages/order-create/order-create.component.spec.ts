@@ -561,7 +561,8 @@ describe('OrderCreateComponent', () => {
     firstProduct.get('product')?.setValue('Insulina');
     firstProduct.get('quantity')?.setValue(5);
     secondProduct.get('product')?.setValue('Jeringas');
-    secondProduct.get('quantity')?.setValue(10);
+    // Jeringas has stock of 8, so use 8 or less
+    secondProduct.get('quantity')?.setValue(8);
     
     // Update form validity after setting values
     component.orderForm.updateValueAndValidity();
@@ -590,6 +591,16 @@ describe('OrderCreateComponent', () => {
     expect(component.orderForm.get('deliveryAddress')?.valid).toBeTrue();
     expect(component.orderForm.get('deliveryDate')?.valid).toBeTrue();
     expect(firstProduct.valid).toBeTrue();
+    
+    // Debug second product if invalid
+    if (!secondProduct.valid) {
+      console.log('secondProduct errors:', secondProduct.errors);
+      console.log('secondProduct product errors:', secondProduct.get('product')?.errors);
+      console.log('secondProduct quantity errors:', secondProduct.get('quantity')?.errors);
+      console.log('secondProduct product value:', secondProduct.get('product')?.value);
+      console.log('secondProduct quantity value:', secondProduct.get('quantity')?.value);
+    }
+    
     expect(secondProduct.valid).toBeTrue();
     
     // isFormValid() is what createOrder() checks first, and it allows empty products if there's at least one valid
@@ -619,7 +630,7 @@ describe('OrderCreateComponent', () => {
     expect(component.createdOrder).toBeDefined();
     expect(component.createdOrder).not.toBeNull();
     expect(component.createdOrder?.product).toContain('Insulina (5)');
-    expect(component.createdOrder?.product).toContain('Jeringas (10)');
+    expect(component.createdOrder?.product).toContain('Jeringas (8)');
   });
 
   it('should filter out empty products', () => {
@@ -654,7 +665,8 @@ describe('OrderCreateComponent', () => {
     // Now thirdProduct is at index 1
     const remainingThirdProduct = component.productsArray.at(1);
     remainingThirdProduct.get('product')?.setValue('Jeringas');
-    remainingThirdProduct.get('quantity')?.setValue(10);
+    // Jeringas has stock of 8, so use 8 or less
+    remainingThirdProduct.get('quantity')?.setValue(8);
     
     // Update form validity after setting values
     component.orderForm.updateValueAndValidity();
@@ -706,7 +718,7 @@ describe('OrderCreateComponent', () => {
     expect(component.createdOrder).toBeDefined();
     expect(component.createdOrder).not.toBeNull();
     expect(component.createdOrder?.product).toContain('Insulina (5)');
-    expect(component.createdOrder?.product).toContain('Jeringas (10)');
+    expect(component.createdOrder?.product).toContain('Jeringas (8)');
     expect(component.createdOrder?.product).not.toContain('()');
   });
   });
@@ -803,7 +815,8 @@ describe('OrderCreateComponent', () => {
     firstProduct.get('product')?.setValue('Insulina');
     firstProduct.get('quantity')?.setValue(5);
     secondProduct.get('product')?.setValue('Jeringas');
-    secondProduct.get('quantity')?.setValue(10);
+    // Jeringas has stock of 8, so use 8 or less
+    secondProduct.get('quantity')?.setValue(8);
     
     // Update form validity after setting values
     component.orderForm.updateValueAndValidity();
@@ -870,7 +883,8 @@ describe('OrderCreateComponent', () => {
     firstProduct.get('product')?.setValue('Insulina');
     firstProduct.get('quantity')?.setValue(5);
     secondProduct.get('product')?.setValue('Jeringas');
-    secondProduct.get('quantity')?.setValue(10);
+    // Jeringas has stock of 8, so use 8 or less
+    secondProduct.get('quantity')?.setValue(8);
     
     component.clearForm();
     
