@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { tap, map } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { environment } from '../../../environments/environment';
 
@@ -60,11 +60,39 @@ export class AuthService {
   ) {}
 
   signup(data: SignupRequest): Observable<AuthResponse> {
-    return this.api.post<AuthResponse>('/api/auth/register', data, this.authServiceUrl).pipe(
+    return this.api.post<any>('/api/auth/register', data, this.authServiceUrl).pipe(
       tap(response => {
-        if (response.token && response.user) {
-          this.setAuthData(response.token, response.user);
+        // El backend devuelve directamente el UserResponse, no un AuthResponse
+        // Convertimos la respuesta al formato esperado
+        if (response && response.id) {
+          // Si hay token, lo guardamos (aunque normalmente no viene en el registro)
+          if (response.token) {
+            this.setAuthData(response.token, {
+              id: response.id,
+              email: response.email,
+              role: response.role,
+              name: response.name || response.full_name || ''
+            });
+          }
         }
+      }),
+      // Mapear la respuesta del backend al formato AuthResponse esperado
+      map((response: any) => {
+        if (response && response.id) {
+          return {
+            message: 'Usuario registrado exitosamente',
+            token: response.token,
+            user: {
+              id: response.id,
+              email: response.email,
+              role: response.role as 'vendor' | 'client',
+              name: response.name || response.full_name || ''
+            }
+          } as AuthResponse;
+        }
+        return {
+          message: 'Usuario registrado exitosamente'
+        } as AuthResponse;
       })
     );
   }
