@@ -25,41 +25,66 @@ export class ClientMfaComponent {
     private authService: AuthService
   ) {}
 
-  verify() {
-    if (this._form.valid) {
-      this.isLoading = true;
-      this.errorMessage = '';
+  get code() { return this._form.get('code'); }
 
-      const userId = sessionStorage.getItem('mfaUserId');
-      const code = this._form.value.code || '';
-
-      if (!userId) {
-        this.errorMessage = 'Error: No se encontró información de usuario';
-        this.isLoading = false;
-        this.router.navigate(['/client/login']);
-        return;
-      }
-
-      this.authService.verifyMFA(userId, code).subscribe({
-        next: (response) => {
-          this.isLoading = false;
-          
-          if (response.token && response.user) {
-            // Limpiar userId temporal
-            sessionStorage.removeItem('mfaUserId');
-            // Navegar al dashboard
-            this.router.navigate(['/client']);
-          }
-        },
-        error: (error) => {
-          this.isLoading = false;
-          this.errorMessage = error.message || 'Código MFA inválido';
-          console.error('MFA verification error:', error);
-        }
-      });
-    } else {
-      this._form.markAllAsTouched();
+  getCodeErrorMessage(): string {
+    if (this.code?.hasError('required')) {
+      return 'El código es requerido';
     }
+    if (this.code?.hasError('minlength') || this.code?.hasError('maxlength')) {
+      return 'El código debe tener exactamente 6 dígitos';
+    }
+    if (this.code?.hasError('pattern')) {
+      return 'Solo se permiten números';
+    }
+    return '';
+  }
+
+  verify() {
+    this.errorMessage = '';
+
+    if (this._form.invalid) {
+      this._form.markAllAsTouched();
+      this.errorMessage = 'Por favor, ingrese un código válido de 6 dígitos';
+      return;
+    }
+
+    this.isLoading = true;
+
+    const userId = sessionStorage.getItem('mfaUserId');
+    const code = this._form.value.code || '';
+
+    if (!userId) {
+      this.errorMessage = 'Error: No se encontró información de usuario. Por favor, inicie sesión nuevamente';
+      this.isLoading = false;
+      this.router.navigate(['/client/login']);
+      return;
+    }
+
+    this.authService.verifyMFA(userId, code).subscribe({
+      next: (response) => {
+        this.isLoading = false;
+        
+        if (response.token && response.user) {
+          sessionStorage.removeItem('mfaUserId');
+          this.router.navigate(['/client']);
+        }
+      },
+      error: (error) => {
+        this.isLoading = false;
+        
+        if (error.error?.message) {
+          this.errorMessage = error.error.message;
+        } else if (error.status === 400 || error.status === 401) {
+          this.errorMessage = 'Código MFA inválido. Por favor, verifique e intente nuevamente';
+        } else if (error.status === 0 || error.status === 500) {
+          this.errorMessage = 'Error del servidor. Por favor, intente más tarde';
+        } else {
+          this.errorMessage = 'Error al verificar el código. Por favor, intente nuevamente';
+        }
+        console.error('MFA verification error:', error);
+      }
+    });
   }
 }
 

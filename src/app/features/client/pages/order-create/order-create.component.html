@@ -15,24 +15,63 @@
       <div class="form-section">
         <h3>Información del Cliente</h3>
         <div class="form-group">
-          <label class="form-label">Nombre de la Institución *</label>
-          <input type="text" class="form-input" formControlName="institutionName" placeholder="Nombre de su institución">
+          <label class="form-label">Nombre de la Institución <span class="required">*</span></label>
+          <input 
+            type="text" 
+            class="form-input" 
+            [class.error]="orderForm.get('institutionName')?.invalid && orderForm.get('institutionName')?.touched"
+            formControlName="institutionName" 
+            placeholder="Nombre de su institución">
+          <div *ngIf="orderForm.get('institutionName')?.invalid && orderForm.get('institutionName')?.touched" class="error-message">
+            {{ getErrorMessage('institutionName') }}
+          </div>
         </div>
         <div class="form-group">
-          <label class="form-label">Dirección de Entrega *</label>
-          <textarea class="form-input" formControlName="deliveryAddress" placeholder="Dirección completa de entrega" rows="3"></textarea>
+          <label class="form-label">Dirección de Entrega <span class="required">*</span></label>
+          <textarea 
+            class="form-input" 
+            [class.error]="orderForm.get('deliveryAddress')?.invalid && orderForm.get('deliveryAddress')?.touched"
+            formControlName="deliveryAddress" 
+            placeholder="Dirección completa de entrega" 
+            rows="3"></textarea>
+          <div *ngIf="orderForm.get('deliveryAddress')?.invalid && orderForm.get('deliveryAddress')?.touched" class="error-message">
+            {{ getErrorMessage('deliveryAddress') }}
+          </div>
         </div>
         <div class="form-group">
-          <label class="form-label">Fecha de Entrega Deseada *</label>
-          <input type="date" class="form-input" formControlName="deliveryDate">
+          <label class="form-label">Fecha de Entrega Deseada <span class="required">*</span></label>
+          <input 
+            type="date" 
+            class="form-input" 
+            [class.error]="orderForm.get('deliveryDate')?.invalid && orderForm.get('deliveryDate')?.touched"
+            formControlName="deliveryDate">
+          <div *ngIf="orderForm.get('deliveryDate')?.invalid && orderForm.get('deliveryDate')?.touched" class="error-message">
+            {{ getErrorMessage('deliveryDate') }}
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">Contacto</label>
-          <input type="text" class="form-input" formControlName="contact" placeholder="Persona de contacto">
+          <input 
+            type="text" 
+            class="form-input" 
+            [class.error]="orderForm.get('contact')?.invalid && orderForm.get('contact')?.touched"
+            formControlName="contact" 
+            placeholder="Persona de contacto">
+          <div *ngIf="orderForm.get('contact')?.invalid && orderForm.get('contact')?.touched" class="error-message">
+            {{ getErrorMessage('contact') }}
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">Teléfono</label>
-          <input type="tel" class="form-input" formControlName="phone" placeholder="Número de teléfono">
+          <input 
+            type="tel" 
+            class="form-input" 
+            [class.error]="orderForm.get('phone')?.invalid && orderForm.get('phone')?.touched"
+            formControlName="phone" 
+            placeholder="Número de teléfono">
+          <div *ngIf="orderForm.get('phone')?.invalid && orderForm.get('phone')?.touched" class="error-message">
+            {{ getErrorMessage('phone') }}
+          </div>
         </div>
       </div>
 
@@ -49,13 +88,20 @@
         <div class="products-container" formArrayName="products">
           <div class="product-item" *ngFor="let product of productsArray.controls; let i = index" [formGroupName]="i">
             <div class="product-select">
-              <label class="form-label">Producto {{i + 1}}</label>
-              <select class="form-input product-dropdown" formControlName="product" (change)="onProductChange(i)">
+              <label class="form-label">Producto {{i + 1}} <span class="required">*</span></label>
+              <select 
+                class="form-input product-dropdown" 
+                [class.error]="product.get('product')?.invalid && product.get('product')?.touched"
+                formControlName="product" 
+                (change)="onProductChange(i)">
                 <option value="">Seleccionar producto</option>
                 <option *ngFor="let item of getAvailableProducts()" [value]="item.name" [disabled]="item.stock === 0">
                   {{item.name}} - Stock: {{item.stock}} unidades - ${{item.price | number:'1.2-2'}}
                 </option>
               </select>
+              <div *ngIf="product.get('product')?.invalid && product.get('product')?.touched" class="error-message">
+                {{ getProductErrorMessage(i, 'product') }}
+              </div>
               <div class="product-info" *ngIf="product.get('product')?.value">
                 <small class="stock-info">
                   <span [ngClass]="getStockClass(getProductStock(product.get('product')?.value))">
@@ -66,8 +112,21 @@
             </div>
             
             <div class="quantity-select">
-              <label class="form-label">Cantidad</label>
-              <input type="number" class="form-input" formControlName="quantity" min="1" [max]="getProductStock(product.get('product')?.value)" placeholder="Cantidad">
+              <label class="form-label">Cantidad <span class="required">*</span></label>
+              <input 
+                type="number" 
+                class="form-input" 
+                [class.error]="product.get('quantity')?.invalid && product.get('quantity')?.touched"
+                formControlName="quantity" 
+                min="1" 
+                [max]="getProductStock(product.get('product')?.value)" 
+                placeholder="Cantidad">
+              <div *ngIf="product.get('quantity')?.invalid && product.get('quantity')?.touched" class="error-message">
+                {{ getProductErrorMessage(i, 'quantity') }}
+              </div>
+              <div *ngIf="product.get('product')?.value && product.get('quantity')?.value > getProductStock(product.get('product')?.value)" class="error-message">
+                La cantidad no puede exceder el stock disponible ({{getProductStock(product.get('product')?.value)}} unidades)
+              </div>
             </div>
             
             <button mat-icon-button color="warn" (click)="removeProduct(i)" class="remove-btn" *ngIf="productsArray.length > 1">
@@ -87,7 +146,15 @@
         <h3>Observaciones</h3>
         <div class="form-group">
           <label class="form-label">Notas Adicionales</label>
-          <textarea class="form-input" formControlName="notes" placeholder="Cualquier información adicional sobre el pedido" rows="3"></textarea>
+          <textarea 
+            class="form-input" 
+            [class.error]="orderForm.get('notes')?.invalid && orderForm.get('notes')?.touched"
+            formControlName="notes" 
+            placeholder="Cualquier información adicional sobre el pedido" 
+            rows="3"></textarea>
+          <div *ngIf="orderForm.get('notes')?.invalid && orderForm.get('notes')?.touched" class="error-message">
+            {{ getErrorMessage('notes') }}
+          </div>
         </div>
       </div>
     </mat-card-content>

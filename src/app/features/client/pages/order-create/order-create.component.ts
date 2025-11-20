@@ -27,21 +27,100 @@ export class OrderCreateComponent implements OnInit {
 
   ngOnInit() {
     this.orderForm = this.fb.group({
-      institutionName: ['', [Validators.required, Validators.minLength(2)]],
-      deliveryAddress: ['', [Validators.required, Validators.minLength(2)]],
-      deliveryDate: ['', Validators.required],
-      contact: [''],
-      phone: [''],
+      institutionName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
+      deliveryAddress: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(200)]],
+      deliveryDate: ['', [Validators.required, this.futureDateValidator]],
+      contact: ['', [Validators.maxLength(100)]],
+      phone: ['', [Validators.pattern(/^[0-9+\-\s()]+$/), Validators.maxLength(20)]],
       products: this.fb.array([
         this.fb.group({
           product: ['', Validators.required],
-          quantity: [1, [Validators.required, Validators.min(1)]]
+          quantity: [1, [Validators.required, Validators.min(1), Validators.max(1000)]]
         })
       ]),
-      notes: ['']
+      notes: ['', [Validators.maxLength(500)]]
     });
     
     this.loadProducts();
+  }
+
+  futureDateValidator(control: any) {
+    if (!control.value) {
+      return null;
+    }
+    const selectedDate = new Date(control.value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (selectedDate < today) {
+      return { pastDate: true };
+    }
+    return null;
+  }
+
+  getErrorMessage(controlName: string): string {
+    const control = this.orderForm.get(controlName);
+    if (!control || !control.errors || !control.touched) {
+      return '';
+    }
+
+    if (control.hasError('required')) {
+      return `${this.getFieldLabel(controlName)} es requerido`;
+    }
+    if (control.hasError('minlength')) {
+      const requiredLength = control.errors['minlength']?.requiredLength;
+      return `${this.getFieldLabel(controlName)} debe tener al menos ${requiredLength} caracteres`;
+    }
+    if (control.hasError('maxlength')) {
+      const maxLength = control.errors['maxlength']?.requiredLength;
+      return `${this.getFieldLabel(controlName)} no puede exceder ${maxLength} caracteres`;
+    }
+    if (control.hasError('pattern')) {
+      return `${this.getFieldLabel(controlName)} tiene un formato inválido`;
+    }
+    if (control.hasError('pastDate')) {
+      return 'La fecha de entrega no puede ser anterior a hoy';
+    }
+    if (control.hasError('min')) {
+      return 'La cantidad debe ser al menos 1';
+    }
+    if (control.hasError('max')) {
+      return 'La cantidad no puede exceder 1000';
+    }
+    return '';
+  }
+
+  getFieldLabel(controlName: string): string {
+    const labels: { [key: string]: string } = {
+      institutionName: 'El nombre de la institución',
+      deliveryAddress: 'La dirección de entrega',
+      deliveryDate: 'La fecha de entrega',
+      contact: 'El contacto',
+      phone: 'El teléfono',
+      product: 'El producto',
+      quantity: 'La cantidad',
+      notes: 'Las notas'
+    };
+    return labels[controlName] || controlName;
+  }
+
+  getProductErrorMessage(index: number, field: string): string {
+    const productGroup = this.productsArray.at(index);
+    const control = productGroup.get(field);
+    if (!control || !control.errors || !control.touched) {
+      return '';
+    }
+
+    if (control.hasError('required')) {
+      return field === 'product' ? 'Debe seleccionar un producto' : 'La cantidad es requerida';
+    }
+    if (control.hasError('min')) {
+      return 'La cantidad debe ser al menos 1';
+    }
+    if (control.hasError('max')) {
+      return 'La cantidad no puede exceder 1000';
+    }
+    return '';
   }
   
   loadProducts() {
@@ -159,6 +238,16 @@ export class OrderCreateComponent implements OnInit {
   }
 
   createOrder() {
+    // Marcar todos los campos como touched para mostrar errores
+    if (this.orderForm.invalid) {
+      this.orderForm.markAllAsTouched();
+      this.productsArray.controls.forEach(control => {
+        control.markAllAsTouched();
+      });
+      alert('Por favor complete todos los campos requeridos correctamente');
+      return;
+    }
+
     if (!this.isFormValid()) {
       alert('Por favor complete todos los campos requeridos');
       return;
@@ -235,7 +324,21 @@ export class OrderCreateComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error creating order:', error);
-        alert('Error al crear el pedido: ' + (error.message || 'Error desconocido'));
+        let errorMessage = 'Error al crear el pedido';
+        
+        if (error.error?.message) {
+          errorMessage = error.error.message;
+        } else if (error.status === 400) {
+          errorMessage = 'Datos inválidos. Por favor, verifique la información';
+        } else if (error.status === 409) {
+          errorMessage = 'El pedido ya existe o hay un conflicto';
+        } else if (error.status === 0 || error.status === 500) {
+          errorMessage = 'Error del servidor. Por favor, intente más tarde';
+        } else {
+          errorMessage = error.message || 'Error desconocido';
+        }
+        
+        alert(errorMessage);
         this.isSubmitting = false;
       }
     });

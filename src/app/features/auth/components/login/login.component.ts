@@ -1,41 +1,89 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   templateUrl: './login.component.html'
 })
 export class LoginComponent {
   _form = new FormGroup({
-    user: new FormControl('', [Validators.required, Validators.minLength(2)]),
-    pass: new FormControl('', [Validators.required, Validators.minLength(2)])
+    user: new FormControl('', [Validators.required, Validators.email]),
+    pass: new FormControl('', [Validators.required, Validators.minLength(6)])
   });
+
+  isLoading = false;
+  errorMessage = '';
+
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) {}
   
-  constructor(private router: Router){}
+  get user() { return this._form.get('user'); }
+  get pass() { return this._form.get('pass'); }
+
+  getUserErrorMessage(): string {
+    if (this.user?.hasError('required')) {
+      return 'El correo electrónico es requerido';
+    }
+    if (this.user?.hasError('email')) {
+      return 'Ingrese un correo electrónico válido';
+    }
+    return '';
+  }
+
+  getPassErrorMessage(): string {
+    if (this.pass?.hasError('required')) {
+      return 'La contraseña es requerida';
+    }
+    if (this.pass?.hasError('minlength')) {
+      return 'La contraseña debe tener al menos 6 caracteres';
+    }
+    return '';
+  }
   
   login(){
-    if (this._form.valid) {
-      const username = this._form.value.user?.toLowerCase();
-      let role = '';
-      
-      // Determine role based on username
-      if (username === 'vendedor') {
-        role = 'vendor';
-      } else if (username === 'cliente') {
-        role = 'client';
-      } else {
-        // Default to vendor for any other username
-        role = 'vendor';
-      }
-      
-      // store role in sessionStorage (simple mock)
-      sessionStorage.setItem('role', role);
-      // go to MFA step
-      this.router.navigate(['/mfa']);
-    } else {
-      // Mark all fields as touched to show validation errors
+    this.errorMessage = '';
+
+    if (this._form.invalid) {
       this._form.markAllAsTouched();
+      this.errorMessage = 'Por favor, complete todos los campos correctamente';
+      return;
     }
+
+    this.isLoading = true;
+    const email = this._form.value.user?.toLowerCase() || '';
+    const password = this._form.value.pass || '';
+
+    this.authService.login({ email, password }).subscribe({
+      next: (response) => {
+        this.isLoading = false;
+        
+        if (response.mfaRequired) {
+          sessionStorage.setItem('mfaUserId', response.userId || '');
+          const role = email.includes('vendedor') || email.includes('vendor') ? 'vendor' : 'client';
+          sessionStorage.setItem('role', role);
+          this.router.navigate(['/mfa']);
+        } else if (response.token && response.user) {
+          this.router.navigate([response.user.role === 'vendor' ? '/vendor/orders' : '/client']);
+        }
+      },
+      error: (error) => {
+        this.isLoading = false;
+        
+        if (error.error?.message) {
+          this.errorMessage = error.error.message;
+        } else if (error.status === 401) {
+          this.errorMessage = 'Credenciales inválidas. Verifique su correo y contraseña';
+        } else if (error.status === 0 || error.status === 500) {
+          this.errorMessage = 'Error del servidor. Por favor, intente más tarde';
+        } else {
+          this.errorMessage = 'Error al iniciar sesión. Por favor, intente nuevamente';
+        }
+        console.error('Login error:', error);
+      }
+    });
   }
   
   goToSignup(){

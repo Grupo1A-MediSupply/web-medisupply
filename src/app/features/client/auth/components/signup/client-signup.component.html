@@ -17,92 +17,135 @@
       <div class="signup-form-container">
         <h1 class="signup-title">Registro de Cliente</h1>
         
+        <!-- Mensajes de error y éxito -->
+        <div *ngIf="errorMessage" class="alert alert-error">
+          <mat-icon>error</mat-icon>
+          <span>{{ errorMessage }}</span>
+        </div>
+        
+        <div *ngIf="successMessage" class="alert alert-success">
+          <mat-icon>check_circle</mat-icon>
+          <span>{{ successMessage }}</span>
+        </div>
+        
         <form [formGroup]="signupForm" (ngSubmit)="createAccount()" class="signup-form">
           <div class="form-group">
-            <label class="form-label">Nombre completo</label>
+            <label class="form-label">Nombre completo <span class="required">*</span></label>
             <input 
               type="text" 
               class="form-input" 
-              placeholder="Nombre completo" 
-              formControlName="fullName" 
-              required>
+              [class.error]="fullName?.invalid && fullName?.touched"
+              placeholder="Ej: Juan Pérez" 
+              formControlName="fullName">
+            <div *ngIf="fullName?.invalid && fullName?.touched" class="error-message">
+              {{ getFullNameErrorMessage() }}
+            </div>
           </div>
           
           <div class="form-group">
-            <label class="form-label">Correo electrónico</label>
+            <label class="form-label">Correo electrónico <span class="required">*</span></label>
             <input 
               type="email" 
               class="form-input" 
-              placeholder="correo@institucion.com" 
-              formControlName="email" 
-              required>
+              [class.error]="email?.invalid && email?.touched"
+              placeholder="Ej: cliente@institucion.com" 
+              formControlName="email">
+            <div *ngIf="email?.invalid && email?.touched" class="error-message">
+              {{ getEmailErrorMessage() }}
+            </div>
           </div>
           
           <div class="form-group">
-            <label class="form-label">Número de teléfono</label>
+            <label class="form-label">Número de teléfono <span class="required">*</span></label>
             <input 
               type="tel" 
               class="form-input" 
-              placeholder="Número de contacto" 
-              formControlName="phone" 
-              required>
+              [class.error]="phone?.invalid && phone?.touched"
+              placeholder="Ej: +57 300 1234567" 
+              formControlName="phone">
+            <div *ngIf="phone?.invalid && phone?.touched" class="error-message">
+              {{ getPhoneErrorMessage() }}
+            </div>
           </div>
           
           <div class="form-group">
-            <label class="form-label">Institución</label>
+            <label class="form-label">Institución <span class="required">*</span></label>
             <input 
               type="text" 
               class="form-input" 
+              [class.error]="institution?.invalid && institution?.touched"
               placeholder="Nombre de la institución" 
-              formControlName="institution" 
-              required>
+              formControlName="institution">
+            <div *ngIf="institution?.invalid && institution?.touched" class="error-message">
+              {{ getInstitutionErrorMessage() }}
+            </div>
           </div>
           
           <div class="form-group">
-            <label class="form-label">Cargo</label>
+            <label class="form-label">Cargo <span class="required">*</span></label>
             <input 
               type="text" 
               class="form-input" 
-              placeholder="Tu cargo en la institución" 
-              formControlName="position" 
-              required>
+              [class.error]="position?.invalid && position?.touched"
+              placeholder="Ej: Director de Compras" 
+              formControlName="position">
+            <div *ngIf="position?.invalid && position?.touched" class="error-message">
+              {{ getPositionErrorMessage() }}
+            </div>
           </div>
           
           <div class="form-group">
-            <label class="form-label">Usuario</label>
+            <label class="form-label">Usuario <span class="required">*</span></label>
             <input 
               type="text" 
               class="form-input" 
+              [class.error]="username?.invalid && username?.touched"
               placeholder="Usuario cliente" 
-              formControlName="username" 
-              required>
+              formControlName="username">
+            <div *ngIf="username?.invalid && username?.touched" class="error-message">
+              {{ getUsernameErrorMessage() }}
+            </div>
+            <small class="form-hint">Solo letras, números y guiones bajos</small>
           </div>
           
           <div class="form-group">
-            <label class="form-label">Contraseña</label>
+            <label class="form-label">Contraseña <span class="required">*</span></label>
             <input 
               type="password" 
               class="form-input" 
-              placeholder="Contraseña segura" 
-              formControlName="password" 
-              required>
+              [class.error]="password?.invalid && password?.touched"
+              placeholder="Mínimo 8 caracteres" 
+              formControlName="password">
+            <div *ngIf="password?.invalid && password?.touched" class="error-message">
+              {{ getPasswordErrorMessage() }}
+            </div>
+            <small class="form-hint">
+              Debe contener: mayúsculas, minúsculas, números y caracteres especiales
+            </small>
           </div>
           
           <div class="form-group">
-            <label class="form-label">Confirmar contraseña</label>
+            <label class="form-label">Confirmar contraseña <span class="required">*</span></label>
             <input 
               type="password" 
               class="form-input" 
-              placeholder="Confirma tu contraseña" 
-              formControlName="confirmPassword" 
-              required>
+              [class.error]="confirmPassword?.invalid && confirmPassword?.touched"
+              placeholder="Repita su contraseña" 
+              formControlName="confirmPassword">
+            <div *ngIf="confirmPassword?.invalid && confirmPassword?.touched" class="error-message">
+              {{ getConfirmPasswordErrorMessage() }}
+            </div>
           </div>
           
           <div class="form-actions">
-            <button type="submit" class="btn-primary" [disabled]="!signupForm.valid">
-              Crear cuenta cliente
+            <button type="submit" class="btn-primary" [disabled]="!signupForm.valid || isLoading">
+              <span *ngIf="!isLoading">Crear cuenta cliente</span>
+              <span *ngIf="isLoading">
+                <mat-icon class="spinner">hourglass_empty</mat-icon>
+                Creando cuenta...
+              </span>
             </button>
-            <button type="button" class="btn-secondary" (click)="goToLogin()">
+            <button type="button" class="btn-secondary" (click)="goToLogin()" [disabled]="isLoading">
               Iniciar sesión
             </button>
           </div>

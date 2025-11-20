@@ -18,33 +18,39 @@
         <h1 class="mfa-title">Verificación MFA - Vendedor</h1>
         <p class="mfa-subtitle">Te hemos enviado un código de verificación a tu correo electrónico o celular</p>
 
+        <!-- Mensaje de error general -->
+        <div *ngIf="errorMessage" class="alert alert-error">
+          <mat-icon>error</mat-icon>
+          <span>{{ errorMessage }}</span>
+        </div>
+
         <form [formGroup]="_form" (ngSubmit)="verify()" class="mfa-form">
           <div class="form-group">
-            <label class="form-label">Código de verificación</label>
+            <label class="form-label">Código de verificación <span class="required">*</span></label>
             <input
               type="text"
               class="form-input"
-              [class.error]="_form.get('code')?.invalid && _form.get('code')?.touched"
-              placeholder="Digita tu código de 6 dígitos"
+              [class.error]="code?.invalid && code?.touched"
+              placeholder="000000"
               formControlName="code"
-              required
               maxlength="6"
-              pattern="[0-9]*"
               inputmode="numeric">
-            <div class="error-message" *ngIf="_form.get('code')?.invalid && _form.get('code')?.touched">
-              <span *ngIf="_form.get('code')?.errors?.['required']">El código es requerido</span>
-              <span *ngIf="_form.get('code')?.errors?.['minlength']">El código debe tener exactamente 6 números</span>
-              <span *ngIf="_form.get('code')?.errors?.['maxlength']">El código debe tener exactamente 6 números</span>
-              <span *ngIf="_form.get('code')?.errors?.['pattern']">Solo se permiten números</span>
+            <div *ngIf="code?.invalid && code?.touched" class="error-message">
+              {{ getCodeErrorMessage() }}
             </div>
+            <small class="form-hint">Ingrese el código de 6 dígitos recibido</small>
           </div>
 
           <div class="mfa-actions">
             <div class="resend-link-container">
-              <a href="#" class="resend-link">Enviar código de nuevo</a>
+              <a href="#" class="resend-link" (click)="$event.preventDefault()">Enviar código de nuevo</a>
             </div>
-            <button type="submit" class="btn-primary" [disabled]="!_form.valid">
-              Verificar y continuar
+            <button type="submit" class="btn-primary" [disabled]="!_form.valid || isLoading">
+              <span *ngIf="!isLoading">Verificar y continuar</span>
+              <span *ngIf="isLoading">
+                <mat-icon class="spinner">hourglass_empty</mat-icon>
+                Verificando...
+              </span>
             </button>
           </div>
         </form>
