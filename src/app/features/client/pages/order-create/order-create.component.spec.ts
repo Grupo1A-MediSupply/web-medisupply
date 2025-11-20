@@ -194,6 +194,9 @@ describe('OrderCreateComponent', () => {
       expect(deliveryAddress?.hasError('minlength')).toBeTrue();
       
       deliveryAddress?.setValue('AB');
+      expect(deliveryAddress?.hasError('minlength')).toBeTrue(); // minLength is now 10
+      
+      deliveryAddress?.setValue('123 Main Street, City');
       expect(deliveryAddress?.hasError('minlength')).toBeFalse();
     });
 
@@ -425,14 +428,14 @@ describe('OrderCreateComponent', () => {
     it('should show alert when form is invalid', () => {
       component.createOrder();
       
-      expect(window.alert).toHaveBeenCalledWith('Por favor complete todos los campos requeridos');
+      expect(window.alert).toHaveBeenCalledWith('Por favor complete todos los campos requeridos correctamente');
       expect(component.showSuccessModal).toBeFalse();
     });
 
   it('should generate unique order IDs', () => {
     // Set form values
     component.orderForm.get('institutionName')?.setValue('Test Hospital');
-    component.orderForm.get('deliveryAddress')?.setValue('Test Address');
+    component.orderForm.get('deliveryAddress')?.setValue('123 Main Street, Test City');
     component.orderForm.get('deliveryDate')?.setValue('2025-12-31');
     
     const firstProduct = component.productsArray.at(0);
@@ -456,8 +459,8 @@ describe('OrderCreateComponent', () => {
         clientId: '1',
         vendorId: 'vendor-1',
         products: [],
-        deliveryAddress: '',
-        deliveryDate: new Date().toISOString(),
+        deliveryAddress: '123 Main Street, Test City',
+        deliveryDate: '2025-12-31',
         totalAmount: 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -465,13 +468,15 @@ describe('OrderCreateComponent', () => {
     }));
     
     component.createOrder();
-    const firstId = component.createdOrder.id;
+    expect(component.createdOrder).toBeDefined();
+    expect(component.createdOrder).not.toBeNull();
+    const firstId = component.createdOrder?.id;
     expect(firstId).toMatch(/^C-\d+$/);
     
     // Reset the form for second order
     component.clearForm();
     component.orderForm.get('institutionName')?.setValue('Test Hospital 2');
-    component.orderForm.get('deliveryAddress')?.setValue('Test Address 2');
+    component.orderForm.get('deliveryAddress')?.setValue('456 Second Street, Test City');
     component.orderForm.get('deliveryDate')?.setValue('2025-12-31');
     const newProduct = component.productsArray.at(0);
     newProduct.get('product')?.setValue('Jeringas');
@@ -498,7 +503,9 @@ describe('OrderCreateComponent', () => {
     }));
     
     component.createOrder();
-    const secondId = component.createdOrder.id;
+    expect(component.createdOrder).toBeDefined();
+    expect(component.createdOrder).not.toBeNull();
+    const secondId = component.createdOrder?.id;
     expect(secondId).toMatch(/^C-\d+$/);
     
     expect(firstId).not.toBe(secondId);
@@ -507,7 +514,7 @@ describe('OrderCreateComponent', () => {
   it('should create order with correct product text', () => {
     // Set form values
     component.orderForm.get('institutionName')?.setValue('Test Hospital');
-    component.orderForm.get('deliveryAddress')?.setValue('Test Address');
+    component.orderForm.get('deliveryAddress')?.setValue('123 Main Street, Test City');
     component.orderForm.get('deliveryDate')?.setValue('2025-12-31');
     
     // Add a second product
@@ -522,17 +529,37 @@ describe('OrderCreateComponent', () => {
     // Ensure form is valid
     expect(component.isFormValid()).toBeTrue();
     
+    // Mock the service response
+    mockOrderService.createOrder.and.returnValue(of({
+      message: 'Order created successfully',
+      order: {
+        orderNumber: 'C-9999',
+        _id: '9999',
+        status: 'Creado' as const,
+        clientId: '1',
+        vendorId: 'vendor-1',
+        products: [],
+        deliveryAddress: '123 Main Street, Test City',
+        deliveryDate: '2025-12-31',
+        totalAmount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    }));
+    
     component.createOrder();
     
     // Verify product text contains both products
-    expect(component.createdOrder.product).toContain('Insulina (5)');
-    expect(component.createdOrder.product).toContain('Jeringas (10)');
+    expect(component.createdOrder).toBeDefined();
+    expect(component.createdOrder).not.toBeNull();
+    expect(component.createdOrder?.product).toContain('Insulina (5)');
+    expect(component.createdOrder?.product).toContain('Jeringas (10)');
   });
 
   it('should filter out empty products', () => {
     // Set form values
     component.orderForm.get('institutionName')?.setValue('Test Hospital');
-    component.orderForm.get('deliveryAddress')?.setValue('Test Address');
+    component.orderForm.get('deliveryAddress')?.setValue('123 Main Street, Test City');
     component.orderForm.get('deliveryDate')?.setValue('2025-12-31');
     
     // Add two more products
@@ -551,12 +578,32 @@ describe('OrderCreateComponent', () => {
     // Ensure form is valid (it should be valid even with empty products)
     expect(component.isFormValid()).toBeTrue();
     
+    // Mock the service response
+    mockOrderService.createOrder.and.returnValue(of({
+      message: 'Order created successfully',
+      order: {
+        orderNumber: 'C-8888',
+        _id: '8888',
+        status: 'Creado' as const,
+        clientId: '1',
+        vendorId: 'vendor-1',
+        products: [],
+        deliveryAddress: '123 Main Street, Test City',
+        deliveryDate: '2025-12-31',
+        totalAmount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    }));
+    
     component.createOrder();
     
     // Verify only non-empty products are included
-    expect(component.createdOrder.product).toContain('Insulina (5)');
-    expect(component.createdOrder.product).toContain('Jeringas (10)');
-    expect(component.createdOrder.product).not.toContain('()');
+    expect(component.createdOrder).toBeDefined();
+    expect(component.createdOrder).not.toBeNull();
+    expect(component.createdOrder?.product).toContain('Insulina (5)');
+    expect(component.createdOrder?.product).toContain('Jeringas (10)');
+    expect(component.createdOrder?.product).not.toContain('()');
   });
   });
 
@@ -564,7 +611,7 @@ describe('OrderCreateComponent', () => {
   it('should clear form after successful order creation', () => {
     // Set form values
     component.orderForm.get('institutionName')?.setValue('Test Hospital');
-    component.orderForm.get('deliveryAddress')?.setValue('Test Address');
+    component.orderForm.get('deliveryAddress')?.setValue('123 Main Street, Test City');
     component.orderForm.get('deliveryDate')?.setValue('2025-12-31');
     
     const firstProduct = component.productsArray.at(0);
@@ -573,6 +620,24 @@ describe('OrderCreateComponent', () => {
     
     // Ensure form is valid before creating order
     expect(component.isFormValid()).toBeTrue();
+    
+    // Mock the service response
+    mockOrderService.createOrder.and.returnValue(of({
+      message: 'Order created successfully',
+      order: {
+        orderNumber: 'C-7777',
+        _id: '7777',
+        status: 'Creado' as const,
+        clientId: '1',
+        vendorId: 'vendor-1',
+        products: [],
+        deliveryAddress: '123 Main Street, Test City',
+        deliveryDate: '2025-12-31',
+        totalAmount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    }));
     
     component.createOrder();
     
@@ -593,7 +658,7 @@ describe('OrderCreateComponent', () => {
     
     // Set form values
     component.orderForm.get('institutionName')?.setValue('Test Hospital');
-    component.orderForm.get('deliveryAddress')?.setValue('Test Address');
+    component.orderForm.get('deliveryAddress')?.setValue('123 Main Street, Test City');
     component.orderForm.get('deliveryDate')?.setValue('2025-12-31');
     
     // Set products with values
@@ -606,6 +671,24 @@ describe('OrderCreateComponent', () => {
     
     // Ensure form is valid before creating order
     expect(component.isFormValid()).toBeTrue();
+    
+    // Mock the service response
+    mockOrderService.createOrder.and.returnValue(of({
+      message: 'Order created successfully',
+      order: {
+        orderNumber: 'C-6666',
+        _id: '6666',
+        status: 'Creado' as const,
+        clientId: '1',
+        vendorId: 'vendor-1',
+        products: [],
+        deliveryAddress: '123 Main Street, Test City',
+        deliveryDate: '2025-12-31',
+        totalAmount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    }));
     
     component.createOrder();
     
@@ -657,7 +740,7 @@ describe('OrderCreateComponent', () => {
   it('should add modal-open class to body when showing modal', () => {
     // Set form values
     component.orderForm.get('institutionName')?.setValue('Test Hospital');
-    component.orderForm.get('deliveryAddress')?.setValue('Test Address');
+    component.orderForm.get('deliveryAddress')?.setValue('123 Main Street, Test City');
     component.orderForm.get('deliveryDate')?.setValue('2025-12-31');
     
     const firstProduct = component.productsArray.at(0);
@@ -666,6 +749,24 @@ describe('OrderCreateComponent', () => {
     
     // Ensure form is valid before creating order
     expect(component.isFormValid()).toBeTrue();
+    
+    // Mock the service response
+    mockOrderService.createOrder.and.returnValue(of({
+      message: 'Order created successfully',
+      order: {
+        orderNumber: 'C-5555',
+        _id: '5555',
+        status: 'Creado' as const,
+        clientId: '1',
+        vendorId: 'vendor-1',
+        products: [],
+        deliveryAddress: '123 Main Street, Test City',
+        deliveryDate: '2025-12-31',
+        totalAmount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    }));
     
     component.createOrder();
     
@@ -753,7 +854,7 @@ describe('OrderCreateComponent', () => {
   it('should show success modal when order is created', () => {
     // Set form values
     component.orderForm.get('institutionName')?.setValue('Test Hospital');
-    component.orderForm.get('deliveryAddress')?.setValue('Test Address');
+    component.orderForm.get('deliveryAddress')?.setValue('123 Main Street, Test City');
     component.orderForm.get('deliveryDate')?.setValue('2025-12-31');
     
     const firstProduct = component.productsArray.at(0);
@@ -762,6 +863,24 @@ describe('OrderCreateComponent', () => {
     
     // Ensure form is valid before creating order
     expect(component.isFormValid()).toBeTrue();
+    
+    // Mock the service response
+    mockOrderService.createOrder.and.returnValue(of({
+      message: 'Order created successfully',
+      order: {
+        orderNumber: 'C-4444',
+        _id: '4444',
+        status: 'Creado' as const,
+        clientId: '1',
+        vendorId: 'vendor-1',
+        products: [],
+        deliveryAddress: '123 Main Street, Test City',
+        deliveryDate: '2025-12-31',
+        totalAmount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    }));
     
     component.createOrder();
     

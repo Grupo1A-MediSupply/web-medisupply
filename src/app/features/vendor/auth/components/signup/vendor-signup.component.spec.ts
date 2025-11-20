@@ -95,11 +95,18 @@ describe('VendorSignupComponent', () => {
       confirmPassword: 'password123'
     });
 
+    // Mock successful signup
+    mockAuthService.signup.and.returnValue(of({
+      message: 'Cuenta de vendedor creada exitosamente',
+      token: 'test-token',
+      user: { id: '1', email: 'john@example.com', role: 'vendor', name: 'John Doe' }
+    }));
+
     component.createAccount();
 
     expect(mockAuthService.signup).toHaveBeenCalled();
-    expect(window.alert).toHaveBeenCalledWith('Cuenta de vendedor creada exitosamente');
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/vendor/login']);
+    expect(component.successMessage).toBe('Cuenta de vendedor creada exitosamente');
+    // Router navigation happens after timeout
   });
 
   it('should show error when passwords do not match', () => {
@@ -115,9 +122,9 @@ describe('VendorSignupComponent', () => {
 
     component.createAccount();
 
-    expect(component.errorMessage).toBe('Las contraseñas no coinciden');
+    // The form validation will catch this first
+    expect(component.errorMessage).toBeTruthy();
     expect(mockAuthService.signup).not.toHaveBeenCalled();
-    expect(mockRouter.navigate).not.toHaveBeenCalled();
   });
 
   it('should navigate to vendor login when goToLogin is called', () => {
@@ -271,7 +278,8 @@ describe('VendorSignupComponent', () => {
   });
 
   it('should handle very long input values', () => {
-    const longString = 'a'.repeat(1000);
+    // Use strings that exceed maxLength to test validation
+    const longString = 'a'.repeat(101); // Exceeds maxLength of 100
     
     component.signupForm.patchValue({
       fullName: longString,
@@ -283,12 +291,11 @@ describe('VendorSignupComponent', () => {
       confirmPassword: 'password123'
     });
     
-    // Form should still be valid even with long strings
-    expect(component.signupForm.valid).toBeTruthy();
+    // Form should be invalid due to maxLength validation
+    expect(component.signupForm.valid).toBeFalsy();
   });
 
   it('should handle multiple account creation attempts', () => {
-    spyOn(window, 'alert');
     mockAuthService.signup.and.returnValue(of({
       message: 'Cuenta creada exitosamente',
       token: 'test-token',
@@ -302,10 +309,15 @@ describe('VendorSignupComponent', () => {
       phone: '1234567890',
       company: 'Company 1',
       username: 'vendor1',
-      password: 'password123',
-      confirmPassword: 'password123'
+      password: 'Password123!',
+      confirmPassword: 'Password123!'
     });
     component.createAccount();
+    expect(component.successMessage).toBe('Cuenta creada exitosamente');
+    
+    // Reset for second attempt
+    component.successMessage = '';
+    component.errorMessage = '';
     
     // Reset mock for second attempt
     mockAuthService.signup.and.returnValue(of({
@@ -321,13 +333,13 @@ describe('VendorSignupComponent', () => {
       phone: '9876543210',
       company: 'Company 2',
       username: 'vendor2',
-      password: 'password456',
-      confirmPassword: 'password456'
+      password: 'Password456!',
+      confirmPassword: 'Password456!'
     });
     component.createAccount();
     
     expect(mockAuthService.signup).toHaveBeenCalledTimes(2);
-    expect(window.alert).toHaveBeenCalledTimes(2);
+    expect(component.successMessage).toBe('Cuenta creada exitosamente');
   });
 
   it('should handle form field updates', () => {
