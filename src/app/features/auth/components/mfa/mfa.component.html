@@ -1,0 +1,59 @@
+  <div class="mfa-page">
+    <!-- Left Section - Logo and Branding -->
+    <div class="mfa-left-section">
+      <div class="logo-container">
+        <div class="logo-icon">
+          <mat-icon>local_hospital</mat-icon>
+        </div>
+        <div class="logo-text">
+          <div class="brand-name">MediSupply</div>
+          <div class="brand-subtitle">Distribución de Insumos Médicos</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Section - MFA Form -->
+    <div class="mfa-right-section">
+      <div class="mfa-form-container">
+        <h1 class="mfa-title">Digita tu código</h1>
+        <p class="mfa-subtitle">Te hemos enviado a tu correo electrónico o celular un número de autenticación, por favor digítalo a continuación</p>
+
+        <!-- Mensaje de error general -->
+        <div *ngIf="errorMessage" class="alert alert-error">
+          <mat-icon>error</mat-icon>
+          <span>{{ errorMessage }}</span>
+        </div>
+
+        <form [formGroup]="_form" (ngSubmit)="verify()" class="mfa-form">
+          <div class="form-group">
+            <label class="form-label">Código de verificación <span class="required">*</span></label>
+            <input
+              type="text"
+              class="form-input"
+              [class.error]="code?.invalid && code?.touched"
+              placeholder="000000"
+              formControlName="code"
+              maxlength="6"
+              inputmode="numeric">
+            <div *ngIf="code?.invalid && code?.touched" class="error-message">
+              {{ getCodeErrorMessage() }}
+            </div>
+            <small class="form-hint">Ingrese el código de 6 dígitos recibido</small>
+          </div>
+
+          <div class="mfa-actions">
+            <div class="resend-link-container">
+              <a href="#" class="resend-link" (click)="$event.preventDefault()">Enviar código de nuevo</a>
+            </div>
+            <button type="submit" class="btn-primary" [disabled]="!_form.valid || isLoading">
+              <span *ngIf="!isLoading">Continuar</span>
+              <span *ngIf="isLoading">
+                <mat-icon class="spinner">hourglass_empty</mat-icon>
+                Verificando...
+              </span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>

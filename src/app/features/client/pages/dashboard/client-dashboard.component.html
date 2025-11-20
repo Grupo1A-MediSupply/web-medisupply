@@ -1,0 +1,296 @@
+<mat-sidenav-container class="dashboard-container">
+  <mat-sidenav #s mode="side" opened class="client-sidenav">
+    <div class="sidebar-card">
+      <div class="sidenav-header">
+        <div class="brand-section">
+          <div class="brand">MediSupply</div>
+        </div>
+      </div>
+      
+      <mat-nav-list class="client-nav-list">
+        <a mat-list-item (click)="setActiveSection('create-order')" [class.active]="activeSection === 'create-order'" class="nav-item">
+          <mat-icon matListItemIcon>add_shopping_cart</mat-icon>
+          <span matListItemTitle>Crear Pedido</span>
+        </a>
+        <a mat-list-item (click)="setActiveSection('history')" [class.active]="activeSection === 'history'" class="nav-item">
+          <mat-icon matListItemIcon>history</mat-icon>
+          <span matListItemTitle>Historial</span>
+        </a>
+        <a mat-list-item (click)="setActiveSection('track')" [class.active]="activeSection === 'track'" class="nav-item">
+          <mat-icon matListItemIcon>map</mat-icon>
+          <span matListItemTitle>Seguimiento</span>
+        </a>
+        <a mat-list-item (click)="logout()" class="nav-item logout-item">
+          <mat-icon matListItemIcon>logout</mat-icon>
+          <span matListItemTitle>Cerrar Sesión</span>
+        </a>
+      </mat-nav-list>
+    </div>
+  </mat-sidenav>
+  
+  <mat-sidenav-content>
+    <div class="dashboard-content">
+      <!-- Header Section -->
+      <div class="content-header">
+        <div class="welcome-section">
+          <h1 class="welcome-title">Bienvenido</h1>
+        </div>
+        <div class="header-actions">
+          <div class="search-container">
+            <input type="text" placeholder="Buscar..." class="search-input">
+          </div>
+          <button mat-icon-button class="user-icon">
+            <mat-icon>person</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Create Order Section -->
+      <div class="create-order-section" *ngIf="activeSection === 'create-order'">
+        <router-outlet></router-outlet>
+      </div>
+
+      <!-- History Section -->
+      <div class="history-section" *ngIf="activeSection === 'history'">
+        <h2 class="section-title">Historial de Pedidos</h2>
+        <div class="stats-cards">
+          <div class="stat-card">
+            <div class="stat-content">
+              <mat-icon class="stat-icon">shopping_cart</mat-icon>
+              <div class="stat-info">
+                <div class="stat-number">{{getTotalOrders()}}</div>
+                <div class="stat-label">Pedidos Totales</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-content">
+              <mat-icon class="stat-icon">pending</mat-icon>
+              <div class="stat-info">
+                <div class="stat-number">{{getPendingOrders()}}</div>
+                <div class="stat-label">Pendientes</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-content">
+              <mat-icon class="stat-icon">check_circle</mat-icon>
+              <div class="stat-info">
+                <div class="stat-number">{{getCompletedOrders()}}</div>
+                <div class="stat-label">Entregados</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-header">
+            <h3>Pedidos Recientes</h3>
+            <p>Lista de todos tus pedidos</p>
+          </div>
+          <div class="table-container">
+            <table class="orders-table">
+              <thead>
+                <tr>
+                  <th>ID Pedido</th>
+                  <th>Producto</th>
+                  <th>Estado</th>
+                  <th>Fecha</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let order of orders">
+                  <td>{{order.id}}</td>
+                  <td>{{order.product}}</td>
+                  <td>
+                    <span class="status-badge" [ngClass]="'status-' + order.status.toLowerCase()">
+                      {{order.status}}
+                    </span>
+                  </td>
+                  <td>{{order.date}}</td>
+                  <td>
+                    <button mat-icon-button matTooltip="Ver detalles" (click)="viewOrderDetails(order)">
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+                    <button mat-icon-button matTooltip="Solicitar devolución" color="warn" 
+                            *ngIf="canRequestReturn(order)" (click)="requestReturn(order)">
+                      <mat-icon>undo</mat-icon>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Track Section -->
+      <div class="track-section" *ngIf="activeSection === 'track'">
+        <h2 class="section-title">Seguimiento de Pedidos</h2>
+        <div class="tracking-cards">
+          <div class="track-card" *ngFor="let order of orders">
+            <div class="track-header">
+              <h3>{{order.id}}</h3>
+              <span class="status-badge" [ngClass]="'status-' + order.status.toLowerCase()">
+                {{order.status}}
+              </span>
+            </div>
+            <div class="track-content">
+              <p><strong>Producto:</strong> {{order.product}}</p>
+              <p><strong>Fecha:</strong> {{order.date}}</p>
+              <div class="track-progress">
+                <div class="progress-bar">
+                  <div class="progress-fill" [style.width.%]="getProgressPercentage(order.status)"></div>
+                </div>
+                <span class="progress-text">{{getProgressText(order.status)}}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>
+
+<!-- Order Details Modal -->
+<div class="order-creation-modal" *ngIf="showOrderDetails">
+  <div class="modal-overlay" (click)="closeOrderDetails()"></div>
+  <div class="modal-content order-modal">
+    <div class="modal-header">
+      <h2>Detalles del Pedido</h2>
+      <button mat-icon-button (click)="closeOrderDetails()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <div class="modal-body" *ngIf="selectedOrder">
+      <div class="order-info">
+        <div class="info-section">
+          <h3>Información General</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>ID del Pedido:</label>
+              <span class="order-id">{{selectedOrder.id}}</span>
+            </div>
+            <div class="info-item">
+              <label>Estado:</label>
+              <span class="status-badge" [ngClass]="'status-' + selectedOrder.status.toLowerCase()">
+                {{selectedOrder.status}}
+              </span>
+            </div>
+            <div class="info-item">
+              <label>Fecha de Pedido:</label>
+              <span>{{selectedOrder.date}}</span>
+            </div>
+            <div class="info-item">
+              <label>Fecha de Entrega:</label>
+              <span>{{selectedOrder.deliveryDate}}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-section">
+          <h3>Información de Entrega</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Institución:</label>
+              <span>{{selectedOrder.institutionName}}</span>
+            </div>
+            <div class="info-item">
+              <label>Dirección:</label>
+              <span>{{selectedOrder.deliveryAddress}}</span>
+            </div>
+            <div class="info-item">
+              <label>Contacto:</label>
+              <span>{{selectedOrder.contact}}</span>
+            </div>
+            <div class="info-item">
+              <label>Teléfono:</label>
+              <span>{{selectedOrder.phone}}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-section">
+          <h3>Productos</h3>
+          <div class="products-list">
+            <div class="product-item" *ngFor="let product of selectedOrder.products">
+              <div class="product-info">
+                <span class="product-name">{{product.name}}</span>
+                <span class="product-quantity">Cantidad: {{product.quantity}}</span>
+                <span class="product-price">Precio: ${{product.price | number:'1.2-2'}}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-section" *ngIf="selectedOrder.notes">
+          <h3>Observaciones</h3>
+          <p class="notes">{{selectedOrder.notes}}</p>
+        </div>
+      </div>
+      
+      <div class="modal-actions">
+        <button mat-raised-button color="primary" (click)="closeOrderDetails()" class="close-btn">
+          <mat-icon>close</mat-icon>
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Return Request Modal -->
+<div class="return-modal-overlay" *ngIf="showReturnModal" (click)="closeReturnModal()">
+  <div class="return-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Solicitar Devolución</h2>
+      <button mat-icon-button (click)="closeReturnModal()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    
+    <div class="modal-body" *ngIf="selectedOrder">
+      <div class="order-summary">
+        <h3>Pedido a Devolver</h3>
+        <p><strong>ID:</strong> {{selectedOrder.id}}</p>
+        <p><strong>Producto:</strong> {{selectedOrder.product}}</p>
+        <p><strong>Fecha de Entrega:</strong> {{selectedOrder.date}}</p>
+      </div>
+
+      <div class="return-form">
+        <div class="form-group">
+          <label class="form-label">Motivo de la Devolución *</label>
+          <select class="form-input" [(ngModel)]="returnForm.reason">
+            <option value="">Seleccionar motivo</option>
+            <option value="Producto defectuoso">Producto defectuoso</option>
+            <option value="Producto incorrecto">Producto incorrecto</option>
+            <option value="Daño en el transporte">Daño en el transporte</option>
+            <option value="No cumple especificaciones">No cumple especificaciones</option>
+            <option value="Pedido duplicado">Pedido duplicado</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Descripción Detallada *</label>
+          <textarea class="form-input" [(ngModel)]="returnForm.description" 
+                    placeholder="Describa detalladamente el motivo de la devolución" rows="4"></textarea>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button mat-button (click)="closeReturnModal()" class="cancel-btn">
+          Cancelar
+        </button>
+        <button mat-raised-button color="warn" (click)="submitReturnRequest()" 
+                [disabled]="!returnForm.reason || !returnForm.description" class="submit-btn">
+          <mat-icon>undo</mat-icon>
+          Solicitar Devolución
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

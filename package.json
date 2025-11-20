@@ -1,0 +1,57 @@
+{
+  "name": "medical-distribution-prototype",
+  "version": "0.0.1",
+  "private": true,
+  "engines": {
+    "node": "18.x",
+    "npm": "9.x"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "ng serve",
+    "build": "ng build --configuration=production",
+    "test": "ng test",
+    "test:watch": "ng test",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ui": "playwright test --ui",
+    "test:ci": "ng test --karma-config=karma-ci.conf.js --code-coverage --watch=false",
+    "test:coverage": "ng test --code-coverage --watch=false",
+    "heroku-postbuild": "ng build --configuration=production"
+  },
+  "dependencies": {
+    "@angular/animations": "^16.2.12",
+    "@angular/cdk": "^16.2.12",
+    "@angular/common": "^16.2.12",
+    "@angular/compiler": "^16.2.12",
+    "@angular/core": "^16.2.12",
+    "@angular/forms": "^16.2.12",
+    "@angular/material": "^16.2.12",
+    "@angular/platform-browser": "^16.2.12",
+    "@angular/platform-browser-dynamic": "^16.2.12",
+    "@angular/router": "^16.2.12",
+    "@types/leaflet": "^1.9.20",
+    "@types/papaparse": "^5.3.16",
+    "express": "^4.18.2",
+    "leaflet": "^1.9.4",
+    "papaparse": "^5.5.3",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0",
+    "zone.js": "~0.13.0"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^16.2.16",
+    "@angular/cli": "^16.2.12",
+    "@angular/compiler-cli": "^16.2.12",
+    "@playwright/test": "^1.48.0",
+    "@types/jasmine": "~4.3.0",
+    "@types/node": "^18.19.130",
+    "jasmine-core": "~4.6.0",
+    "karma": "~6.4.0",
+    "karma-chrome-launcher": "~3.2.0",
+    "karma-coverage": "~2.2.0",
+    "karma-jasmine": "~5.1.0",
+    "karma-jasmine-html-reporter": "~2.1.0",
+    "typescript": "~5.1.0"
+  }
+}

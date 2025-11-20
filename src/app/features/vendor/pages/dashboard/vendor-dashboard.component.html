@@ -1,0 +1,1233 @@
+<mat-sidenav-container class="dashboard-container">
+  <mat-sidenav #s mode="side" opened class="vendor-sidenav">
+    <div class="sidebar-card">
+      <div class="sidenav-header">
+        <div class="brand-section">
+          <div class="brand">MediSupply</div>
+        </div>
+      </div>
+      
+      <mat-nav-list class="vendor-nav-list">
+        <a mat-list-item (click)="setActiveSection('orders')" [class.active]="activeSection === 'orders'" class="nav-item">
+          <mat-icon matListItemIcon>assignment</mat-icon>
+          <span matListItemTitle>Órdenes</span>
+        </a>
+        <a mat-list-item (click)="setActiveSection('inventory')" [class.active]="activeSection === 'inventory'" class="nav-item">
+          <mat-icon matListItemIcon>inventory</mat-icon>
+          <span matListItemTitle>Inventario</span>
+        </a>
+        <a mat-list-item (click)="setActiveSection('routes')" [class.active]="activeSection === 'routes'" class="nav-item">
+          <mat-icon matListItemIcon>route</mat-icon>
+          <span matListItemTitle>Rutas</span>
+        </a>
+        <a mat-list-item (click)="setActiveSection('reports')" [class.active]="activeSection === 'reports'" class="nav-item">
+          <mat-icon matListItemIcon>bar_chart</mat-icon>
+          <span matListItemTitle>Reportes</span>
+        </a>
+        <a mat-list-item (click)="setActiveSection('upload')" [class.active]="activeSection === 'upload'" class="nav-item">
+          <mat-icon matListItemIcon>cloud_upload</mat-icon>
+          <span matListItemTitle>Carga de Inventario</span>
+        </a>
+        <a mat-list-item (click)="logout()" class="nav-item logout-item">
+          <mat-icon matListItemIcon>logout</mat-icon>
+          <span matListItemTitle>Cerrar Sesión</span>
+        </a>
+      </mat-nav-list>
+    </div>
+  </mat-sidenav>
+  
+  <mat-sidenav-content>
+    <div class="dashboard-content">
+      <!-- Header Section -->
+      <div class="content-header">
+        <div class="welcome-section">
+          <h1 class="welcome-title">Bienvenido</h1>
+        </div>
+        <div class="header-actions">
+          <div class="search-container">
+            <input type="text" placeholder="Buscar..." class="search-input">
+          </div>
+          <button mat-icon-button class="user-icon">
+            <mat-icon>person</mat-icon>
+          </button>
+        </div>
+      </div>
+
+
+      <!-- Orders Section -->
+      <div class="orders-section" *ngIf="activeSection === 'orders'">
+        <h2 class="section-title">Gestión de Órdenes</h2>
+        <div class="stats-cards">
+          <div class="stat-card">
+            <div class="stat-content">
+              <mat-icon class="stat-icon">assignment</mat-icon>
+              <div class="stat-info">
+                <div class="stat-number">{{orders.length}}</div>
+                <div class="stat-label">Órdenes Totales</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-content">
+              <mat-icon class="stat-icon">pending</mat-icon>
+              <div class="stat-info">
+                <div class="stat-number">{{getPendingOrders()}}</div>
+                <div class="stat-label">Pendientes</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-content">
+              <mat-icon class="stat-icon">check_circle</mat-icon>
+              <div class="stat-info">
+                <div class="stat-number">{{getCompletedOrders()}}</div>
+                <div class="stat-label">Completadas</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+               <div class="action-card">
+                 <div class="action-header">
+                   <h3>Crear Nueva Orden</h3>
+                   <p>Genera un pedido de ejemplo o crea un pedido personalizado</p>
+                 </div>
+                 <div class="action-buttons">
+                   <button mat-raised-button color="primary" (click)="createOrder()" class="action-button">
+                     <mat-icon>add</mat-icon>
+                     Crear Pedido de Ejemplo
+                   </button>
+                   <button mat-raised-button color="accent" (click)="openOrderCreation()" class="action-button">
+                     <mat-icon>shopping_cart</mat-icon>
+                     Crear Pedido
+                   </button>
+                 </div>
+               </div>
+
+        <div class="table-card">
+          <div class="table-header">
+            <h3>Órdenes Recientes</h3>
+            <p>Lista de todas las órdenes del sistema</p>
+          </div>
+          <div class="table-container">
+            <table class="orders-table">
+              <thead>
+                <tr>
+                  <th>ID de Orden</th>
+                  <th>Producto</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+                     <tbody>
+                       <tr *ngFor="let order of orders">
+                         <td>{{order.id}}</td>
+                         <td>
+                           <div class="product-list" [ngClass]="{'multi-product': order.products && order.products.length > 1}">
+                             <div *ngIf="order.products && order.products.length > 1; else singleProduct">
+                               <div class="product-grid">
+                                 <div class="product-item" *ngFor="let product of order.products">
+                                   <span class="product-name">{{product.product}}</span>
+                                   <span class="product-quantity">({{product.quantity}})</span>
+                                 </div>
+                               </div>
+                             </div>
+                             <ng-template #singleProduct>
+                               <span>{{order.product}}</span>
+                             </ng-template>
+                           </div>
+                         </td>
+                         <td>
+                           <span class="status-badge" [ngClass]="'status-' + order.status.toLowerCase()">
+                             {{order.status}}
+                           </span>
+                         </td>
+                         <td>
+                           <button mat-icon-button matTooltip="Ver detalles" (click)="viewOrderDetails(order)">
+                             <mat-icon>visibility</mat-icon>
+                           </button>
+                           <button mat-icon-button matTooltip="Editar" (click)="editOrder(order)" [disabled]="!canEditOrder(order)">
+                             <mat-icon>edit</mat-icon>
+                           </button>
+                           <button mat-icon-button matTooltip="Eliminar" color="warn" (click)="confirmDeleteOrder(order)" [disabled]="!canDeleteOrder(order)">
+                             <mat-icon>delete</mat-icon>
+                           </button>
+                         </td>
+                       </tr>
+                     </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Inventory Section -->
+      <div class="inventory-section" *ngIf="activeSection === 'inventory'">
+        <h2 class="section-title">Gestión de Inventario</h2>
+        <div class="stats-cards">
+          <div class="stat-card">
+            <div class="stat-content">
+              <mat-icon class="stat-icon">inventory</mat-icon>
+              <div class="stat-info">
+                <div class="stat-number">{{getTotalItems()}}</div>
+                <div class="stat-label">Total Items</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-content">
+              <mat-icon class="stat-icon">warning</mat-icon>
+              <div class="stat-info">
+                <div class="stat-number">{{getLowStockItems()}}</div>
+                <div class="stat-label">Stock Bajo</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-content">
+              <mat-icon class="stat-icon">schedule</mat-icon>
+              <div class="stat-info">
+                <div class="stat-number">{{getExpiringItems()}}</div>
+                <div class="stat-label">Por Vencer</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-header">
+            <h3>Inventario Actual</h3>
+            <p>Lista de todos los productos en inventario</p>
+          </div>
+          <div class="table-container">
+            <table class="inventory-table">
+                     <thead>
+                       <tr>
+                         <th>Producto</th>
+                         <th>Stock</th>
+                         <th>Precio</th>
+                         <th>Vencimiento</th>
+                         <th>Estado</th>
+                         <th>Acciones</th>
+                       </tr>
+                     </thead>
+                     <tbody>
+                       <tr *ngFor="let item of inventory">
+                         <td>{{item.name}}</td>
+                         <td [ngClass]="getStockClass(item.stock)">{{item.stock}}</td>
+                         <td>${{item.price}}</td>
+                         <td [ngClass]="getExpiryClass(item.expiry)">{{item.expiry}}</td>
+                         <td>
+                           <span class="status-badge" [ngClass]="getStockClass(item.stock)">
+                             {{item.stock < 10 ? 'Stock Bajo' : 'Disponible'}}
+                           </span>
+                         </td>
+                         <td>
+                           <button mat-icon-button matTooltip="Ver detalles" (click)="viewInventoryDetails(item)">
+                             <mat-icon>visibility</mat-icon>
+                           </button>
+                         </td>
+                       </tr>
+                     </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Routes Section -->
+      <div class="routes-section" *ngIf="activeSection === 'routes'">
+        <div class="page-header">
+          <h1 class="page-title">
+            <mat-icon>route</mat-icon>
+            Gestión de Rutas
+          </h1>
+          <p class="page-description">Administra rutas de entrega, asignación de vehículos y seguimiento de envíos.</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-cards">
+          <div class="stat-card">
+            <div class="stat-content">
+              <mat-icon class="stat-icon">route</mat-icon>
+              <div class="stat-info">
+                <div class="stat-number">{{getTotalRoutes()}}</div>
+                <div class="stat-label">Rutas Totales</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-content">
+              <mat-icon class="stat-icon">pending</mat-icon>
+              <div class="stat-info">
+                <div class="stat-number">{{getPendingRoutes()}}</div>
+                <div class="stat-label">Sin Ruta</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-content">
+              <mat-icon class="stat-icon">local_shipping</mat-icon>
+              <div class="stat-info">
+                <div class="stat-number">{{getActiveRoutes()}}</div>
+                <div class="stat-label">En Tránsito</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-content">
+              <mat-icon class="stat-icon">assignment_return</mat-icon>
+              <div class="stat-info">
+                <div class="stat-number">{{getReturnRequests()}}</div>
+                <div class="stat-label">Devoluciones</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Orders without Route -->
+        <div class="section-card" *ngIf="getOrdersWithoutRoute().length > 0">
+          <div class="card-header">
+            <h3>
+              <mat-icon>pending_actions</mat-icon>
+              Pedidos Sin Ruta Asignada
+            </h3>
+            <p>Pedidos que requieren generación de ruta de entrega</p>
+          </div>
+          <div class="table-container">
+            <table class="orders-table">
+              <thead>
+                <tr>
+                  <th>ID Pedido</th>
+                  <th>Cliente</th>
+                  <th>Dirección</th>
+                  <th>Fecha</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let order of getOrdersWithoutRoute()">
+                  <td>{{order.id}}</td>
+                  <td>{{order.client}}</td>
+                  <td>{{order.address}}</td>
+                  <td>{{order.date}}</td>
+                  <td>
+                    <button mat-raised-button color="primary" (click)="generateOptimalRoutes(order)">
+                      <mat-icon>route</mat-icon>
+                      Generar Rutas
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Route Generation Modal -->
+        <div class="route-generation-modal" *ngIf="showRouteGeneration">
+          <div class="modal-overlay" (click)="closeRouteGeneration()"></div>
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2>Generación de Rutas Óptimas</h2>
+              <button mat-icon-button (click)="closeRouteGeneration()">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+
+            <div class="modal-body">
+              <div class="order-info">
+                <h3>Pedido: {{selectedOrder?.id}}</h3>
+                <p><strong>Cliente:</strong> {{selectedOrder?.client}}</p>
+                <p><strong>Dirección:</strong> {{selectedOrder?.address}}</p>
+              </div>
+
+                     <!-- Map Container -->
+                     <div class="map-container">
+                       <div #mapContainer class="leaflet-container"></div>
+                     </div>
+
+              <!-- Route Options -->
+              <div class="route-options">
+                <h3>Rutas Sugeridas</h3>
+                <div class="route-cards">
+                  <div class="route-card" *ngFor="let route of suggestedRoutes; let i = index">
+                    <div class="route-header">
+                      <h4>Ruta {{i + 1}}</h4>
+                      <span class="route-distance">{{route.distance}} km</span>
+                    </div>
+                    <div class="route-details">
+                      <p><strong>Duración estimada:</strong> {{route.duration}}</p>
+                      <p><strong>Combustible estimado:</strong> {{route.fuel}} L</p>
+                      <p><strong>Paradas:</strong> {{route.stops}} ubicaciones</p>
+                    </div>
+                    <div class="route-actions">
+                      <button mat-raised-button color="primary" (click)="selectRoute(route)">
+                        <mat-icon>check</mat-icon>
+                        Seleccionar Ruta
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Vehicle Assignment -->
+              <div class="vehicle-assignment" *ngIf="selectedRoute">
+                <h3>Asignación de Vehículo</h3>
+                <div class="form-group">
+                  <label class="form-label">Seleccionar Camión</label>
+                  <mat-select [(value)]="selectedVehicle" class="form-select">
+                    <mat-option *ngFor="let vehicle of availableVehicles" [value]="vehicle">
+                      {{vehicle.id}} - {{vehicle.type}} ({{vehicle.capacity}})
+                    </mat-option>
+                  </mat-select>
+                </div>
+                <div class="form-actions">
+                  <button mat-raised-button color="primary" (click)="assignRoute()" [disabled]="!selectedVehicle">
+                    <mat-icon>local_shipping</mat-icon>
+                    Asignar Ruta
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Routes -->
+        <div class="section-card">
+          <div class="card-header">
+            <h3>
+              <mat-icon>local_shipping</mat-icon>
+              Rutas Activas
+            </h3>
+            <p>Rutas en tránsito con seguimiento en tiempo real</p>
+          </div>
+          <div class="routes-grid">
+            <div class="route-item" *ngFor="let route of getActiveRoutesList()">
+              <div class="route-header">
+                <h4>{{route.id}}</h4>
+                <span class="route-status" [ngClass]="'status-' + route.status.toLowerCase()">
+                  {{route.status}}
+                </span>
+              </div>
+              <div class="route-info">
+                <p><strong>Vehículo:</strong> {{route.vehicle}}</p>
+                <p><strong>Conductor:</strong> {{route.driver}}</p>
+                <p><strong>Progreso:</strong> {{route.progress}}%</p>
+              </div>
+              <div class="route-progress">
+                <div class="progress-bar">
+                  <div class="progress-fill" [style.width.%]="route.progress"></div>
+                </div>
+              </div>
+              <div class="route-actions">
+                <button mat-icon-button matTooltip="Ver Tracking">
+                  <mat-icon>gps_fixed</mat-icon>
+                </button>
+                <button mat-icon-button matTooltip="Ver Detalles">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button matTooltip="Marcar como Entregado" (click)="markAsDelivered(route)">
+                  <mat-icon>check_circle</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Delivered Orders with Returns -->
+        <div class="section-card" *ngIf="getDeliveredWithReturns().length > 0">
+          <div class="card-header">
+            <h3>
+              <mat-icon>assignment_return</mat-icon>
+              Entregas con Solicitudes de Devolución
+            </h3>
+            <p>Pedidos entregados que han solicitado devolución</p>
+          </div>
+          <div class="table-container">
+            <table class="orders-table">
+              <thead>
+                <tr>
+                  <th>ID Pedido</th>
+                  <th>Cliente</th>
+                  <th>Fecha Entrega</th>
+                  <th>Motivo Devolución</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let order of getDeliveredWithReturns()">
+                  <td>{{order.id}}</td>
+                  <td>{{order.client}}</td>
+                  <td>{{order.deliveryDate}}</td>
+                  <td>{{order.returnReason}}</td>
+                  <td>
+                    <span class="status-badge status-return-requested">
+                      {{order.returnStatus}}
+                    </span>
+                  </td>
+                  <td>
+                    <button mat-raised-button color="warn" (click)="processReturn(order)">
+                      <mat-icon>assignment_return</mat-icon>
+                      Procesar Devolución
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+             <!-- Reports Section -->
+             <div class="reports-section" *ngIf="activeSection === 'reports'">
+               <h2 class="section-title">Reportes y Análisis</h2>
+               
+               <!-- Summary Cards -->
+               <div class="stats-cards">
+                 <div class="stat-card">
+                   <div class="stat-content">
+                     <mat-icon class="stat-icon">assignment</mat-icon>
+                     <div class="stat-info">
+                       <div class="stat-number">{{orders.length}}</div>
+                       <div class="stat-label">Total Órdenes</div>
+                     </div>
+                   </div>
+                 </div>
+
+                 <div class="stat-card">
+                   <div class="stat-content">
+                     <mat-icon class="stat-icon">check_circle</mat-icon>
+                     <div class="stat-info">
+                       <div class="stat-number">{{getCompletedOrders()}}</div>
+                       <div class="stat-label">Completadas</div>
+                     </div>
+                   </div>
+                 </div>
+
+                 <div class="stat-card">
+                   <div class="stat-content">
+                     <mat-icon class="stat-icon">assignment_return</mat-icon>
+                     <div class="stat-info">
+                       <div class="stat-number">{{getTotalReturns()}}</div>
+                       <div class="stat-label">Devoluciones</div>
+                     </div>
+                   </div>
+                 </div>
+
+                 <div class="stat-card">
+                   <div class="stat-content">
+                     <mat-icon class="stat-icon">inventory</mat-icon>
+                     <div class="stat-info">
+                       <div class="stat-number">{{getTotalItems()}}</div>
+                       <div class="stat-label">Productos</div>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+
+               <!-- Charts Grid -->
+               <div class="charts-grid">
+                 <!-- Orders by Status Chart -->
+                 <div class="chart-card">
+                   <div class="chart-header">
+                     <h3>
+                       <mat-icon>pie_chart</mat-icon>
+                       Órdenes por Estado
+                     </h3>
+                     <p>Distribución de órdenes según su estado actual</p>
+                   </div>
+                   <div class="chart-container">
+                     <div class="chart-placeholder">
+                       <div class="chart-bars">
+                         <div class="bar-item" *ngFor="let status of reportData.ordersByStatus.labels; let i = index">
+                           <div class="bar-label">{{status}}</div>
+                           <div class="bar-container">
+                             <div class="bar-fill" [style.width.%]="getBarPercentage(reportData.ordersByStatus.data[i])" 
+                                  [ngClass]="'bar-' + (i + 1)">
+                               <span class="bar-value">{{reportData.ordersByStatus.data[i]}}</span>
+                             </div>
+                           </div>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+
+                 <!-- Returns Chart -->
+                 <div class="chart-card">
+                   <div class="chart-header">
+                     <h3>
+                       <mat-icon>assignment_return</mat-icon>
+                       Devoluciones por Motivo
+                     </h3>
+                     <p>Análisis de las causas de devolución</p>
+                   </div>
+                   <div class="chart-container">
+                     <div class="chart-placeholder">
+                       <div class="pie-chart">
+                       </div>
+                       <div class="pie-legend">
+                         <div class="legend-item" *ngFor="let reason of reportData.returnsData.labels; let i = index">
+                           <div class="legend-color" [ngClass]="'legend-' + (i + 1)"></div>
+                           <span>{{reason}}: {{reportData.returnsData.data[i]}}</span>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+
+                 <!-- Inventory Status Chart -->
+                 <div class="chart-card">
+                   <div class="chart-header">
+                     <h3>
+                       <mat-icon>inventory_2</mat-icon>
+                       Estado del Inventario
+                     </h3>
+                     <p>Distribución del inventario por estado</p>
+                   </div>
+                   <div class="chart-container">
+                     <div class="chart-placeholder">
+                       <div class="chart-bars">
+                         <div class="bar-item" *ngFor="let status of reportData.inventoryStatus.labels; let i = index">
+                           <div class="bar-label">{{status}}</div>
+                           <div class="bar-container">
+                             <div class="bar-fill" [style.width.%]="getBarPercentage(reportData.inventoryStatus.data[i])" 
+                                  [ngClass]="'bar-inventory-' + (i + 1)">
+                               <span class="bar-value">{{reportData.inventoryStatus.data[i]}}</span>
+                             </div>
+                           </div>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+
+                 <!-- Monthly Orders Chart -->
+                 <div class="chart-card">
+                   <div class="chart-header">
+                     <h3>
+                       <mat-icon>trending_up</mat-icon>
+                       Órdenes por Mes
+                     </h3>
+                     <p>Tendencia de órdenes en los últimos 6 meses</p>
+                   </div>
+                   <div class="chart-container">
+                     <div class="chart-placeholder">
+                       <div class="line-chart">
+                         <div class="line-container">
+                           <svg viewBox="0 0 400 200" class="line-svg">
+                             <polyline 
+                               [attr.points]="getLineChartPoints()" 
+                               fill="none" 
+                               stroke="#1976d2" 
+                               stroke-width="3"/>
+                             <circle *ngFor="let point of getLineChartPointsArray(); let i = index"
+                                     [attr.cx]="point.x" 
+                                     [attr.cy]="point.y" 
+                                     r="4" 
+                                     fill="#1976d2"/>
+                           </svg>
+                         </div>
+                         <div class="line-labels">
+                           <span *ngFor="let month of reportData.ordersByMonth.labels">{{month}}</span>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+             </div>
+
+             <!-- Upload Section -->
+             <div class="upload-section" *ngIf="activeSection === 'upload'">
+               <h2 class="section-title">Carga de Inventario</h2>
+               
+               <!-- Upload Instructions -->
+               <div class="upload-instructions">
+                 <div class="instruction-card">
+                   <div class="instruction-header">
+                     <mat-icon>info</mat-icon>
+                     <h3>Instrucciones para Carga de Inventario</h3>
+                   </div>
+                   <div class="instruction-content">
+                     <ol>
+                       <li>Descargue la plantilla CSV haciendo clic en "Descargar Plantilla"</li>
+                       <li>Complete la plantilla con los datos de inventario</li>
+                       <li>Seleccione el archivo CSV o Excel completado</li>
+                       <li>Haga clic en "Cargar Archivo" para procesar</li>
+                     </ol>
+                     <p class="note">
+                       <strong>Nota:</strong> El archivo debe contener todas las columnas requeridas. 
+                       Los lotes deben estar en formato: "LOTE:CANTIDAD:FECHA:UBICACIÓN" separados por punto y coma.
+                     </p>
+                   </div>
+                 </div>
+               </div>
+
+               <!-- Upload Actions -->
+               <div class="upload-actions">
+                 <div class="action-card">
+                   <div class="action-header">
+                     <h3>
+                       <mat-icon>download</mat-icon>
+                       Descargar Plantilla
+                     </h3>
+                     <p>Obtenga la plantilla CSV con todos los campos requeridos</p>
+                   </div>
+                   <div class="action-buttons">
+                     <button mat-raised-button color="primary" (click)="downloadTemplate()" class="download-btn">
+                       <mat-icon>file_download</mat-icon>
+                       Descargar Plantilla CSV
+                     </button>
+                   </div>
+                 </div>
+
+                 <div class="action-card">
+                   <div class="action-header">
+                     <h3>
+                       <mat-icon>cloud_upload</mat-icon>
+                       Cargar Archivo
+                     </h3>
+                     <p>Seleccione y cargue su archivo CSV o Excel</p>
+                   </div>
+                   <div class="upload-form">
+                     <div class="file-input-container">
+                       <input type="file" 
+                              id="fileInput" 
+                              accept=".csv,.xlsx,.xls" 
+                              (change)="onFileSelected($event)"
+                              class="file-input">
+                       <label for="fileInput" class="file-input-label">
+                         <mat-icon>attach_file</mat-icon>
+                         Seleccionar Archivo
+                       </label>
+                     </div>
+                     
+                     <div class="upload-info" *ngIf="uploadMessage">
+                       <p [ngClass]="{'success-message': showUploadSuccess, 'error-message': !showUploadSuccess && uploadMessage.includes('Por favor')}">
+                         {{uploadMessage}}
+                       </p>
+                     </div>
+
+                     <div class="progress-container" *ngIf="isUploading">
+                       <mat-progress-bar mode="determinate" [value]="uploadProgress"></mat-progress-bar>
+                       <p class="progress-text">{{uploadProgress}}% completado</p>
+                     </div>
+
+                     <div class="action-buttons">
+                       <button mat-raised-button 
+                               color="accent" 
+                               (click)="uploadFile()" 
+                               [disabled]="!selectedFile || isUploading"
+                               class="upload-btn">
+                         <mat-icon>cloud_upload</mat-icon>
+                         {{isUploading ? 'Procesando...' : 'Cargar Archivo'}}
+                       </button>
+                       
+                       <button mat-button 
+                               (click)="clearUpload()" 
+                               [disabled]="isUploading"
+                               class="clear-btn">
+                         <mat-icon>clear</mat-icon>
+                         Limpiar
+                       </button>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+
+               <!-- Upload Results -->
+               <div class="upload-results" *ngIf="showUploadSuccess">
+                 <div class="success-card">
+                   <div class="success-header">
+                     <mat-icon class="success-icon">check_circle</mat-icon>
+                     <h3>Carga Exitosa</h3>
+                   </div>
+                   <div class="success-content">
+                     <p>El archivo ha sido procesado correctamente y el inventario ha sido actualizado.</p>
+                     <p>Los nuevos productos ya están disponibles en la sección de inventario.</p>
+                   </div>
+                 </div>
+               </div>
+
+               <!-- File Format Information -->
+               <div class="format-info">
+                 <div class="info-card">
+                   <div class="info-header">
+                     <mat-icon>help_outline</mat-icon>
+                     <h3>Información sobre Formatos</h3>
+                   </div>
+                   <div class="info-content">
+                     <div class="format-section">
+                       <h4>Archivos Soportados:</h4>
+                       <ul>
+                         <li>CSV (.csv)</li>
+                         <li>Excel (.xlsx, .xls)</li>
+                       </ul>
+                     </div>
+                     <div class="format-section">
+                       <h4>Campos Requeridos:</h4>
+                       <ul>
+                         <li><strong>name:</strong> Nombre del producto</li>
+                         <li><strong>stock:</strong> Cantidad en stock</li>
+                         <li><strong>price:</strong> Precio unitario</li>
+                         <li><strong>expiry:</strong> Fecha de vencimiento (YYYY-MM-DD)</li>
+                         <li><strong>lot:</strong> Número de lote principal</li>
+                         <li><strong>warehouse:</strong> Ubicación de la bodega</li>
+                         <li><strong>supplier:</strong> Proveedor</li>
+                         <li><strong>category:</strong> Categoría del producto</li>
+                         <li><strong>description:</strong> Descripción del producto</li>
+                         <li><strong>batches:</strong> Lotes detallados (formato: LOTE:CANTIDAD:FECHA:UBICACIÓN)</li>
+                       </ul>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+             </div>
+           </div>
+         </mat-sidenav-content>
+       </mat-sidenav-container>
+
+       <!-- Order Creation Modal -->
+       <div class="order-creation-modal" *ngIf="showOrderCreation">
+         <div class="modal-overlay" (click)="closeOrderCreation()"></div>
+         <div class="modal-content order-modal">
+           <div class="modal-header">
+             <h2>Crear Nuevo Pedido</h2>
+             <button mat-icon-button (click)="closeOrderCreation()">
+               <mat-icon>close</mat-icon>
+             </button>
+           </div>
+
+           <div class="modal-body">
+             <!-- Order Form Section -->
+             <div *ngIf="!showRouteGenerationInOrder">
+               <!-- Client Information -->
+               <div class="form-section">
+                 <h3>Información del Cliente</h3>
+                 <div class="form-group">
+                   <label class="form-label">Nombre del Cliente *</label>
+                   <input type="text" class="form-input" [(ngModel)]="orderForm.clientName" placeholder="Nombre completo del cliente">
+                 </div>
+                 <div class="form-group">
+                   <label class="form-label">Dirección de Entrega *</label>
+                   <textarea class="form-input" [(ngModel)]="orderForm.clientAddress" placeholder="Dirección completa de entrega" rows="3"></textarea>
+                 </div>
+                 <div class="form-group">
+                   <label class="form-label">Fecha de Entrega *</label>
+                   <input type="date" class="form-input" [(ngModel)]="orderForm.deliveryDate">
+                 </div>
+               </div>
+
+               <!-- Products Selection -->
+               <div class="form-section">
+                 <h3>Productos (Máximo 5)</h3>
+                 <div class="products-container">
+                   <div class="product-item" *ngFor="let product of orderForm.products; let i = index">
+                     <div class="product-select">
+                       <label class="form-label">Producto {{i + 1}}</label>
+                       <select class="form-input" [(ngModel)]="product.product">
+                         <option value="">Seleccionar producto</option>
+                         <option *ngFor="let item of getAvailableProducts()" [value]="item.name">
+                           {{item.name}} - Stock: {{item.stock}} - ${{item.price}}
+                         </option>
+                       </select>
+                     </div>
+                     <div class="quantity-select">
+                       <label class="form-label">Cantidad</label>
+                       <input type="number" class="form-input" [(ngModel)]="product.quantity" min="1" [max]="getProductStock(product.product)" placeholder="Cantidad">
+                     </div>
+                     <button mat-icon-button color="warn" (click)="removeProductFromOrder(i)" class="remove-btn">
+                       <mat-icon>delete</mat-icon>
+                     </button>
+                   </div>
+                   <button mat-stroked-button (click)="addProductToOrder()" [disabled]="orderForm.products.length >= 5" class="add-product-btn">
+                     <mat-icon>add</mat-icon>
+                     Agregar Producto
+                   </button>
+                 </div>
+               </div>
+
+               <!-- Route Generation Option -->
+               <div class="form-section">
+                 <h3>Opciones de Entrega</h3>
+                 <div class="checkbox-group">
+                   <label class="checkbox-label">
+                     <input type="checkbox" [(ngModel)]="orderForm.generateRoute">
+                     <span class="checkmark"></span>
+                     Generar ruta de entrega optimizada
+                   </label>
+                   <p class="checkbox-description">Si se selecciona, se mostrará el mapa con rutas sugeridas para asignar vehículo</p>
+                 </div>
+               </div>
+
+               <!-- Action Buttons -->
+               <div class="modal-actions">
+                 <button mat-button (click)="closeOrderCreation()" class="cancel-btn">
+                   Cancelar
+                 </button>
+                 <button mat-raised-button color="primary" (click)="createNewOrder()" class="create-btn">
+                   <mat-icon>shopping_cart</mat-icon>
+                   {{ orderForm.generateRoute ? 'Siguiente' : 'Crear Pedido' }}
+                 </button>
+               </div>
+             </div>
+
+             <!-- Route Generation Section -->
+             <div *ngIf="showRouteGenerationInOrder">
+               <!-- Order Info -->
+               <div class="form-section">
+                 <h3>Información del Pedido</h3>
+                 <div class="order-info">
+                   <p><strong>Cliente:</strong> {{orderForm.clientName}}</p>
+                   <p><strong>Dirección:</strong> {{orderForm.clientAddress}}</p>
+                   <p><strong>Fecha de Entrega:</strong> {{orderForm.deliveryDate}}</p>
+                   <p><strong>Productos:</strong> {{getSelectedProductsText()}}</p>
+                 </div>
+               </div>
+
+               <!-- Map Container -->
+               <div class="form-section">
+                 <h3>Mapa de Rutas Sugeridas</h3>
+                 <div class="map-container">
+                   <div #mapContainer class="leaflet-container"></div>
+                 </div>
+               </div>
+
+               <!-- Route Options -->
+               <div class="form-section">
+                 <h3>Rutas Sugeridas</h3>
+                 <div class="route-cards">
+                   <div class="route-card" *ngFor="let route of suggestedRoutes; let i = index">
+                     <div class="route-header">
+                       <h4>Ruta {{i + 1}}</h4>
+                       <span class="route-distance">{{route.distance}} km</span>
+                     </div>
+                     <div class="route-details">
+                       <p><strong>Duración estimada:</strong> {{route.duration}}</p>
+                       <p><strong>Combustible estimado:</strong> {{route.fuel}} L</p>
+                       <p><strong>Paradas:</strong> {{route.stops}} ubicaciones</p>
+                     </div>
+                     <div class="route-actions">
+                       <button mat-raised-button color="primary" (click)="selectRouteInOrder(route)" [class.selected]="selectedRouteInOrder?.id === route.id">
+                         <mat-icon>check</mat-icon>
+                         Seleccionar Ruta
+                       </button>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+
+               <!-- Vehicle Assignment -->
+               <div class="form-section" *ngIf="selectedRouteInOrder">
+                 <h3>Asignación de Vehículo</h3>
+                 <div class="form-group">
+                   <label class="form-label">Seleccionar Camión</label>
+                   <select class="form-input" [(ngModel)]="selectedVehicleInOrder">
+                     <option value="">Seleccionar vehículo</option>
+                     <option *ngFor="let vehicle of availableVehicles" [value]="vehicle">
+                       {{vehicle.id}} - {{vehicle.type}} ({{vehicle.capacity}})
+                     </option>
+                   </select>
+                 </div>
+               </div>
+
+               <!-- Action Buttons -->
+               <div class="modal-actions">
+                 <button mat-button (click)="backToOrderForm()" class="cancel-btn">
+                   <mat-icon>arrow_back</mat-icon>
+                   Volver al Formulario
+                 </button>
+                 <button mat-raised-button color="primary" (click)="assignRouteInOrder()" [disabled]="!selectedRouteInOrder || !selectedVehicleInOrder" class="create-btn">
+                   <mat-icon>shopping_cart</mat-icon>
+                   Crear
+                 </button>
+               </div>
+             </div>
+           </div>
+         </div>
+       </div>
+
+       <!-- Order Details Modal -->
+       <div class="order-creation-modal" *ngIf="showOrderDetails">
+         <div class="modal-overlay" (click)="closeOrderDetails()"></div>
+         <div class="modal-content order-modal">
+           <div class="modal-header">
+             <h2>Detalles de la Orden</h2>
+             <button mat-icon-button (click)="closeOrderDetails()">
+               <mat-icon>close</mat-icon>
+             </button>
+           </div>
+
+           <div class="modal-body">
+             <div class="order-details-content">
+               <div class="detail-section">
+                 <h3>Información General</h3>
+                 <div class="detail-grid">
+                   <div class="detail-item">
+                     <label>ID de Orden:</label>
+                     <span>{{selectedOrderForDetails?.id}}</span>
+                   </div>
+                   <div class="detail-item">
+                     <label>Estado:</label>
+                     <span class="status-badge" [ngClass]="'status-' + selectedOrderForDetails?.status.toLowerCase()">
+                       {{selectedOrderForDetails?.status}}
+                     </span>
+                   </div>
+                   <div class="detail-item">
+                     <label>Cliente:</label>
+                     <span>{{selectedOrderForDetails?.client || 'N/A'}}</span>
+                   </div>
+                   <div class="detail-item">
+                     <label>Dirección:</label>
+                     <span>{{selectedOrderForDetails?.address || 'N/A'}}</span>
+                   </div>
+                   <div class="detail-item">
+                     <label>Fecha de Entrega:</label>
+                     <span>{{selectedOrderForDetails?.deliveryDate || 'N/A'}}</span>
+                   </div>
+                 </div>
+               </div>
+
+               <div class="detail-section">
+                 <h3>Productos</h3>
+                 <div class="products-detail" *ngIf="selectedOrderForDetails?.products && selectedOrderForDetails.products.length > 0; else singleProductDetail">
+                   <div class="product-detail-item" *ngFor="let product of selectedOrderForDetails.products">
+                     <div class="product-info">
+                       <span class="product-name">{{product.product}}</span>
+                       <span class="product-quantity">Cantidad: {{product.quantity}}</span>
+                     </div>
+                   </div>
+                 </div>
+                 <ng-template #singleProductDetail>
+                   <div class="single-product-detail">
+                     <span>{{selectedOrderForDetails?.product}}</span>
+                   </div>
+                 </ng-template>
+               </div>
+             </div>
+           </div>
+
+           <div class="modal-actions">
+             <button mat-button (click)="closeOrderDetails()" class="cancel-btn">
+               Cerrar
+             </button>
+           </div>
+         </div>
+       </div>
+
+       <!-- Order Edit Modal -->
+       <div class="order-creation-modal" *ngIf="showOrderEdit">
+         <div class="modal-overlay" (click)="closeOrderEdit()"></div>
+         <div class="modal-content order-modal">
+           <div class="modal-header">
+             <h2>Editar Orden</h2>
+             <button mat-icon-button (click)="closeOrderEdit()">
+               <mat-icon>close</mat-icon>
+             </button>
+           </div>
+
+           <div class="modal-body">
+             <!-- Same form structure as create order -->
+             <div class="form-section">
+               <h3>Información del Cliente</h3>
+               <div class="form-group">
+                 <label class="form-label">Nombre del Cliente *</label>
+                 <input type="text" class="form-input" [(ngModel)]="orderForm.clientName" placeholder="Nombre completo del cliente">
+               </div>
+               <div class="form-group">
+                 <label class="form-label">Dirección de Entrega *</label>
+                 <textarea class="form-input" [(ngModel)]="orderForm.clientAddress" placeholder="Dirección completa de entrega" rows="3"></textarea>
+               </div>
+               <div class="form-group">
+                 <label class="form-label">Fecha de Entrega *</label>
+                 <input type="date" class="form-input" [(ngModel)]="orderForm.deliveryDate">
+               </div>
+             </div>
+
+             <div class="form-section">
+               <h3>Productos (Máximo 5)</h3>
+               <div class="products-container">
+                 <div class="product-item" *ngFor="let product of orderForm.products; let i = index">
+                   <div class="product-select">
+                     <label class="form-label">Producto {{i + 1}}</label>
+                     <select class="form-input" [(ngModel)]="product.product">
+                       <option value="">Seleccionar producto</option>
+                       <option *ngFor="let item of getAvailableProducts()" [value]="item.name">
+                         {{item.name}} - Stock: {{item.stock}} - ${{item.price}}
+                       </option>
+                     </select>
+                   </div>
+                   <div class="quantity-select">
+                     <label class="form-label">Cantidad</label>
+                     <input type="number" class="form-input" [(ngModel)]="product.quantity" min="1" [max]="getProductStock(product.product)" placeholder="Cantidad">
+                   </div>
+                   <button mat-icon-button color="warn" (click)="removeProductFromOrder(i)" class="remove-btn">
+                     <mat-icon>delete</mat-icon>
+                   </button>
+                 </div>
+                 <button mat-stroked-button (click)="addProductToOrder()" [disabled]="orderForm.products.length >= 5" class="add-product-btn">
+                   <mat-icon>add</mat-icon>
+                   Agregar Producto
+                 </button>
+               </div>
+             </div>
+
+             <div class="form-section">
+               <h3>Opciones de Entrega</h3>
+               <div class="checkbox-group">
+                 <label class="checkbox-label">
+                   <input type="checkbox" [(ngModel)]="orderForm.generateRoute">
+                   <span class="checkmark"></span>
+                   Generar ruta de entrega optimizada
+                 </label>
+                 <p class="checkbox-description">Si se selecciona, se mostrará el mapa con rutas sugeridas para asignar vehículo</p>
+               </div>
+             </div>
+           </div>
+
+           <div class="modal-actions">
+             <button mat-button (click)="closeOrderEdit()" class="cancel-btn">
+               Cancelar
+             </button>
+             <button mat-raised-button color="primary" (click)="updateOrder()" class="create-btn">
+               <mat-icon>save</mat-icon>
+               Actualizar Orden
+             </button>
+           </div>
+         </div>
+       </div>
+
+       <!-- Delete Confirmation Modal -->
+       <div class="delete-confirmation-modal" *ngIf="showDeleteConfirmation">
+         <div class="modal-overlay" (click)="closeDeleteConfirmation()"></div>
+         <div class="modal-content delete-modal">
+           <div class="modal-header">
+             <h2>Confirmar Eliminación</h2>
+             <button mat-icon-button (click)="closeDeleteConfirmation()">
+               <mat-icon>close</mat-icon>
+             </button>
+           </div>
+
+           <div class="modal-body">
+             <div class="confirmation-content">
+               <mat-icon class="warning-icon">warning</mat-icon>
+               <h3>¿Está seguro de que desea eliminar esta orden?</h3>
+               <div class="order-info">
+                 <p><strong>ID:</strong> {{orderToDelete?.id}}</p>
+                 <p><strong>Producto:</strong> {{orderToDelete?.product}}</p>
+                 <p><strong>Estado:</strong> {{orderToDelete?.status}}</p>
+               </div>
+               <p class="warning-text">Esta acción no se puede deshacer.</p>
+             </div>
+           </div>
+
+           <div class="modal-actions">
+             <button mat-button (click)="closeDeleteConfirmation()" class="cancel-btn">
+               No, Cancelar
+             </button>
+             <button mat-raised-button color="warn" (click)="deleteOrder()" class="delete-btn">
+               <mat-icon>delete</mat-icon>
+               Sí, Eliminar
+             </button>
+           </div>
+         </div>
+       </div>
+
+       <!-- Inventory Details Modal -->
+       <div class="inventory-details-modal" *ngIf="showInventoryDetails">
+         <div class="modal-overlay" (click)="closeInventoryDetails()"></div>
+         <div class="modal-content inventory-modal">
+           <div class="modal-header">
+             <h2>Detalles del Producto</h2>
+             <button mat-icon-button (click)="closeInventoryDetails()">
+               <mat-icon>close</mat-icon>
+             </button>
+           </div>
+
+           <div class="modal-body">
+             <div class="inventory-details-content">
+               <!-- Product Information -->
+               <div class="detail-section">
+                 <h3>Información del Producto</h3>
+                 <div class="detail-grid">
+                   <div class="detail-item">
+                     <label>Nombre:</label>
+                     <span>{{selectedInventoryItem?.name}}</span>
+                   </div>
+                   <div class="detail-item">
+                     <label>Categoría:</label>
+                     <span>{{selectedInventoryItem?.category}}</span>
+                   </div>
+                   <div class="detail-item">
+                     <label>Stock Total:</label>
+                     <span [ngClass]="getStockClass(selectedInventoryItem?.stock)">{{selectedInventoryItem?.stock}} unidades</span>
+                   </div>
+                   <div class="detail-item">
+                     <label>Precio Unitario:</label>
+                     <span>${{selectedInventoryItem?.price}}</span>
+                   </div>
+                   <div class="detail-item">
+                     <label>Proveedor:</label>
+                     <span>{{selectedInventoryItem?.supplier}}</span>
+                   </div>
+                   <div class="detail-item">
+                     <label>Lote Principal:</label>
+                     <span>{{selectedInventoryItem?.lot}}</span>
+                   </div>
+                 </div>
+                 <div class="description-section">
+                   <label>Descripción:</label>
+                   <p>{{selectedInventoryItem?.description}}</p>
+                 </div>
+               </div>
+
+               <!-- Warehouse Information -->
+               <div class="detail-section">
+                 <h3>Información de Bodega</h3>
+                 <div class="warehouse-info">
+                   <div class="detail-item">
+                     <label>Bodega:</label>
+                     <span>{{selectedInventoryItem?.warehouse}}</span>
+                   </div>
+                 </div>
+               </div>
+
+               <!-- Batch Information -->
+               <div class="detail-section">
+                 <h3>Lotes y Ubicaciones</h3>
+                 <div class="batches-container">
+                   <div class="batch-item" *ngFor="let batch of selectedInventoryItem?.batches">
+                     <div class="batch-header">
+                       <h4>{{batch.batch}}</h4>
+                       <span class="batch-quantity">{{batch.quantity}} unidades</span>
+                     </div>
+                     <div class="batch-details">
+                       <div class="batch-detail">
+                         <label>Ubicación:</label>
+                         <span>{{batch.location}}</span>
+                       </div>
+                       <div class="batch-detail">
+                         <label>Vencimiento:</label>
+                         <span [ngClass]="getExpiryClass(batch.expiry)">{{batch.expiry}}</span>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+             </div>
+           </div>
+
+           <div class="modal-actions">
+             <button mat-button (click)="closeInventoryDetails()" class="cancel-btn">
+               Cerrar
+             </button>
+           </div>
+         </div>
+       </div>

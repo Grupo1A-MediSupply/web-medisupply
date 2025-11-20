@@ -1,0 +1,130 @@
+  <div class="inventory-page">
+    <div class="page-header">
+      <h1 class="page-title">
+        <mat-icon>inventory</mat-icon>
+        Gestión de Inventario
+      </h1>
+      <p class="page-description">Consulta en tiempo real del inventario, estados, localización en bodegas, validación de lote y vencimiento.</p>
+    </div>
+
+    <div class="inventory-stats">
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon class="stat-icon">inventory_2</mat-icon>
+            <div class="stat-info">
+              <div class="stat-number">{{getTotalItems()}}</div>
+              <div class="stat-label">Productos Totales</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon class="stat-icon">warning</mat-icon>
+            <div class="stat-info">
+              <div class="stat-number">{{getLowStockItems()}}</div>
+              <div class="stat-label">Stock Bajo</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon class="stat-icon">schedule</mat-icon>
+            <div class="stat-info">
+              <div class="stat-number">{{getExpiringItems()}}</div>
+              <div class="stat-label">Por Vencer</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <mat-card class="inventory-table-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>list_alt</mat-icon>
+          Inventario Actual
+        </mat-card-title>
+        <mat-card-subtitle>Lista completa de productos en inventario</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="table-container">
+          <table mat-table [dataSource]="items" class="inventory-table">
+            <ng-container matColumnDef="sku">
+              <th mat-header-cell *matHeaderCellDef>
+                <mat-icon>tag</mat-icon>
+                SKU
+              </th>
+              <td mat-cell *matCellDef="let item">
+                <span class="sku-code">{{item.sku}}</span>
+              </td>
+            </ng-container>
+            
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>
+                <mat-icon>medical_services</mat-icon>
+                Producto
+              </th>
+              <td mat-cell *matCellDef="let item">
+                <div class="product-details">
+                  <mat-icon class="product-icon">local_hospital</mat-icon>
+                  <div class="product-info">
+                    <div class="product-name">{{item.name}}</div>
+                    <div class="product-category">{{item.category}}</div>
+                  </div>
+                </div>
+              </td>
+            </ng-container>
+            
+            <ng-container matColumnDef="stock">
+              <th mat-header-cell *matHeaderCellDef>
+                <mat-icon>inventory</mat-icon>
+                Stock
+              </th>
+              <td mat-cell *matCellDef="let item">
+                <div class="stock-info">
+                  <span class="stock-number" [ngClass]="getStockClass(item.stock)">{{item.stock}}</span>
+                  <span class="stock-unit">{{item.unit}}</span>
+                </div>
+              </td>
+            </ng-container>
+            
+            <ng-container matColumnDef="lote">
+              <th mat-header-cell *matHeaderCellDef>
+                <mat-icon>qr_code</mat-icon>
+                Lote / Vencimiento
+              </th>
+              <td mat-cell *matCellDef="let item">
+                <div class="lote-info">
+                  <div class="lote-number">{{item.lote}}</div>
+                  <div class="expiry-date" [ngClass]="getExpiryClass(item.venc)">{{item.venc}}</div>
+                </div>
+              </td>
+            </ng-container>
+            
+            <ng-container matColumnDef="location">
+              <th mat-header-cell *matHeaderCellDef>
+                <mat-icon>location_on</mat-icon>
+                Ubicación
+              </th>
+              <td mat-cell *matCellDef="let item">
+                <div class="location-info">
+                  <mat-icon class="location-icon">warehouse</mat-icon>
+                  <span>{{item.location}}</span>
+                </div>
+              </td>
+            </ng-container>
+            
+            <tr mat-header-row *matHeaderRowDef="['sku', 'name', 'stock', 'lote', 'location']"></tr>
+            <tr mat-row *matRowDef="let row; columns: ['sku', 'name', 'stock', 'lote', 'location'];" class="inventory-row"></tr>
+          </table>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
