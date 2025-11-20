@@ -58,7 +58,7 @@ export class AuthService {
   ) {}
 
   signup(data: SignupRequest): Observable<AuthResponse> {
-    return this.api.post<AuthResponse>('/auth/signup', data, this.authServiceUrl).pipe(
+    return this.api.post<AuthResponse>('/auth/register', data, this.authServiceUrl).pipe(
       tap(response => {
         if (response.token && response.user) {
           this.setAuthData(response.token, response.user);
