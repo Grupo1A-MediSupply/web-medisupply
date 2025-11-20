@@ -91,9 +91,12 @@ describe('VendorSignupComponent', () => {
       phone: '1234567890',
       company: 'Test Company',
       username: 'vendedor',
-      password: 'password123',
-      confirmPassword: 'password123'
+      password: 'Password123!',
+      confirmPassword: 'Password123!'
     });
+
+    // Ensure form is valid
+    expect(component.signupForm.valid).toBeTrue();
 
     // Mock successful signup
     mockAuthService.signup.and.returnValue(of({
@@ -286,12 +289,22 @@ describe('VendorSignupComponent', () => {
       email: 'test@example.com',
       phone: '1234567890',
       company: longString,
-      username: longString,
-      password: 'password123',
-      confirmPassword: 'password123'
+      username: 'a'.repeat(51), // Exceeds maxLength of 50
+      password: 'Password123!',
+      confirmPassword: 'Password123!'
     });
     
+    // Update form validity after patchValue
+    component.signupForm.updateValueAndValidity();
+    
+    // Trigger change detection to ensure validators run
+    fixture.detectChanges();
+    
     // Form should be invalid due to maxLength validation
+    // Check individual field errors
+    expect(component.signupForm.get('fullName')?.hasError('maxlength')).toBeTruthy();
+    expect(component.signupForm.get('company')?.hasError('maxlength')).toBeTruthy();
+    expect(component.signupForm.get('username')?.hasError('maxlength')).toBeTruthy();
     expect(component.signupForm.valid).toBeFalsy();
   });
 
@@ -312,6 +325,40 @@ describe('VendorSignupComponent', () => {
       password: 'Password123!',
       confirmPassword: 'Password123!'
     });
+    
+    // Update form validity after patchValue - need to update all controls first
+    component.signupForm.get('fullName')?.updateValueAndValidity();
+    component.signupForm.get('email')?.updateValueAndValidity();
+    component.signupForm.get('phone')?.updateValueAndValidity();
+    component.signupForm.get('company')?.updateValueAndValidity();
+    component.signupForm.get('username')?.updateValueAndValidity();
+    component.signupForm.get('password')?.updateValueAndValidity();
+    component.signupForm.get('confirmPassword')?.updateValueAndValidity();
+    
+    // Trigger change detection to ensure validators run
+    fixture.detectChanges();
+    
+    // Update form-level validators (passwordMatchValidator)
+    component.signupForm.updateValueAndValidity();
+    
+    // Trigger change detection again after form-level validation
+    fixture.detectChanges();
+    
+    // Debug: Check individual field validity
+    if (!component.signupForm.valid) {
+      console.log('Form errors:', component.signupForm.errors);
+      console.log('fullName errors:', component.signupForm.get('fullName')?.errors);
+      console.log('email errors:', component.signupForm.get('email')?.errors);
+      console.log('phone errors:', component.signupForm.get('phone')?.errors);
+      console.log('company errors:', component.signupForm.get('company')?.errors);
+      console.log('username errors:', component.signupForm.get('username')?.errors);
+      console.log('password errors:', component.signupForm.get('password')?.errors);
+      console.log('confirmPassword errors:', component.signupForm.get('confirmPassword')?.errors);
+    }
+    
+    // Ensure form is valid
+    expect(component.signupForm.valid).toBeTrue();
+    
     component.createAccount();
     expect(component.successMessage).toBe('Cuenta creada exitosamente');
     
@@ -336,6 +383,28 @@ describe('VendorSignupComponent', () => {
       password: 'Password456!',
       confirmPassword: 'Password456!'
     });
+    
+    // Update form validity after patchValue - need to update all controls first
+    component.signupForm.get('fullName')?.updateValueAndValidity();
+    component.signupForm.get('email')?.updateValueAndValidity();
+    component.signupForm.get('phone')?.updateValueAndValidity();
+    component.signupForm.get('company')?.updateValueAndValidity();
+    component.signupForm.get('username')?.updateValueAndValidity();
+    component.signupForm.get('password')?.updateValueAndValidity();
+    component.signupForm.get('confirmPassword')?.updateValueAndValidity();
+    
+    // Trigger change detection to ensure validators run
+    fixture.detectChanges();
+    
+    // Update form-level validators (passwordMatchValidator)
+    component.signupForm.updateValueAndValidity();
+    
+    // Trigger change detection again after form-level validation
+    fixture.detectChanges();
+    
+    // Ensure form is valid
+    expect(component.signupForm.valid).toBeTrue();
+    
     component.createAccount();
     
     expect(mockAuthService.signup).toHaveBeenCalledTimes(2);
@@ -428,19 +497,30 @@ describe('VendorSignupComponent', () => {
   });
 
   it('should handle very long input values', () => {
-    const longString = 'a'.repeat(1000);
+    // Use strings that exceed maxLength to test validation
+    const longString = 'a'.repeat(101); // Exceeds maxLength of 100
 
     component.signupForm.patchValue({
       fullName: longString,
       email: 'test@example.com',
       phone: '1234567890',
       company: longString,
-      username: longString,
-      password: 'password123',
-      confirmPassword: 'password123'
+      username: 'a'.repeat(51), // Exceeds maxLength of 50
+      password: 'Password123!',
+      confirmPassword: 'Password123!'
     });
-
-    // Form should still be valid even with long strings
-    expect(component.signupForm.valid).toBeTruthy();
+    
+    // Update form validity after patchValue
+    component.signupForm.updateValueAndValidity();
+    
+    // Trigger change detection to ensure validators run
+    fixture.detectChanges();
+    
+    // Form should be invalid due to maxLength validation
+    // Check individual field errors
+    expect(component.signupForm.get('fullName')?.hasError('maxlength')).toBeTruthy();
+    expect(component.signupForm.get('company')?.hasError('maxlength')).toBeTruthy();
+    expect(component.signupForm.get('username')?.hasError('maxlength')).toBeTruthy();
+    expect(component.signupForm.valid).toBeFalsy();
   });
 });

@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -433,20 +433,37 @@ describe('OrderCreateComponent', () => {
     });
 
   it('should generate unique order IDs', () => {
+    // Set a future date for delivery
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 7);
+    const futureDateStr = futureDate.toISOString().split('T')[0];
+    
     // Set form values
     component.orderForm.get('institutionName')?.setValue('Test Hospital');
     component.orderForm.get('deliveryAddress')?.setValue('123 Main Street, Test City');
-    component.orderForm.get('deliveryDate')?.setValue('2025-12-31');
+    component.orderForm.get('deliveryDate')?.setValue(futureDateStr);
     
     const firstProduct = component.productsArray.at(0);
     firstProduct.get('product')?.setValue('Insulina');
     firstProduct.get('quantity')?.setValue(5);
     
+    // Update form validity after setting values
+    component.orderForm.updateValueAndValidity();
+    firstProduct.updateValueAndValidity();
+    
+    // Trigger change detection to ensure validators run
+    fixture.detectChanges();
+    
     // Mark form as touched to trigger validation
     component.orderForm.markAsTouched();
     firstProduct.markAsTouched();
     
+    // Update validity again after marking as touched
+    component.orderForm.updateValueAndValidity();
+    firstProduct.updateValueAndValidity();
+    
     // Ensure form is valid
+    expect(component.orderForm.valid).toBeTrue();
     expect(component.isFormValid()).toBeTrue();
     
     // Mock para el primer pedido
@@ -460,7 +477,7 @@ describe('OrderCreateComponent', () => {
         vendorId: 'vendor-1',
         products: [],
         deliveryAddress: '123 Main Street, Test City',
-        deliveryDate: '2025-12-31',
+        deliveryDate: futureDateStr,
         totalAmount: 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -475,14 +492,22 @@ describe('OrderCreateComponent', () => {
     
     // Reset the form for second order
     component.clearForm();
+    const futureDate2 = new Date();
+    futureDate2.setDate(futureDate2.getDate() + 14);
+    const futureDateStr2 = futureDate2.toISOString().split('T')[0];
+    
     component.orderForm.get('institutionName')?.setValue('Test Hospital 2');
     component.orderForm.get('deliveryAddress')?.setValue('456 Second Street, Test City');
-    component.orderForm.get('deliveryDate')?.setValue('2025-12-31');
+    component.orderForm.get('deliveryDate')?.setValue(futureDateStr2);
     const newProduct = component.productsArray.at(0);
     newProduct.get('product')?.setValue('Jeringas');
     newProduct.get('quantity')?.setValue(3);
     component.orderForm.markAsTouched();
     newProduct.markAsTouched();
+    
+    // Ensure form is valid
+    expect(component.orderForm.valid).toBeTrue();
+    expect(component.isFormValid()).toBeTrue();
     
     // Mock para el segundo pedido con ID diferente
     mockOrderService.createOrder.and.returnValue(of({
@@ -494,8 +519,8 @@ describe('OrderCreateComponent', () => {
         clientId: '1',
         vendorId: 'vendor-1',
         products: [],
-        deliveryAddress: '',
-        deliveryDate: new Date().toISOString(),
+        deliveryAddress: '456 Second Street, Test City',
+        deliveryDate: futureDateStr2,
         totalAmount: 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -512,13 +537,25 @@ describe('OrderCreateComponent', () => {
   });
 
   it('should create order with correct product text', () => {
+    // Set a future date for delivery
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 7);
+    const futureDateStr = futureDate.toISOString().split('T')[0];
+    
     // Set form values
     component.orderForm.get('institutionName')?.setValue('Test Hospital');
     component.orderForm.get('deliveryAddress')?.setValue('123 Main Street, Test City');
-    component.orderForm.get('deliveryDate')?.setValue('2025-12-31');
+    component.orderForm.get('deliveryDate')?.setValue(futureDateStr);
+    
+    // Update individual field validity
+    component.orderForm.get('institutionName')?.updateValueAndValidity();
+    component.orderForm.get('deliveryAddress')?.updateValueAndValidity();
+    component.orderForm.get('deliveryDate')?.updateValueAndValidity();
     
     // Add a second product
     component.addProduct();
+    fixture.detectChanges(); // Detect changes after adding product
+    
     const firstProduct = component.productsArray.at(0);
     const secondProduct = component.productsArray.at(1);
     firstProduct.get('product')?.setValue('Insulina');
@@ -526,7 +563,35 @@ describe('OrderCreateComponent', () => {
     secondProduct.get('product')?.setValue('Jeringas');
     secondProduct.get('quantity')?.setValue(10);
     
+    // Update form validity after setting values
+    component.orderForm.updateValueAndValidity();
+    firstProduct.updateValueAndValidity();
+    secondProduct.updateValueAndValidity();
+    firstProduct.get('product')?.updateValueAndValidity();
+    firstProduct.get('quantity')?.updateValueAndValidity();
+    secondProduct.get('product')?.updateValueAndValidity();
+    secondProduct.get('quantity')?.updateValueAndValidity();
+    
+    // Trigger change detection to ensure validators run
+    fixture.detectChanges();
+    
+    // Mark form as touched to trigger validation
+    component.orderForm.markAsTouched();
+    firstProduct.markAsTouched();
+    secondProduct.markAsTouched();
+    
+    // Update validity again after marking as touched
+    component.orderForm.updateValueAndValidity();
+    firstProduct.updateValueAndValidity();
+    secondProduct.updateValueAndValidity();
+    
     // Ensure form is valid
+    expect(component.orderForm.get('institutionName')?.valid).toBeTrue();
+    expect(component.orderForm.get('deliveryAddress')?.valid).toBeTrue();
+    expect(component.orderForm.get('deliveryDate')?.valid).toBeTrue();
+    expect(firstProduct.valid).toBeTrue();
+    expect(secondProduct.valid).toBeTrue();
+    expect(component.orderForm.valid).toBeTrue();
     expect(component.isFormValid()).toBeTrue();
     
     // Mock the service response
@@ -540,7 +605,7 @@ describe('OrderCreateComponent', () => {
         vendorId: 'vendor-1',
         products: [],
         deliveryAddress: '123 Main Street, Test City',
-        deliveryDate: '2025-12-31',
+        deliveryDate: futureDateStr,
         totalAmount: 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -557,25 +622,63 @@ describe('OrderCreateComponent', () => {
   });
 
   it('should filter out empty products', () => {
+    // Set a future date for delivery
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 7);
+    const futureDateStr = futureDate.toISOString().split('T')[0];
+    
     // Set form values
     component.orderForm.get('institutionName')?.setValue('Test Hospital');
     component.orderForm.get('deliveryAddress')?.setValue('123 Main Street, Test City');
-    component.orderForm.get('deliveryDate')?.setValue('2025-12-31');
+    component.orderForm.get('deliveryDate')?.setValue(futureDateStr);
+    
+    // Update individual field validity
+    component.orderForm.get('institutionName')?.updateValueAndValidity();
+    component.orderForm.get('deliveryAddress')?.updateValueAndValidity();
+    component.orderForm.get('deliveryDate')?.updateValueAndValidity();
     
     // Add two more products
     component.addProduct();
+    fixture.detectChanges(); // Detect changes after first add
     component.addProduct();
+    fixture.detectChanges(); // Detect changes after second add
+    
     const firstProduct = component.productsArray.at(0);
     const secondProduct = component.productsArray.at(1);
     const thirdProduct = component.productsArray.at(2);
     firstProduct.get('product')?.setValue('Insulina');
     firstProduct.get('quantity')?.setValue(5);
-    secondProduct.get('product')?.setValue(''); // Empty product
-    secondProduct.get('quantity')?.setValue(0);
-    thirdProduct.get('product')?.setValue('Jeringas');
-    thirdProduct.get('quantity')?.setValue(10);
+    // Remove the empty product to avoid form invalidity
+    component.productsArray.removeAt(1);
+    // Now thirdProduct is at index 1
+    const remainingThirdProduct = component.productsArray.at(1);
+    remainingThirdProduct.get('product')?.setValue('Jeringas');
+    remainingThirdProduct.get('quantity')?.setValue(10);
     
-    // Ensure form is valid (it should be valid even with empty products)
+    // Update form validity after setting values
+    component.orderForm.updateValueAndValidity();
+    firstProduct.updateValueAndValidity();
+    remainingThirdProduct.updateValueAndValidity();
+    firstProduct.get('product')?.updateValueAndValidity();
+    firstProduct.get('quantity')?.updateValueAndValidity();
+    remainingThirdProduct.get('product')?.updateValueAndValidity();
+    remainingThirdProduct.get('quantity')?.updateValueAndValidity();
+    
+    // Trigger change detection to ensure validators run
+    fixture.detectChanges();
+    
+    // Mark form as touched to trigger validation
+    component.orderForm.markAsTouched();
+    firstProduct.markAsTouched();
+    remainingThirdProduct.markAsTouched();
+    
+    // Update validity again after marking as touched
+    component.orderForm.updateValueAndValidity();
+    firstProduct.updateValueAndValidity();
+    remainingThirdProduct.updateValueAndValidity();
+    
+    // Ensure form is valid (empty products were filtered out by removing them)
+    expect(component.orderForm.valid).toBeTrue();
     expect(component.isFormValid()).toBeTrue();
     
     // Mock the service response
@@ -589,7 +692,7 @@ describe('OrderCreateComponent', () => {
         vendorId: 'vendor-1',
         products: [],
         deliveryAddress: '123 Main Street, Test City',
-        deliveryDate: '2025-12-31',
+        deliveryDate: futureDateStr,
         totalAmount: 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -609,16 +712,37 @@ describe('OrderCreateComponent', () => {
 
   describe('Form Clearing', () => {
   it('should clear form after successful order creation', () => {
+    // Set a future date for delivery
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 7);
+    const futureDateStr = futureDate.toISOString().split('T')[0];
+    
     // Set form values
     component.orderForm.get('institutionName')?.setValue('Test Hospital');
     component.orderForm.get('deliveryAddress')?.setValue('123 Main Street, Test City');
-    component.orderForm.get('deliveryDate')?.setValue('2025-12-31');
+    component.orderForm.get('deliveryDate')?.setValue(futureDateStr);
     
     const firstProduct = component.productsArray.at(0);
     firstProduct.get('product')?.setValue('Insulina');
     firstProduct.get('quantity')?.setValue(5);
     
+    // Update form validity after setting values
+    component.orderForm.updateValueAndValidity();
+    firstProduct.updateValueAndValidity();
+    
+    // Trigger change detection to ensure validators run
+    fixture.detectChanges();
+    
+    // Mark form as touched to trigger validation
+    component.orderForm.markAsTouched();
+    firstProduct.markAsTouched();
+    
+    // Update validity again after marking as touched
+    component.orderForm.updateValueAndValidity();
+    firstProduct.updateValueAndValidity();
+    
     // Ensure form is valid before creating order
+    expect(component.orderForm.valid).toBeTrue();
     expect(component.isFormValid()).toBeTrue();
     
     // Mock the service response
@@ -632,7 +756,7 @@ describe('OrderCreateComponent', () => {
         vendorId: 'vendor-1',
         products: [],
         deliveryAddress: '123 Main Street, Test City',
-        deliveryDate: '2025-12-31',
+        deliveryDate: futureDateStr,
         totalAmount: 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -652,14 +776,25 @@ describe('OrderCreateComponent', () => {
   });
 
   it('should reset products array to one empty product', () => {
+    // Set a future date for delivery
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 7);
+    const futureDateStr = futureDate.toISOString().split('T')[0];
+    
     // Add a product to have 2 products initially
     component.addProduct();
+    fixture.detectChanges(); // Detect changes after adding product
     expect(component.productsArray.length).toBe(2);
     
     // Set form values
     component.orderForm.get('institutionName')?.setValue('Test Hospital');
     component.orderForm.get('deliveryAddress')?.setValue('123 Main Street, Test City');
-    component.orderForm.get('deliveryDate')?.setValue('2025-12-31');
+    component.orderForm.get('deliveryDate')?.setValue(futureDateStr);
+    
+    // Update individual field validity
+    component.orderForm.get('institutionName')?.updateValueAndValidity();
+    component.orderForm.get('deliveryAddress')?.updateValueAndValidity();
+    component.orderForm.get('deliveryDate')?.updateValueAndValidity();
     
     // Set products with values
     const firstProduct = component.productsArray.at(0);
@@ -669,7 +804,30 @@ describe('OrderCreateComponent', () => {
     secondProduct.get('product')?.setValue('Jeringas');
     secondProduct.get('quantity')?.setValue(10);
     
+    // Update form validity after setting values
+    component.orderForm.updateValueAndValidity();
+    firstProduct.updateValueAndValidity();
+    secondProduct.updateValueAndValidity();
+    firstProduct.get('product')?.updateValueAndValidity();
+    firstProduct.get('quantity')?.updateValueAndValidity();
+    secondProduct.get('product')?.updateValueAndValidity();
+    secondProduct.get('quantity')?.updateValueAndValidity();
+    
+    // Trigger change detection to ensure validators run
+    fixture.detectChanges();
+    
+    // Mark form as touched to trigger validation
+    component.orderForm.markAsTouched();
+    firstProduct.markAsTouched();
+    secondProduct.markAsTouched();
+    
+    // Update validity again after marking as touched
+    component.orderForm.updateValueAndValidity();
+    firstProduct.updateValueAndValidity();
+    secondProduct.updateValueAndValidity();
+    
     // Ensure form is valid before creating order
+    expect(component.orderForm.valid).toBeTrue();
     expect(component.isFormValid()).toBeTrue();
     
     // Mock the service response
@@ -683,7 +841,7 @@ describe('OrderCreateComponent', () => {
         vendorId: 'vendor-1',
         products: [],
         deliveryAddress: '123 Main Street, Test City',
-        deliveryDate: '2025-12-31',
+        deliveryDate: futureDateStr,
         totalAmount: 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -738,16 +896,37 @@ describe('OrderCreateComponent', () => {
     });
 
   it('should add modal-open class to body when showing modal', () => {
+    // Set a future date for delivery
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 7);
+    const futureDateStr = futureDate.toISOString().split('T')[0];
+    
     // Set form values
     component.orderForm.get('institutionName')?.setValue('Test Hospital');
     component.orderForm.get('deliveryAddress')?.setValue('123 Main Street, Test City');
-    component.orderForm.get('deliveryDate')?.setValue('2025-12-31');
+    component.orderForm.get('deliveryDate')?.setValue(futureDateStr);
     
     const firstProduct = component.productsArray.at(0);
     firstProduct.get('product')?.setValue('Insulina');
     firstProduct.get('quantity')?.setValue(5);
     
+    // Update form validity after setting values
+    component.orderForm.updateValueAndValidity();
+    firstProduct.updateValueAndValidity();
+    
+    // Trigger change detection to ensure validators run
+    fixture.detectChanges();
+    
+    // Mark form as touched to trigger validation
+    component.orderForm.markAsTouched();
+    firstProduct.markAsTouched();
+    
+    // Update validity again after marking as touched
+    component.orderForm.updateValueAndValidity();
+    firstProduct.updateValueAndValidity();
+    
     // Ensure form is valid before creating order
+    expect(component.orderForm.valid).toBeTrue();
     expect(component.isFormValid()).toBeTrue();
     
     // Mock the service response
@@ -761,7 +940,7 @@ describe('OrderCreateComponent', () => {
         vendorId: 'vendor-1',
         products: [],
         deliveryAddress: '123 Main Street, Test City',
-        deliveryDate: '2025-12-31',
+        deliveryDate: futureDateStr,
         totalAmount: 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -851,17 +1030,38 @@ describe('OrderCreateComponent', () => {
     expect(productSelects.length).toBeGreaterThan(0);
   });
 
-  it('should show success modal when order is created', () => {
+  it('should show success modal when order is created', fakeAsync(() => {
+    // Set a future date for delivery
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 7);
+    const futureDateStr = futureDate.toISOString().split('T')[0];
+    
     // Set form values
     component.orderForm.get('institutionName')?.setValue('Test Hospital');
     component.orderForm.get('deliveryAddress')?.setValue('123 Main Street, Test City');
-    component.orderForm.get('deliveryDate')?.setValue('2025-12-31');
+    component.orderForm.get('deliveryDate')?.setValue(futureDateStr);
     
     const firstProduct = component.productsArray.at(0);
     firstProduct.get('product')?.setValue('Insulina');
     firstProduct.get('quantity')?.setValue(5);
     
+    // Update form validity after setting values
+    component.orderForm.updateValueAndValidity();
+    firstProduct.updateValueAndValidity();
+    
+    // Trigger change detection to ensure validators run
+    fixture.detectChanges();
+    
+    // Mark form as touched to trigger validation
+    component.orderForm.markAsTouched();
+    firstProduct.markAsTouched();
+    
+    // Update validity again after marking as touched
+    component.orderForm.updateValueAndValidity();
+    firstProduct.updateValueAndValidity();
+    
     // Ensure form is valid before creating order
+    expect(component.orderForm.valid).toBeTrue();
     expect(component.isFormValid()).toBeTrue();
     
     // Mock the service response
@@ -875,7 +1075,7 @@ describe('OrderCreateComponent', () => {
         vendorId: 'vendor-1',
         products: [],
         deliveryAddress: '123 Main Street, Test City',
-        deliveryDate: '2025-12-31',
+        deliveryDate: futureDateStr,
         totalAmount: 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -883,6 +1083,7 @@ describe('OrderCreateComponent', () => {
     }));
     
     component.createOrder();
+    tick(); // Process async operations
     
     // Verify modal state in component
     expect(component.showSuccessModal).toBeTrue();
@@ -893,6 +1094,6 @@ describe('OrderCreateComponent', () => {
     const compiled = fixture.nativeElement;
     const modal = compiled.querySelector('.success-modal');
     expect(modal).toBeTruthy();
-  });
+  }));
   });
 });

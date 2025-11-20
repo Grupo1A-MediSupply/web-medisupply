@@ -94,9 +94,12 @@ describe('ClientSignupComponent', () => {
       institution: 'Test Hospital',
       position: 'Doctor',
       username: 'cliente',
-      password: 'password123',
-      confirmPassword: 'password123'
+      password: 'Password123!',
+      confirmPassword: 'Password123!'
     });
+
+    // Ensure form is valid
+    expect(component.signupForm.valid).toBeTrue();
 
     // Mock successful signup
     mockAuthService.signup.and.returnValue(of({
@@ -308,13 +311,13 @@ describe('ClientSignupComponent', () => {
       phone: '1234567890',
       institution: longString,
       position: longString,
-      username: longString,
-      password: 'password123',
-      confirmPassword: 'password123'
+      username: 'a'.repeat(51), // Exceeds maxLength of 50
+      password: 'Password123!',
+      confirmPassword: 'Password123!'
     });
     
-    // Form should still be valid even with long strings
-    expect(component.signupForm.valid).toBeTruthy();
+    // Form should be invalid due to maxLength validation
+    expect(component.signupForm.valid).toBeFalsy();
   });
 
   it('should handle form validation for individual fields', () => {
