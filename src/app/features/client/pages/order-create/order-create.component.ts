@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { ProductService } from '../../../../core/services/product.service';
 import { OrderService } from '../../../../core/services/order.service';
 import { AuthService } from '../../../../core/services/auth.service';
@@ -44,13 +44,30 @@ export class OrderCreateComponent implements OnInit {
     this.loadProducts();
   }
 
-  futureDateValidator(control: any) {
+  futureDateValidator = (control: AbstractControl): ValidationErrors | null => {
     if (!control.value) {
       return null;
     }
-    const selectedDate = new Date(control.value);
+    
+    // Parse date string (YYYY-MM-DD) to avoid timezone issues
+    const dateStr = control.value;
+    const dateMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!dateMatch) {
+      return { invalidDate: true };
+    }
+    
+    const year = parseInt(dateMatch[1], 10);
+    const month = parseInt(dateMatch[2], 10) - 1; // Month is 0-indexed
+    const day = parseInt(dateMatch[3], 10);
+    
+    const selectedDate = new Date(year, month, day);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    selectedDate.setHours(0, 0, 0, 0);
+    
+    if (isNaN(selectedDate.getTime())) {
+      return { invalidDate: true };
+    }
     
     if (selectedDate < today) {
       return { pastDate: true };
@@ -238,8 +255,8 @@ export class OrderCreateComponent implements OnInit {
   }
 
   createOrder() {
-    // Marcar todos los campos como touched para mostrar errores
-    if (this.orderForm.invalid) {
+    // Verificar primero isFormValid() que permite productos vacíos si hay al menos uno válido
+    if (!this.isFormValid()) {
       this.orderForm.markAllAsTouched();
       this.productsArray.controls.forEach(control => {
         control.markAllAsTouched();
@@ -248,8 +265,14 @@ export class OrderCreateComponent implements OnInit {
       return;
     }
 
-    if (!this.isFormValid()) {
-      alert('Por favor complete todos los campos requeridos');
+    // Verificar campos básicos del formulario
+    const institutionName = this.orderForm.get('institutionName');
+    const deliveryAddress = this.orderForm.get('deliveryAddress');
+    const deliveryDate = this.orderForm.get('deliveryDate');
+    
+    if (!institutionName?.valid || !deliveryAddress?.valid || !deliveryDate?.valid) {
+      this.orderForm.markAllAsTouched();
+      alert('Por favor complete todos los campos requeridos correctamente');
       return;
     }
     

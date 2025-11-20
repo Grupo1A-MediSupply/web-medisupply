@@ -312,15 +312,15 @@ describe('VendorSignupComponent', () => {
     mockAuthService.signup.and.returnValue(of({
       message: 'Cuenta creada exitosamente',
       token: 'test-token',
-      user: { id: '1', email: 'vendor1@example.com', role: 'vendor', name: 'Vendor 1' }
+      user: { id: '1', email: 'vendor1@example.com', role: 'vendor', name: 'Vendor Uno' }
     }));
     
     // First attempt
     component.signupForm.patchValue({
-      fullName: 'Vendor 1',
+      fullName: 'Vendor Uno',
       email: 'vendor1@example.com',
       phone: '1234567890',
-      company: 'Company 1',
+      company: 'Company One',
       username: 'vendor1',
       password: 'Password123!',
       confirmPassword: 'Password123!'
@@ -344,17 +344,6 @@ describe('VendorSignupComponent', () => {
     // Trigger change detection again after form-level validation
     fixture.detectChanges();
     
-    // Debug: Check individual field validity
-    if (!component.signupForm.valid) {
-      console.log('Form errors:', component.signupForm.errors);
-      console.log('fullName errors:', component.signupForm.get('fullName')?.errors);
-      console.log('email errors:', component.signupForm.get('email')?.errors);
-      console.log('phone errors:', component.signupForm.get('phone')?.errors);
-      console.log('company errors:', component.signupForm.get('company')?.errors);
-      console.log('username errors:', component.signupForm.get('username')?.errors);
-      console.log('password errors:', component.signupForm.get('password')?.errors);
-      console.log('confirmPassword errors:', component.signupForm.get('confirmPassword')?.errors);
-    }
     
     // Ensure form is valid
     expect(component.signupForm.valid).toBeTrue();
@@ -370,15 +359,15 @@ describe('VendorSignupComponent', () => {
     mockAuthService.signup.and.returnValue(of({
       message: 'Cuenta creada exitosamente',
       token: 'test-token-2',
-      user: { id: '2', email: 'vendor2@example.com', role: 'vendor', name: 'Vendor 2' }
+      user: { id: '2', email: 'vendor2@example.com', role: 'vendor', name: 'Vendor Dos' }
     }));
     
     // Second attempt
     component.signupForm.patchValue({
-      fullName: 'Vendor 2',
+      fullName: 'Vendor Dos',
       email: 'vendor2@example.com',
       phone: '9876543210',
-      company: 'Company 2',
+      company: 'Company Two',
       username: 'vendor2',
       password: 'Password456!',
       confirmPassword: 'Password456!'
