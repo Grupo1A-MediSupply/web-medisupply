@@ -1,6 +1,7 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api.medisupply.com/api',
+  //apiUrl: 'https://api.medisupply.com/api',
+  apiUrl: 'https://auth-service-swn62v7z2q-uc.a.run.app',
   // En producción, usar URLs directas (CORS debe estar configurado en backend)
   useProxy: false, // En producción no se usa proxy
   // Microservicios en Google Cloud Run (producción)
