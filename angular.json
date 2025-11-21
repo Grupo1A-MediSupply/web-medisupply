@@ -58,7 +58,8 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "medical-distribution-prototype:build"
+            "browserTarget": "medical-distribution-prototype:build",
+            "proxyConfig": "proxy.conf.json"
           },
           "configurations": {
             "production": {

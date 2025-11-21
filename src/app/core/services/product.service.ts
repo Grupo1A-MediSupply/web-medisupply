@@ -34,7 +34,7 @@ export class ProductService {
   constructor(private api: ApiService) {}
 
   getProducts(params?: { search?: string; category?: string; lowStock?: boolean }): Observable<{ products: Product[] }> {
-    let endpoint = '/products';
+    let endpoint = '/api/v1/products';
     if (params) {
       const queryParams = new URLSearchParams();
       if (params.search) queryParams.append('search', params.search);
@@ -47,23 +47,23 @@ export class ProductService {
   }
 
   getProduct(id: string): Observable<{ product: Product }> {
-    return this.api.get<{ product: Product }>(`/products/${id}`, this.productServiceUrl);
+    return this.api.get<{ product: Product }>(`/api/v1/products/${id}`, this.productServiceUrl);
   }
 
   createProduct(product: Product): Observable<{ message: string; product: Product }> {
-    return this.api.post<{ message: string; product: Product }>('/products', product, this.productServiceUrl);
+    return this.api.post<{ message: string; product: Product }>('/api/v1/products', product, this.productServiceUrl);
   }
 
   updateProduct(id: string, product: Partial<Product>): Observable<{ message: string; product: Product }> {
-    return this.api.put<{ message: string; product: Product }>(`/products/${id}`, product, this.productServiceUrl);
+    return this.api.put<{ message: string; product: Product }>(`/api/v1/products/${id}`, product, this.productServiceUrl);
   }
 
   deleteProduct(id: string): Observable<{ message: string }> {
-    return this.api.delete<{ message: string }>(`/products/${id}`, this.productServiceUrl);
+    return this.api.delete<{ message: string }>(`/api/v1/products/${id}`, this.productServiceUrl);
   }
 
   bulkUploadProducts(products: Product[]): Observable<{ message: string; products: Product[] }> {
-    return this.api.post<{ message: string; products: Product[] }>('/products/bulk-upload', { products }, this.productServiceUrl);
+    return this.api.post<{ message: string; products: Product[] }>('/api/v1/products/bulk-upload', { products }, this.productServiceUrl);
   }
 }
 

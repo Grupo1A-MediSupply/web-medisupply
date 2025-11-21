@@ -1,0 +1,48 @@
+{
+  "/auth-service": {
+    "target": "https://medisupply-backend-api-swn62v7z2q-uc.a.run.app",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "debug",
+    "pathRewrite": {
+      "^/auth-service": ""
+    }
+  },
+  "/product-service": {
+    "target": "https://medisupply-backend-api-swn62v7z2q-uc.a.run.app",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "debug",
+    "pathRewrite": {
+      "^/product-service": ""
+    }
+  },
+  "/order-service": {
+    "target": "https://medisupply-backend-api-swn62v7z2q-uc.a.run.app",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "debug",
+    "pathRewrite": {
+      "^/order-service": ""
+    }
+  },
+  "/logistics-service": {
+    "target": "https://medisupply-backend-api-swn62v7z2q-uc.a.run.app",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "debug",
+    "pathRewrite": {
+      "^/logistics-service": ""
+    }
+  },
+  "/notifications-service": {
+    "target": "https://medisupply-backend-api-swn62v7z2q-uc.a.run.app",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "debug",
+    "pathRewrite": {
+      "^/notifications-service": ""
+    }
+  }
+}
+

@@ -60,7 +60,7 @@ export class AuthService {
   ) {}
 
   signup(data: SignupRequest): Observable<AuthResponse> {
-    return this.api.post<any>('/api/auth/register', data, this.authServiceUrl).pipe(
+    return this.api.post<any>('/api/v1/auth/register', data, this.authServiceUrl).pipe(
       tap(response => {
         // El backend devuelve directamente el UserResponse, no un AuthResponse
         // Convertimos la respuesta al formato esperado
@@ -98,11 +98,11 @@ export class AuthService {
   }
 
   login(data: LoginRequest): Observable<AuthResponse> {
-    return this.api.post<AuthResponse>('/api/auth/login', data, this.authServiceUrl);
+    return this.api.post<AuthResponse>('/api/v1/auth/login', data, this.authServiceUrl);
   }
 
   verifyMFA(userId: string, code: string): Observable<AuthResponse> {
-    return this.api.post<AuthResponse>('/api/auth/mfa/verify', { userId, code }, this.authServiceUrl).pipe(
+    return this.api.post<AuthResponse>('/api/v1/auth/mfa/verify', { userId, code }, this.authServiceUrl).pipe(
       tap(response => {
         if (response.token && response.user) {
           this.setAuthData(response.token, response.user);
@@ -112,14 +112,14 @@ export class AuthService {
   }
 
   changePassword(currentPassword: string, newPassword: string): Observable<any> {
-    return this.api.post('/api/auth/change-password', {
+    return this.api.post('/api/v1/auth/change-password', {
       currentPassword,
       newPassword
     }, this.authServiceUrl);
   }
 
   getProfile(): Observable<{ user: UserProfile }> {
-    return this.api.get<{ user: UserProfile }>('/api/auth/me', this.authServiceUrl);
+    return this.api.get<{ user: UserProfile }>('/api/v1/auth/me', this.authServiceUrl);
   }
 
   logout(): void {

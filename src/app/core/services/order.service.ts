@@ -42,7 +42,7 @@ export class OrderService {
   constructor(private api: ApiService) {}
 
   getOrders(params?: { status?: string }): Observable<{ orders: Order[] }> {
-    let endpoint = '/orders';
+    let endpoint = '/api/v1/orders';
     if (params?.status) {
       endpoint += `?status=${params.status}`;
     }
@@ -50,23 +50,23 @@ export class OrderService {
   }
 
   getOrder(id: string): Observable<{ order: Order }> {
-    return this.api.get<{ order: Order }>(`/orders/${id}`, this.orderServiceUrl);
+    return this.api.get<{ order: Order }>(`/api/v1/orders/${id}`, this.orderServiceUrl);
   }
 
   createOrder(order: Partial<Order>): Observable<{ message: string; order: Order }> {
-    return this.api.post<{ message: string; order: Order }>('/orders', order, this.orderServiceUrl);
+    return this.api.post<{ message: string; order: Order }>('/api/v1/orders', order, this.orderServiceUrl);
   }
 
   updateOrder(id: string, order: Partial<Order>): Observable<{ message: string; order: Order }> {
-    return this.api.put<{ message: string; order: Order }>(`/orders/${id}`, order, this.orderServiceUrl);
+    return this.api.put<{ message: string; order: Order }>(`/api/v1/orders/${id}`, order, this.orderServiceUrl);
   }
 
   deleteOrder(id: string): Observable<{ message: string }> {
-    return this.api.delete<{ message: string }>(`/orders/${id}`, this.orderServiceUrl);
+    return this.api.delete<{ message: string }>(`/api/v1/orders/${id}`, this.orderServiceUrl);
   }
 
   requestReturn(id: string, reason: string): Observable<{ message: string; order: Order }> {
-    return this.api.post<{ message: string; order: Order }>(`/orders/${id}/return`, { reason }, this.orderServiceUrl);
+    return this.api.post<{ message: string; order: Order }>(`/api/v1/orders/${id}/return`, { reason }, this.orderServiceUrl);
   }
 }
 
