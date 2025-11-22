@@ -10,27 +10,27 @@
       <mat-nav-list class="vendor-nav-list">
         <a mat-list-item (click)="setActiveSection('orders')" [class.active]="activeSection === 'orders'" class="nav-item">
           <mat-icon matListItemIcon>assignment</mat-icon>
-          <span matListItemTitle>Órdenes</span>
+          <span matListItemTitle>{{ 'menu.orders' | translate }}</span>
         </a>
         <a mat-list-item (click)="setActiveSection('inventory')" [class.active]="activeSection === 'inventory'" class="nav-item">
           <mat-icon matListItemIcon>inventory</mat-icon>
-          <span matListItemTitle>Inventario</span>
+          <span matListItemTitle>{{ 'menu.inventory' | translate }}</span>
         </a>
         <a mat-list-item (click)="setActiveSection('routes')" [class.active]="activeSection === 'routes'" class="nav-item">
           <mat-icon matListItemIcon>route</mat-icon>
-          <span matListItemTitle>Rutas</span>
+          <span matListItemTitle>{{ 'menu.routes' | translate }}</span>
         </a>
         <a mat-list-item (click)="setActiveSection('reports')" [class.active]="activeSection === 'reports'" class="nav-item">
           <mat-icon matListItemIcon>bar_chart</mat-icon>
-          <span matListItemTitle>Reportes</span>
+          <span matListItemTitle>{{ 'menu.reports' | translate }}</span>
         </a>
         <a mat-list-item (click)="setActiveSection('upload')" [class.active]="activeSection === 'upload'" class="nav-item">
           <mat-icon matListItemIcon>cloud_upload</mat-icon>
-          <span matListItemTitle>Carga de Inventario</span>
+          <span matListItemTitle>{{ 'menu.upload' | translate }}</span>
         </a>
         <a mat-list-item (click)="logout()" class="nav-item logout-item">
           <mat-icon matListItemIcon>logout</mat-icon>
-          <span matListItemTitle>Cerrar Sesión</span>
+          <span matListItemTitle>{{ 'common.logout' | translate }}</span>
         </a>
       </mat-nav-list>
     </div>
@@ -41,12 +41,13 @@
       <!-- Header Section -->
       <div class="content-header">
         <div class="welcome-section">
-          <h1 class="welcome-title">Bienvenido</h1>
+          <h1 class="welcome-title">{{ 'common.welcome' | translate }}</h1>
         </div>
         <div class="header-actions">
           <div class="search-container">
-            <input type="text" placeholder="Buscar..." class="search-input">
+            <input type="text" [placeholder]="'common.search' | translate" class="search-input">
           </div>
+          <app-language-selector></app-language-selector>
           <button mat-icon-button class="user-icon">
             <mat-icon>person</mat-icon>
           </button>
@@ -56,14 +57,14 @@
 
       <!-- Orders Section -->
       <div class="orders-section" *ngIf="activeSection === 'orders'">
-        <h2 class="section-title">Gestión de Órdenes</h2>
+        <h2 class="section-title">{{ 'orders.orderManagement' | translate }}</h2>
         <div class="stats-cards">
           <div class="stat-card">
             <div class="stat-content">
               <mat-icon class="stat-icon">assignment</mat-icon>
               <div class="stat-info">
                 <div class="stat-number">{{orders.length}}</div>
-                <div class="stat-label">Órdenes Totales</div>
+                <div class="stat-label">{{ 'orders.totalOrders' | translate }}</div>
               </div>
             </div>
           </div>
@@ -73,7 +74,7 @@
               <mat-icon class="stat-icon">pending</mat-icon>
               <div class="stat-info">
                 <div class="stat-number">{{getPendingOrders()}}</div>
-                <div class="stat-label">Pendientes</div>
+                <div class="stat-label">{{ 'orders.pending' | translate }}</div>
               </div>
             </div>
           </div>
@@ -83,7 +84,7 @@
               <mat-icon class="stat-icon">check_circle</mat-icon>
               <div class="stat-info">
                 <div class="stat-number">{{getCompletedOrders()}}</div>
-                <div class="stat-label">Completadas</div>
+                <div class="stat-label">{{ 'orders.completed' | translate }}</div>
               </div>
             </div>
           </div>
@@ -91,34 +92,34 @@
 
                <div class="action-card">
                  <div class="action-header">
-                   <h3>Crear Nueva Orden</h3>
-                   <p>Genera un pedido de ejemplo o crea un pedido personalizado</p>
+                   <h3>{{ 'orders.createOrder' | translate }}</h3>
+                   <p>{{ 'orders.createOrderDesc' | translate }}</p>
                  </div>
                  <div class="action-buttons">
                    <button mat-raised-button color="primary" (click)="createOrder()" class="action-button">
                      <mat-icon>add</mat-icon>
-                     Crear Pedido de Ejemplo
+                     {{ 'orders.createExampleOrder' | translate }}
                    </button>
                    <button mat-raised-button color="accent" (click)="openOrderCreation()" class="action-button">
                      <mat-icon>shopping_cart</mat-icon>
-                     Crear Pedido
+                     {{ 'orders.create' | translate }}
                    </button>
                  </div>
                </div>
 
         <div class="table-card">
           <div class="table-header">
-            <h3>Órdenes Recientes</h3>
-            <p>Lista de todas las órdenes del sistema</p>
+            <h3>{{ 'orders.recentOrders' | translate }}</h3>
+            <p>{{ 'orders.allOrdersSystem' | translate }}</p>
           </div>
           <div class="table-container">
             <table class="orders-table">
               <thead>
                 <tr>
-                  <th>ID de Orden</th>
-                  <th>Producto</th>
-                  <th>Estado</th>
-                  <th>Acciones</th>
+                  <th>{{ 'orders.orderIdLabel' | translate }}</th>
+                  <th>{{ 'orders.product' | translate }}</th>
+                  <th>{{ 'orders.status' | translate }}</th>
+                  <th>{{ 'common.actions' | translate }}</th>
                 </tr>
               </thead>
                      <tbody>
@@ -145,7 +146,7 @@
                            </span>
                          </td>
                          <td>
-                           <button mat-icon-button matTooltip="Ver detalles" (click)="viewOrderDetails(order)">
+                           <button mat-icon-button [matTooltip]="'orders.viewDetails' | translate" (click)="viewOrderDetails(order)">
                              <mat-icon>visibility</mat-icon>
                            </button>
                            <button mat-icon-button matTooltip="Editar" (click)="editOrder(order)" [disabled]="!canEditOrder(order)">
@@ -164,14 +165,14 @@
 
       <!-- Inventory Section -->
       <div class="inventory-section" *ngIf="activeSection === 'inventory'">
-        <h2 class="section-title">Gestión de Inventario</h2>
+        <h2 class="section-title">{{ 'inventory.management' | translate }}</h2>
         <div class="stats-cards">
           <div class="stat-card">
             <div class="stat-content">
               <mat-icon class="stat-icon">inventory</mat-icon>
               <div class="stat-info">
                 <div class="stat-number">{{getTotalItems()}}</div>
-                <div class="stat-label">Total Items</div>
+                <div class="stat-label">{{ 'inventory.totalItems' | translate }}</div>
               </div>
             </div>
           </div>
@@ -181,7 +182,7 @@
               <mat-icon class="stat-icon">warning</mat-icon>
               <div class="stat-info">
                 <div class="stat-number">{{getLowStockItems()}}</div>
-                <div class="stat-label">Stock Bajo</div>
+                <div class="stat-label">{{ 'inventory.lowStock' | translate }}</div>
               </div>
             </div>
           </div>
@@ -191,7 +192,7 @@
               <mat-icon class="stat-icon">schedule</mat-icon>
               <div class="stat-info">
                 <div class="stat-number">{{getExpiringItems()}}</div>
-                <div class="stat-label">Por Vencer</div>
+                <div class="stat-label">{{ 'inventory.expiring' | translate }}</div>
               </div>
             </div>
           </div>
@@ -199,19 +200,19 @@
 
         <div class="table-card">
           <div class="table-header">
-            <h3>Inventario Actual</h3>
-            <p>Lista de todos los productos en inventario</p>
+            <h3>{{ 'inventory.currentInventory' | translate }}</h3>
+            <p>{{ 'inventory.inventoryList' | translate }}</p>
           </div>
           <div class="table-container">
             <table class="inventory-table">
                      <thead>
                        <tr>
-                         <th>Producto</th>
-                         <th>Stock</th>
-                         <th>Precio</th>
-                         <th>Vencimiento</th>
-                         <th>Estado</th>
-                         <th>Acciones</th>
+                         <th>{{ 'inventory.productName' | translate }}</th>
+                         <th>{{ 'inventory.stock' | translate }}</th>
+                         <th>{{ 'inventory.price' | translate }}</th>
+                         <th>{{ 'inventory.expiry' | translate }}</th>
+                         <th>{{ 'orders.status' | translate }}</th>
+                         <th>{{ 'common.actions' | translate }}</th>
                        </tr>
                      </thead>
                      <tbody>
@@ -222,11 +223,11 @@
                          <td [ngClass]="getExpiryClass(item.expiry)">{{item.expiry}}</td>
                          <td>
                            <span class="status-badge" [ngClass]="getStockClass(item.stock)">
-                             {{item.stock < 10 ? 'Stock Bajo' : 'Disponible'}}
+                             {{item.stock < 10 ? ('inventory.lowStock' | translate) : ('inventory.available' | translate)}}
                            </span>
                          </td>
                          <td>
-                           <button mat-icon-button matTooltip="Ver detalles" (click)="viewInventoryDetails(item)">
+                           <button mat-icon-button [matTooltip]="'orders.viewDetails' | translate" (click)="viewInventoryDetails(item)">
                              <mat-icon>visibility</mat-icon>
                            </button>
                          </td>
@@ -242,9 +243,9 @@
         <div class="page-header">
           <h1 class="page-title">
             <mat-icon>route</mat-icon>
-            Gestión de Rutas
+            {{ 'routes.management' | translate }}
           </h1>
-          <p class="page-description">Administra rutas de entrega, asignación de vehículos y seguimiento de envíos.</p>
+          <p class="page-description">{{ 'routes.description' | translate }}</p>
         </div>
 
         <!-- Stats Cards -->
@@ -254,7 +255,7 @@
               <mat-icon class="stat-icon">route</mat-icon>
               <div class="stat-info">
                 <div class="stat-number">{{getTotalRoutes()}}</div>
-                <div class="stat-label">Rutas Totales</div>
+                <div class="stat-label">{{ 'routes.totalRoutes' | translate }}</div>
               </div>
             </div>
           </div>
@@ -264,7 +265,7 @@
               <mat-icon class="stat-icon">pending</mat-icon>
               <div class="stat-info">
                 <div class="stat-number">{{getPendingRoutes()}}</div>
-                <div class="stat-label">Sin Ruta</div>
+                <div class="stat-label">{{ 'routes.noRoute' | translate }}</div>
               </div>
             </div>
           </div>
@@ -274,7 +275,7 @@
               <mat-icon class="stat-icon">local_shipping</mat-icon>
               <div class="stat-info">
                 <div class="stat-number">{{getActiveRoutes()}}</div>
-                <div class="stat-label">En Tránsito</div>
+                <div class="stat-label">{{ 'routes.inTransit' | translate }}</div>
               </div>
             </div>
           </div>
@@ -284,7 +285,7 @@
               <mat-icon class="stat-icon">assignment_return</mat-icon>
               <div class="stat-info">
                 <div class="stat-number">{{getReturnRequests()}}</div>
-                <div class="stat-label">Devoluciones</div>
+                <div class="stat-label">{{ 'routes.returns' | translate }}</div>
               </div>
             </div>
           </div>
@@ -295,19 +296,19 @@
           <div class="card-header">
             <h3>
               <mat-icon>pending_actions</mat-icon>
-              Pedidos Sin Ruta Asignada
+              {{ 'routes.pendingOrders' | translate }}
             </h3>
-            <p>Pedidos que requieren generación de ruta de entrega</p>
+            <p>{{ 'routes.pendingOrdersDesc' | translate }}</p>
           </div>
           <div class="table-container">
             <table class="orders-table">
               <thead>
                 <tr>
-                  <th>ID Pedido</th>
-                  <th>Cliente</th>
-                  <th>Dirección</th>
-                  <th>Fecha</th>
-                  <th>Acciones</th>
+                  <th>{{ 'orders.orderId' | translate }}</th>
+                  <th>{{ 'routes.client' | translate }}</th>
+                  <th>{{ 'routes.address' | translate }}</th>
+                  <th>{{ 'orders.date' | translate }}</th>
+                  <th>{{ 'common.actions' | translate }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -319,7 +320,7 @@
                   <td>
                     <button mat-raised-button color="primary" (click)="generateOptimalRoutes(order)">
                       <mat-icon>route</mat-icon>
-                      Generar Rutas
+                      {{ 'routes.generateRoutes' | translate }}
                     </button>
                   </td>
                 </tr>
@@ -333,7 +334,7 @@
           <div class="modal-overlay" (click)="closeRouteGeneration()"></div>
           <div class="modal-content">
             <div class="modal-header">
-              <h2>Generación de Rutas Óptimas</h2>
+              <h2>{{ 'routes.optimalRoutes' | translate }}</h2>
               <button mat-icon-button (click)="closeRouteGeneration()">
                 <mat-icon>close</mat-icon>
               </button>
@@ -341,9 +342,9 @@
 
             <div class="modal-body">
               <div class="order-info">
-                <h3>Pedido: {{selectedOrder?.id}}</h3>
-                <p><strong>Cliente:</strong> {{selectedOrder?.client}}</p>
-                <p><strong>Dirección:</strong> {{selectedOrder?.address}}</p>
+                <h3>{{ 'orders.orderId' | translate }}: {{selectedOrder?.id}}</h3>
+                <p><strong>{{ 'routes.client' | translate }}:</strong> {{selectedOrder?.client}}</p>
+                <p><strong>{{ 'routes.address' | translate }}:</strong> {{selectedOrder?.address}}</p>
               </div>
 
                      <!-- Map Container -->
@@ -353,22 +354,22 @@
 
               <!-- Route Options -->
               <div class="route-options">
-                <h3>Rutas Sugeridas</h3>
+                <h3>{{ 'routes.suggestedRoutes' | translate }}</h3>
                 <div class="route-cards">
                   <div class="route-card" *ngFor="let route of suggestedRoutes; let i = index">
                     <div class="route-header">
-                      <h4>Ruta {{i + 1}}</h4>
-                      <span class="route-distance">{{route.distance}} km</span>
+                      <h4>{{ 'routes.route' | translate }} {{i + 1}}</h4>
+                      <span class="route-distance">{{route.distance}} {{ 'routes.distance' | translate }}</span>
                     </div>
                     <div class="route-details">
-                      <p><strong>Duración estimada:</strong> {{route.duration}}</p>
-                      <p><strong>Combustible estimado:</strong> {{route.fuel}} L</p>
-                      <p><strong>Paradas:</strong> {{route.stops}} ubicaciones</p>
+                      <p><strong>{{ 'routes.estimatedDuration' | translate }}</strong> {{route.duration}}</p>
+                      <p><strong>{{ 'routes.estimatedFuel' | translate }}</strong> {{route.fuel}} L</p>
+                      <p><strong>{{ 'routes.stops' | translate }}</strong> {{route.stops}} {{ 'routes.locations' | translate }}</p>
                     </div>
                     <div class="route-actions">
                       <button mat-raised-button color="primary" (click)="selectRoute(route)">
                         <mat-icon>check</mat-icon>
-                        Seleccionar Ruta
+                        {{ 'routes.selectRoute' | translate }}
                       </button>
                     </div>
                   </div>
@@ -377,9 +378,9 @@
 
               <!-- Vehicle Assignment -->
               <div class="vehicle-assignment" *ngIf="selectedRoute">
-                <h3>Asignación de Vehículo</h3>
+                <h3>{{ 'routes.vehicleAssignment' | translate }}</h3>
                 <div class="form-group">
-                  <label class="form-label">Seleccionar Camión</label>
+                  <label class="form-label">{{ 'routes.selectTruck' | translate }}</label>
                   <mat-select [(value)]="selectedVehicle" class="form-select">
                     <mat-option *ngFor="let vehicle of availableVehicles" [value]="vehicle">
                       {{vehicle.id}} - {{vehicle.type}} ({{vehicle.capacity}})
@@ -389,7 +390,7 @@
                 <div class="form-actions">
                   <button mat-raised-button color="primary" (click)="assignRoute()" [disabled]="!selectedVehicle">
                     <mat-icon>local_shipping</mat-icon>
-                    Asignar Ruta
+                    {{ 'routes.assignRoute' | translate }}
                   </button>
                 </div>
               </div>
@@ -402,9 +403,9 @@
           <div class="card-header">
             <h3>
               <mat-icon>local_shipping</mat-icon>
-              Rutas Activas
+              {{ 'routes.activeRoutes' | translate }}
             </h3>
-            <p>Rutas en tránsito con seguimiento en tiempo real</p>
+            <p>{{ 'routes.activeRoutesDesc' | translate }}</p>
           </div>
           <div class="routes-grid">
             <div class="route-item" *ngFor="let route of getActiveRoutesList()">
@@ -415,9 +416,9 @@
                 </span>
               </div>
               <div class="route-info">
-                <p><strong>Vehículo:</strong> {{route.vehicle}}</p>
-                <p><strong>Conductor:</strong> {{route.driver}}</p>
-                <p><strong>Progreso:</strong> {{route.progress}}%</p>
+                <p><strong>{{ 'routes.vehicle' | translate }}:</strong> {{route.vehicle}}</p>
+                <p><strong>{{ 'routes.driver' | translate }}:</strong> {{route.driver}}</p>
+                <p><strong>{{ 'routes.progress' | translate }}:</strong> {{route.progress}}%</p>
               </div>
               <div class="route-progress">
                 <div class="progress-bar">
@@ -425,13 +426,13 @@
                 </div>
               </div>
               <div class="route-actions">
-                <button mat-icon-button matTooltip="Ver Tracking">
+                <button mat-icon-button [matTooltip]="'routes.viewTracking' | translate">
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
-                <button mat-icon-button matTooltip="Ver Detalles">
+                <button mat-icon-button [matTooltip]="'routes.viewDetails' | translate">
                   <mat-icon>visibility</mat-icon>
                 </button>
-                <button mat-icon-button matTooltip="Marcar como Entregado" (click)="markAsDelivered(route)">
+                <button mat-icon-button [matTooltip]="'routes.markDelivered' | translate" (click)="markAsDelivered(route)">
                   <mat-icon>check_circle</mat-icon>
                 </button>
               </div>
@@ -444,20 +445,20 @@
           <div class="card-header">
             <h3>
               <mat-icon>assignment_return</mat-icon>
-              Entregas con Solicitudes de Devolución
+              {{ 'routes.deliveredWithReturns' | translate }}
             </h3>
-            <p>Pedidos entregados que han solicitado devolución</p>
+            <p>{{ 'routes.deliveredWithReturnsDesc' | translate }}</p>
           </div>
           <div class="table-container">
             <table class="orders-table">
               <thead>
                 <tr>
-                  <th>ID Pedido</th>
-                  <th>Cliente</th>
-                  <th>Fecha Entrega</th>
-                  <th>Motivo Devolución</th>
-                  <th>Estado</th>
-                  <th>Acciones</th>
+                  <th>{{ 'orders.orderId' | translate }}</th>
+                  <th>{{ 'routes.client' | translate }}</th>
+                  <th>{{ 'routes.deliveryDate' | translate }}</th>
+                  <th>{{ 'routes.returnReason' | translate }}</th>
+                  <th>{{ 'routes.returnStatus' | translate }}</th>
+                  <th>{{ 'common.actions' | translate }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -474,7 +475,7 @@
                   <td>
                     <button mat-raised-button color="warn" (click)="processReturn(order)">
                       <mat-icon>assignment_return</mat-icon>
-                      Procesar Devolución
+                      {{ 'routes.processReturn' | translate }}
                     </button>
                   </td>
                 </tr>
@@ -486,7 +487,7 @@
 
              <!-- Reports Section -->
              <div class="reports-section" *ngIf="activeSection === 'reports'">
-               <h2 class="section-title">Reportes y Análisis</h2>
+               <h2 class="section-title">{{ 'reports.title' | translate }} y Análisis</h2>
                
                <!-- Summary Cards -->
                <div class="stats-cards">
@@ -495,7 +496,7 @@
                      <mat-icon class="stat-icon">assignment</mat-icon>
                      <div class="stat-info">
                        <div class="stat-number">{{orders.length}}</div>
-                       <div class="stat-label">Total Órdenes</div>
+                       <div class="stat-label">{{ 'orders.totalOrders' | translate }}</div>
                      </div>
                    </div>
                  </div>
@@ -505,7 +506,7 @@
                      <mat-icon class="stat-icon">check_circle</mat-icon>
                      <div class="stat-info">
                        <div class="stat-number">{{getCompletedOrders()}}</div>
-                       <div class="stat-label">Completadas</div>
+                       <div class="stat-label">{{ 'orders.completed' | translate }}</div>
                      </div>
                    </div>
                  </div>
@@ -515,7 +516,7 @@
                      <mat-icon class="stat-icon">assignment_return</mat-icon>
                      <div class="stat-info">
                        <div class="stat-number">{{getTotalReturns()}}</div>
-                       <div class="stat-label">Devoluciones</div>
+                       <div class="stat-label">{{ 'routes.returns' | translate }}</div>
                      </div>
                    </div>
                  </div>
@@ -525,7 +526,7 @@
                      <mat-icon class="stat-icon">inventory</mat-icon>
                      <div class="stat-info">
                        <div class="stat-number">{{getTotalItems()}}</div>
-                       <div class="stat-label">Productos</div>
+                       <div class="stat-label">{{ 'inventory.totalProducts' | translate }}</div>
                      </div>
                    </div>
                  </div>

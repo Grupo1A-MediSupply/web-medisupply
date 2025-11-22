@@ -7,7 +7,7 @@
         </div>
         <div class="logo-text">
           <div class="brand-name">MediSupply</div>
-          <div class="brand-subtitle">Portal de Clientes</div>
+          <div class="brand-subtitle">{{ 'auth.portalClient' | translate }}</div>
         </div>
       </div>
     </div>
@@ -15,7 +15,7 @@
     <!-- Right Section - Login Form -->
     <div class="login-right-section">
       <div class="login-form-container">
-        <h1 class="login-title">Inicia sesión - Cliente</h1>
+        <h1 class="login-title">{{ 'auth.loginTitleClient' | translate }}</h1>
         
         <!-- Mensaje de error general -->
         <div *ngIf="errorMessage" class="alert alert-error">
@@ -25,12 +25,12 @@
 
         <form [formGroup]="_form" (ngSubmit)="login()" class="login-form">
           <div class="form-group">
-            <label class="form-label">Usuario <span class="required">*</span></label>
+            <label class="form-label">{{ 'auth.username' | translate }} <span class="required">{{ 'common.required' | translate }}</span></label>
             <input 
               type="text" 
               class="form-input" 
               [class.error]="user?.invalid && user?.touched"
-              placeholder="Ej: micliente" 
+              [placeholder]="'auth.usernamePlaceholder' | translate" 
               formControlName="user">
             <div *ngIf="user?.invalid && user?.touched" class="error-message">
               {{ getUserErrorMessage() }}
@@ -38,12 +38,12 @@
           </div>
           
           <div class="form-group">
-            <label class="form-label">Contraseña <span class="required">*</span></label>
+            <label class="form-label">{{ 'auth.password' | translate }} <span class="required">{{ 'common.required' | translate }}</span></label>
             <input 
               type="password" 
               class="form-input" 
               [class.error]="pass?.invalid && pass?.touched"
-              placeholder="Digita tu contraseña" 
+              [placeholder]="'auth.passwordPlaceholder' | translate" 
               formControlName="pass">
             <div *ngIf="pass?.invalid && pass?.touched" class="error-message">
               {{ getPassErrorMessage() }}
@@ -51,28 +51,28 @@
           </div>
           
           <div class="forgot-password">
-            <a routerLink="/client/change-password" class="forgot-link">Cambiar contraseña</a>
+            <a routerLink="/client/change-password" class="forgot-link">{{ 'auth.forgotPassword' | translate }}</a>
           </div>
           
           <div class="form-actions">
             <button type="submit" class="btn-primary" [disabled]="!_form.valid || isLoading">
-              <span *ngIf="!isLoading">Iniciar sesión</span>
+              <span *ngIf="!isLoading">{{ 'auth.login' | translate }}</span>
               <span *ngIf="isLoading">
                 <mat-icon class="spinner">hourglass_empty</mat-icon>
-                Iniciando sesión...
+                {{ 'auth.loggingIn' | translate }}
               </span>
             </button>
             <button type="button" class="btn-secondary" (click)="goToSignup()" [disabled]="isLoading">
-              Crear cuenta cliente
+              {{ 'auth.loginClient' | translate }}
             </button>
           </div>
         </form>
         
         <div class="login-info">
-          <p>Portal exclusivo para clientes institucionales de MediSupply.</p>
-          <p><strong>Usuario de prueba:</strong> cliente</p>
+          <p>{{ 'auth.exclusiveClient' | translate }}</p>
+          <p><strong>{{ 'auth.testUser' | translate }}</strong> cliente</p>
           <div class="role-switch">
-            <a routerLink="/vendor/login" class="role-link">¿Eres vendedor? Accede aquí</a>
+            <a routerLink="/vendor/login" class="role-link">{{ 'auth.areYouVendor' | translate }}</a>
           </div>
         </div>
       </div>
