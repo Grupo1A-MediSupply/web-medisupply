@@ -25,7 +25,18 @@ jobs:
         cache: 'npm'
     
     - name: Install dependencies
-      run: npm ci
+      run: |
+        # Limpiar cache si hay problemas
+        npm cache verify || true
+        # Instalar dependencias
+        npm ci || npm install
+        # Verificar instalación de dependencias críticas
+        if ! npm list @ngx-translate/core @ngx-translate/http-loader > /dev/null 2>&1; then
+          echo "Instalando dependencias faltantes..."
+          npm install @ngx-translate/core@^15.0.0 @ngx-translate/http-loader@^7.0.0
+        fi
+        # Verificar que estén instaladas
+        npm list @ngx-translate/core @ngx-translate/http-loader
     
     - name: Run tests with coverage
       run: npm run test:ci
