@@ -25,12 +25,12 @@
 
         <form [formGroup]="_form" (ngSubmit)="login()" class="login-form">
           <div class="form-group">
-            <label class="form-label">Correo electrónico <span class="required">*</span></label>
+            <label class="form-label">Usuario <span class="required">*</span></label>
             <input 
-              type="email" 
+              type="text" 
               class="form-input" 
               [class.error]="user?.invalid && user?.touched"
-              placeholder="Ej: vendedor@ejemplo.com" 
+              placeholder="Ej: mivendedor" 
               formControlName="user">
             <div *ngIf="user?.invalid && user?.touched" class="error-message">
               {{ getUserErrorMessage() }}

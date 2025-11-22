@@ -6,7 +6,7 @@ import { ApiService } from './api.service';
 import { environment } from '../../../environments/environment';
 
 export interface LoginRequest {
-  email: string;
+  username: string;
   password: string;
 }
 

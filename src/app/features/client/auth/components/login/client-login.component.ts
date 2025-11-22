@@ -8,7 +8,7 @@ import { AuthService } from '../../../../../core/services/auth.service';
 })
 export class ClientLoginComponent {
   _form = new FormGroup({
-    user: new FormControl('', [Validators.required, Validators.email]),
+    user: new FormControl('', [Validators.required]),
     pass: new FormControl('', [Validators.required, Validators.minLength(6)])
   });
 
@@ -25,10 +25,7 @@ export class ClientLoginComponent {
 
   getUserErrorMessage(): string {
     if (this.user?.hasError('required')) {
-      return 'El correo electrónico es requerido';
-    }
-    if (this.user?.hasError('email')) {
-      return 'Ingrese un correo electrónico válido';
+      return 'El usuario es requerido';
     }
     return '';
   }
@@ -54,10 +51,10 @@ export class ClientLoginComponent {
 
     this.isLoading = true;
 
-    const email = this._form.value.user?.toLowerCase() || '';
+    const username = this._form.value.user?.toLowerCase() || '';
     const password = this._form.value.pass || '';
 
-    this.authService.login({ email, password }).subscribe({
+    this.authService.login({ username, password }).subscribe({
       next: (response) => {
         this.isLoading = false;
         
@@ -75,7 +72,7 @@ export class ClientLoginComponent {
         if (error.error?.message) {
           this.errorMessage = error.error.message;
         } else if (error.status === 401) {
-          this.errorMessage = 'Credenciales inválidas. Verifique su correo y contraseña';
+          this.errorMessage = 'Credenciales inválidas. Verifique su usuario y contraseña';
         } else if (error.status === 0 || error.status === 500) {
           this.errorMessage = 'Error del servidor. Por favor, intente más tarde';
         } else {
