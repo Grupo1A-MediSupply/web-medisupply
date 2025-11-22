@@ -7,11 +7,19 @@ describe('LanguageService', () => {
   let service: LanguageService;
   let mockTranslateService: jasmine.SpyObj<TranslateService>;
   let languageSubject: BehaviorSubject<string>;
+  let originalNavigatorLanguage: string;
 
   beforeEach(() => {
     languageSubject = new BehaviorSubject<string>('es');
     mockTranslateService = jasmine.createSpyObj('TranslateService', ['use']);
     mockTranslateService.use.and.returnValue(languageSubject.asObservable());
+
+    // Mock navigator.language to ensure consistent test results
+    originalNavigatorLanguage = navigator.language;
+    Object.defineProperty(navigator, 'language', {
+      writable: true,
+      value: 'es'
+    });
 
     // Clear localStorage
     localStorage.clear();
@@ -27,6 +35,11 @@ describe('LanguageService', () => {
 
   afterEach(() => {
     localStorage.clear();
+    // Restore original navigator.language
+    Object.defineProperty(navigator, 'language', {
+      writable: true,
+      value: originalNavigatorLanguage
+    });
   });
 
   it('should be created', () => {
@@ -76,9 +89,18 @@ describe('LanguageService', () => {
   });
 
   it('should emit language changes through observable', (done) => {
-    service.currentLanguage$.subscribe(lang => {
-      if (lang === 'en') {
+    let callCount = 0;
+    const subscription = service.currentLanguage$.subscribe(lang => {
+      callCount++;
+      // Skip the initial emission (which is 'es')
+      if (callCount === 1) {
+        expect(lang).toBe('es');
+        return;
+      }
+      // Only check the second emission (when we change to 'en')
+      if (callCount === 2 && lang === 'en') {
         expect(lang).toBe('en');
+        subscription.unsubscribe();
         done();
       }
     });
