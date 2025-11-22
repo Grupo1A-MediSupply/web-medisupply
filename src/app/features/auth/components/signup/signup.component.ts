@@ -233,7 +233,9 @@ export class SignupComponent implements OnInit {
     // Llamar al servicio de autenticación
     this.authService.signup({
       email: email || '',
+      username: username || '',
       password: password || '',
+      confirm_password: confirmPassword || '',
       role: role,
       name: fullName || '',
       phone: phone || ''

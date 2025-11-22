@@ -57,7 +57,7 @@ export class LogisticsService {
   constructor(private api: ApiService) {}
 
   getRoutes(params?: { status?: string }): Observable<{ routes: Route[] }> {
-    let endpoint = '/routes';
+    let endpoint = '/api/v1/routes';
     if (params?.status) {
       endpoint += `?status=${params.status}`;
     }
@@ -65,24 +65,24 @@ export class LogisticsService {
   }
 
   getRoute(id: string): Observable<{ route: Route }> {
-    return this.api.get<{ route: Route }>(`/routes/${id}`, this.logisticsServiceUrl);
+    return this.api.get<{ route: Route }>(`/api/v1/routes/${id}`, this.logisticsServiceUrl);
   }
 
   createRoute(route: Partial<Route>): Observable<{ message: string; route: Route }> {
-    return this.api.post<{ message: string; route: Route }>('/routes', route, this.logisticsServiceUrl);
+    return this.api.post<{ message: string; route: Route }>('/api/v1/routes', route, this.logisticsServiceUrl);
   }
 
   updateRoute(id: string, route: Partial<Route>): Observable<{ message: string; route: Route }> {
-    return this.api.put<{ message: string; route: Route }>(`/routes/${id}`, route, this.logisticsServiceUrl);
+    return this.api.put<{ message: string; route: Route }>(`/api/v1/routes/${id}`, route, this.logisticsServiceUrl);
   }
 
   deleteRoute(id: string): Observable<{ message: string }> {
-    return this.api.delete<{ message: string }>(`/routes/${id}`, this.logisticsServiceUrl);
+    return this.api.delete<{ message: string }>(`/api/v1/routes/${id}`, this.logisticsServiceUrl);
   }
 
   generateOptimalRoutes(orderIds: string[], vehicleType?: string): Observable<{ suggestedRoutes: SuggestedRoute[]; orders: any[] }> {
     return this.api.post<{ suggestedRoutes: SuggestedRoute[]; orders: any[] }>(
-      '/routes/generate-optimal',
+      '/api/v1/routes/generate-optimal',
       { orderIds, vehicleType },
       this.logisticsServiceUrl
     );

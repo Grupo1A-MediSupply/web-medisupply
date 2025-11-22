@@ -30,12 +30,22 @@ module.exports = function (config) {
         { type: 'text-summary' },
         { type: 'lcov' } // For CI/CD integration
       ],
+      // Explicitly disable coverage threshold checks to prevent build failures
+      // This allows the pipeline to pass even with lower coverage during development
       check: {
         global: {
           statements: 0,
           branches: 0,
           functions: 0,
-          lines: 0
+          lines: 0,
+          excludes: []
+        },
+        each: {
+          statements: 0,
+          branches: 0,
+          functions: 0,
+          lines: 0,
+          excludes: []
         }
       }
     },

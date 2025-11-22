@@ -49,7 +49,7 @@ export class ReportService {
   getReports(): Observable<Reports> {
     // Por ahora, usar el endpoint del servicio de órdenes si existe
     // O implementar lógica para combinar datos de múltiples servicios
-    return this.api.get<Reports>('/reports', this.orderServiceUrl);
+    return this.api.get<Reports>('/api/v1/reports', this.orderServiceUrl);
   }
 }
 

@@ -227,7 +227,7 @@ export class ClientSignupComponent {
       return;
     }
 
-    const { password, confirmPassword, email, fullName, phone, institution } = this.signupForm.value;
+    const { password, confirmPassword, email, fullName, phone, institution, username } = this.signupForm.value;
     
     if (password !== confirmPassword) {
       this.errorMessage = 'Las contraseñas no coinciden';
@@ -239,7 +239,9 @@ export class ClientSignupComponent {
     
     const signupData = {
       email: email?.toLowerCase() || '',
+      username: username || '',
       password: password || '',
+      confirm_password: confirmPassword || '',
       role: 'client' as const,
       name: fullName || '',
       phone: phone || '',

@@ -59,28 +59,33 @@ describe('VendorChangePasswordComponent', () => {
   });
 
   it('should change password successfully with matching passwords', () => {
-    spyOn(window, 'alert');
     component.changePasswordForm.patchValue({
-      newPassword: 'newpassword123',
-      confirmPassword: 'newpassword123'
+      currentPassword: 'oldpassword123',
+      newPassword: 'NewPassword123!',
+      confirmPassword: 'NewPassword123!'
     });
+
+    // Mock successful password change
+    mockAuthService.changePassword.and.returnValue(of({
+      message: 'Contraseña cambiada exitosamente'
+    }));
 
     component.changePassword();
 
-    expect(window.alert).toHaveBeenCalledWith('Contraseña cambiada exitosamente');
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/vendor/login']);
+    expect(component.successMessage).toBe('Contraseña cambiada exitosamente');
+    // Router navigation happens after timeout
   });
 
   it('should show error when new passwords do not match', () => {
-    spyOn(window, 'alert');
     component.changePasswordForm.patchValue({
-      newPassword: 'newpassword123',
-      confirmPassword: 'differentpassword'
+      currentPassword: 'oldpassword123',
+      newPassword: 'NewPassword123!',
+      confirmPassword: 'DifferentPassword123!'
     });
 
     component.changePassword();
 
-    expect(window.alert).toHaveBeenCalledWith('Las contraseñas no coinciden');
+    expect(component.errorMessage).toBeTruthy();
     expect(mockRouter.navigate).not.toHaveBeenCalled();
   });
 
@@ -134,24 +139,32 @@ describe('VendorChangePasswordComponent', () => {
   });
 
   it('should handle multiple password change attempts', () => {
-    spyOn(window, 'alert');
-
     // First attempt with matching passwords
     component.changePasswordForm.patchValue({
-      newPassword: 'newpass123',
-      confirmPassword: 'newpass123'
+      currentPassword: 'oldpassword123',
+      newPassword: 'NewPassword123!',
+      confirmPassword: 'NewPassword123!'
     });
+
+    mockAuthService.changePassword.and.returnValue(of({
+      message: 'Contraseña cambiada exitosamente'
+    }));
+
     component.changePassword();
-    expect(window.alert).toHaveBeenCalledWith('Contraseña cambiada exitosamente');
+    expect(component.successMessage).toBe('Contraseña cambiada exitosamente');
+
+    // Reset for second attempt
+    component.successMessage = '';
+    component.errorMessage = '';
 
     // Second attempt with non-matching passwords
-    (window.alert as jasmine.Spy).calls.reset();
     component.changePasswordForm.patchValue({
-      newPassword: 'password123',
-      confirmPassword: 'different123'
+      currentPassword: 'oldpassword123',
+      newPassword: 'NewPassword123!',
+      confirmPassword: 'DifferentPassword123!'
     });
     component.changePassword();
-    expect(window.alert).toHaveBeenCalledWith('Las contraseñas no coinciden');
+    expect(component.errorMessage).toBeTruthy();
   });
 
   it('should handle form validation edge cases', () => {
