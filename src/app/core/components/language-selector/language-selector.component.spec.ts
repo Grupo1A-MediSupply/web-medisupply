@@ -5,6 +5,7 @@ import { LanguageService } from '../../services/language.service';
 import { TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, of } from 'rxjs';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatIconModule } from '@angular/material/icon';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('LanguageSelectorComponent', () => {
@@ -31,6 +32,7 @@ describe('LanguageSelectorComponent', () => {
       declarations: [LanguageSelectorComponent],
       imports: [
         MatTooltipModule,
+        MatIconModule,
         BrowserAnimationsModule
       ],
       providers: [
