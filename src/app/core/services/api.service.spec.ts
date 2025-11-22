@@ -137,6 +137,19 @@ describe('ApiService', () => {
   });
 
   describe('Error handling', () => {
+    let originalConsoleError: typeof console.error;
+
+    beforeEach(() => {
+      // Guardar y suprimir console.error para estos tests
+      originalConsoleError = console.error;
+      console.error = jasmine.createSpy('console.error');
+    });
+
+    afterEach(() => {
+      // Restaurar console.error
+      console.error = originalConsoleError;
+    });
+
     it('should handle client-side error', () => {
       const endpoint = '/test';
       const errorMessage = 'Network error';
