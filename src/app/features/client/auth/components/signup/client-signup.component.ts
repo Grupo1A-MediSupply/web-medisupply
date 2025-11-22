@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormControl, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { AuthService } from '../../../../../core/services/auth.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   templateUrl: './client-signup.component.html'
@@ -56,7 +57,8 @@ export class ClientSignupComponent {
 
   constructor(
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private translate: TranslateService
   ) {}
 
   passwordStrengthValidator(control: AbstractControl): ValidationErrors | null {
@@ -106,113 +108,113 @@ export class ClientSignupComponent {
 
   getFullNameErrorMessage(): string {
     if (this.fullName?.hasError('required')) {
-      return 'El nombre completo es requerido';
+      return this.translate.instant('auth.fullNameRequired');
     }
     if (this.fullName?.hasError('minlength')) {
-      return 'El nombre debe tener al menos 2 caracteres';
+      return this.translate.instant('auth.fullNameMinLength');
     }
     if (this.fullName?.hasError('maxlength')) {
-      return 'El nombre no puede exceder 100 caracteres';
+      return this.translate.instant('auth.fullNameMaxLength');
     }
     if (this.fullName?.hasError('pattern')) {
-      return 'El nombre solo puede contener letras y espacios';
+      return this.translate.instant('auth.fullNamePattern');
     }
     return '';
   }
 
   getEmailErrorMessage(): string {
     if (this.email?.hasError('required')) {
-      return 'El correo electrónico es requerido';
+      return this.translate.instant('auth.emailRequired');
     }
     if (this.email?.hasError('email')) {
-      return 'Ingrese un correo electrónico válido';
+      return this.translate.instant('auth.emailInvalid');
     }
     if (this.email?.hasError('maxlength')) {
-      return 'El correo no puede exceder 255 caracteres';
+      return this.translate.instant('auth.emailMaxLength');
     }
     return '';
   }
 
   getPhoneErrorMessage(): string {
     if (this.phone?.hasError('required')) {
-      return 'El número de teléfono es requerido';
+      return this.translate.instant('auth.phoneRequired');
     }
     if (this.phone?.hasError('pattern')) {
-      return 'Ingrese un número de teléfono válido';
+      return this.translate.instant('auth.phoneInvalid');
     }
     if (this.phone?.hasError('minlength')) {
-      return 'El teléfono debe tener al menos 7 dígitos';
+      return this.translate.instant('auth.phoneMinLength');
     }
     if (this.phone?.hasError('maxlength')) {
-      return 'El teléfono no puede exceder 20 caracteres';
+      return this.translate.instant('auth.phoneMaxLength');
     }
     return '';
   }
 
   getInstitutionErrorMessage(): string {
     if (this.institution?.hasError('required')) {
-      return 'El nombre de la institución es requerido';
+      return this.translate.instant('auth.institutionRequired');
     }
     if (this.institution?.hasError('minlength')) {
-      return 'El nombre de la institución debe tener al menos 2 caracteres';
+      return this.translate.instant('auth.institutionMinLength');
     }
     if (this.institution?.hasError('maxlength')) {
-      return 'El nombre de la institución no puede exceder 100 caracteres';
+      return this.translate.instant('auth.institutionMaxLength');
     }
     return '';
   }
 
   getPositionErrorMessage(): string {
     if (this.position?.hasError('required')) {
-      return 'El cargo es requerido';
+      return this.translate.instant('auth.positionRequired');
     }
     if (this.position?.hasError('minlength')) {
-      return 'El cargo debe tener al menos 2 caracteres';
+      return this.translate.instant('auth.positionMinLength');
     }
     if (this.position?.hasError('maxlength')) {
-      return 'El cargo no puede exceder 100 caracteres';
+      return this.translate.instant('auth.positionMaxLength');
     }
     return '';
   }
 
   getUsernameErrorMessage(): string {
     if (this.username?.hasError('required')) {
-      return 'El usuario es requerido';
+      return this.translate.instant('auth.usernameRequired');
     }
     if (this.username?.hasError('minlength')) {
-      return 'El usuario debe tener al menos 3 caracteres';
+      return this.translate.instant('auth.usernameMinLength');
     }
     if (this.username?.hasError('maxlength')) {
-      return 'El usuario no puede exceder 50 caracteres';
+      return this.translate.instant('auth.usernameMaxLength');
     }
     if (this.username?.hasError('pattern')) {
-      return 'El usuario solo puede contener letras, números y guiones bajos';
+      return this.translate.instant('auth.usernamePattern');
     }
     return '';
   }
 
   getPasswordErrorMessage(): string {
     if (this.password?.hasError('required')) {
-      return 'La contraseña es requerida';
+      return this.translate.instant('auth.passwordRequired');
     }
     if (this.password?.hasError('minlength')) {
-      return 'La contraseña debe tener al menos 8 caracteres';
+      return this.translate.instant('auth.passwordMinLength');
     }
     if (this.password?.hasError('maxlength')) {
-      return 'La contraseña no puede exceder 100 caracteres';
+      return this.translate.instant('auth.passwordMaxLength');
     }
     if (this.password?.hasError('passwordStrength')) {
-      return 'La contraseña debe contener mayúsculas, minúsculas, números y caracteres especiales';
+      return this.translate.instant('auth.passwordStrength');
     }
     return '';
   }
 
   getConfirmPasswordErrorMessage(): string {
     if (this.confirmPassword?.hasError('required')) {
-      return 'Confirme su contraseña';
+      return this.translate.instant('auth.confirmPasswordRequired');
     }
     if (this.confirmPassword?.hasError('passwordMismatch') || this.signupForm.hasError('passwordMismatch')) {
-      return 'Las contraseñas no coinciden';
+      return this.translate.instant('auth.passwordMismatch');
     }
     return '';
   }
@@ -223,14 +225,14 @@ export class ClientSignupComponent {
 
     if (this.signupForm.invalid) {
       this.signupForm.markAllAsTouched();
-      this.errorMessage = 'Por favor, complete todos los campos correctamente';
+      this.errorMessage = this.translate.instant('auth.completeFields');
       return;
     }
 
     const { password, confirmPassword, email, fullName, phone, institution, username } = this.signupForm.value;
     
     if (password !== confirmPassword) {
-      this.errorMessage = 'Las contraseñas no coinciden';
+      this.errorMessage = this.translate.instant('auth.passwordMismatch');
       this.confirmPassword?.setErrors({ passwordMismatch: true });
       return;
     }
@@ -251,7 +253,7 @@ export class ClientSignupComponent {
     this.authService.signup(signupData).subscribe({
       next: (response) => {
         this.isLoading = false;
-        this.successMessage = response.message || 'Cuenta de cliente creada exitosamente';
+        this.successMessage = response.message || this.translate.instant('auth.accountCreatedClient');
         
         setTimeout(() => {
           this.router.navigate(['/client/login']);
@@ -263,13 +265,13 @@ export class ClientSignupComponent {
         if (error.error?.message) {
           this.errorMessage = error.error.message;
         } else if (error.status === 409) {
-          this.errorMessage = 'El correo electrónico o usuario ya está registrado';
+          this.errorMessage = this.translate.instant('auth.emailOrUserExists');
         } else if (error.status === 400) {
-          this.errorMessage = 'Datos inválidos. Por favor, verifique la información';
+          this.errorMessage = this.translate.instant('auth.invalidData');
         } else if (error.status === 0 || error.status === 500) {
-          this.errorMessage = 'Error del servidor. Por favor, intente más tarde';
+          this.errorMessage = this.translate.instant('auth.serverError');
         } else {
-          this.errorMessage = 'Error al crear la cuenta. Por favor, intente nuevamente';
+          this.errorMessage = this.translate.instant('auth.signupError');
         }
         console.error('Signup error:', error);
       }

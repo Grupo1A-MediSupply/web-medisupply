@@ -6,137 +6,95 @@ import { TranslateService } from '@ngx-translate/core';
   selector: 'app-language-selector',
   template: `
     <div class="language-selector">
-      <button mat-stroked-button 
-              [matMenuTriggerFor]="languageMenu" 
-              class="language-btn" 
-              [matTooltip]="tooltipText">
-        <mat-icon>language</mat-icon>
-        <span class="language-text">{{ getLanguageName(currentLanguage) }}</span>
-        <mat-icon class="arrow-icon">arrow_drop_down</mat-icon>
-      </button>
-      <mat-menu #languageMenu="matMenu" class="language-menu" xPosition="before">
-        <button mat-menu-item 
-                *ngFor="let lang of languages" 
-                (click)="changeLanguage(lang)"
-                [class.active]="currentLanguage === lang">
-          <mat-icon *ngIf="currentLanguage === lang" class="check-icon">check</mat-icon>
-          <span>{{ getLanguageName(lang) }}</span>
-          <span *ngIf="currentLanguage !== lang" class="spacer"></span>
-        </button>
-      </mat-menu>
+      <mat-icon class="language-icon">language</mat-icon>
+      <select 
+        [value]="currentLanguage" 
+        (change)="changeLanguage($event)"
+        class="language-dropdown"
+        [matTooltip]="tooltipText">
+        <option *ngFor="let lang of languages" [value]="lang">
+          {{ getLanguageName(lang) }}
+        </option>
+      </select>
     </div>
   `,
   styles: [`
     .language-selector {
-      display: flex;
-      align-items: center;
-      margin-right: 12px;
-    }
-
-    .language-btn {
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 8px;
+      margin-right: 12px;
+      position: relative;
+    }
+
+    .language-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
       color: var(--text-primary);
-      border-color: rgba(0, 0, 0, 0.2);
-      padding: 8px 16px;
+    }
+
+    .language-dropdown {
+      padding: 8px 32px 8px 12px;
+      border: 1px solid rgba(0, 0, 0, 0.2);
+      border-radius: 4px;
       font-size: 14px;
       font-weight: 500;
+      color: var(--text-primary);
+      background: transparent;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      background-size: 12px;
       transition: all 0.3s ease;
       min-width: 120px;
-      justify-content: space-between;
     }
 
-    .language-btn:hover {
-      background: rgba(25, 118, 210, 0.08);
+    .language-dropdown:hover {
       border-color: var(--primary-color);
-      color: var(--primary-color);
-      transform: translateY(-2px);
-      box-shadow: 0 2px 8px rgba(25, 118, 210, 0.2);
+      background-color: rgba(25, 118, 210, 0.05);
     }
 
-    .language-btn mat-icon:first-child {
-      font-size: 20px;
-      width: 20px;
-      height: 20px;
+    .language-dropdown:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
     }
 
-    .language-text {
-      flex: 1;
-      text-align: left;
-      font-weight: 500;
-    }
-
-    .arrow-icon {
-      font-size: 20px;
-      width: 20px;
-      height: 20px;
-      margin-left: 4px;
-    }
-
-    .language-menu {
-      min-width: 180px;
-      margin-top: 8px;
-    }
-
-    .language-menu button {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
-      font-size: 14px;
-    }
-
-    .language-menu button.active {
-      background: linear-gradient(90deg, rgba(25, 118, 210, 0.1) 0%, rgba(25, 118, 210, 0.05) 100%);
-      color: var(--primary-color);
-      font-weight: 600;
-    }
-
-    .language-menu button:not(.active):hover {
-      background: rgba(0, 0, 0, 0.04);
-    }
-
-    .check-icon {
-      font-size: 20px;
-      width: 20px;
-      height: 20px;
-      color: var(--primary-color);
-    }
-
-    .spacer {
-      width: 20px;
+    .language-dropdown option {
+      padding: 8px 12px;
+      background: white;
+      color: var(--text-primary);
     }
 
     /* Estilos para cliente */
-    .client-dashboard .language-btn:hover {
-      background: rgba(76, 175, 80, 0.08);
+    .client-dashboard .language-dropdown:hover {
       border-color: var(--client-primary);
-      color: var(--client-primary);
+      background-color: rgba(76, 175, 80, 0.05);
     }
 
-    .client-dashboard .language-menu button.active {
-      background: linear-gradient(90deg, rgba(76, 175, 80, 0.1) 0%, rgba(76, 175, 80, 0.05) 100%);
-      color: var(--client-primary);
-    }
-
-    .client-dashboard .check-icon {
-      color: var(--client-primary);
+    .client-dashboard .language-dropdown:focus {
+      border-color: var(--client-primary);
+      box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
     }
 
     @media (max-width: 768px) {
-      .language-btn {
+      .language-selector {
+        gap: 4px;
+      }
+
+      .language-dropdown {
         min-width: 100px;
-        padding: 6px 12px;
+        padding: 6px 28px 6px 8px;
         font-size: 12px;
       }
 
-      .language-text {
-        display: none;
-      }
-
-      .language-btn mat-icon:first-child {
-        margin: 0;
+      .language-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
       }
     }
   `]
@@ -159,6 +117,7 @@ export class LanguageSelectorComponent implements OnInit {
     // Update tooltip text
     this.translate.get('common.language').subscribe(text => {
       this.tooltipText = text;
+      this.cdr.detectChanges();
     });
     
     // Subscribe to language changes
@@ -168,8 +127,11 @@ export class LanguageSelectorComponent implements OnInit {
     });
   }
 
-  changeLanguage(lang: string): void {
-    if (lang !== this.currentLanguage) {
+  changeLanguage(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    const lang = target.value;
+    
+    if (lang && lang !== this.currentLanguage) {
       console.log('Changing language to:', lang);
       this.languageService.setLanguage(lang);
       this.currentLanguage = lang;
@@ -187,4 +149,3 @@ export class LanguageSelectorComponent implements OnInit {
     return this.languageService.getLanguageName(lang);
   }
 }
-
