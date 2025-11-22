@@ -7,7 +7,7 @@
         </div>
         <div class="logo-text">
           <div class="brand-name">MediSupply</div>
-          <div class="brand-subtitle">Portal de Vendedores</div>
+          <div class="brand-subtitle">{{ 'auth.brandSubtitleVendor' | translate }}</div>
         </div>
       </div>
     </div>
@@ -15,8 +15,8 @@
     <!-- Right Section - MFA Form -->
     <div class="mfa-right-section">
       <div class="mfa-form-container">
-        <h1 class="mfa-title">Verificación MFA - Vendedor</h1>
-        <p class="mfa-subtitle">Te hemos enviado un código de verificación a tu correo electrónico o celular</p>
+        <h1 class="mfa-title">{{ 'auth.mfaTitleVendor' | translate }}</h1>
+        <p class="mfa-subtitle">{{ 'auth.mfaSubtitleVendor' | translate }}</p>
 
         <!-- Mensaje de error general -->
         <div *ngIf="errorMessage" class="alert alert-error">
@@ -26,30 +26,30 @@
 
         <form [formGroup]="_form" (ngSubmit)="verify()" class="mfa-form">
           <div class="form-group">
-            <label class="form-label">Código de verificación <span class="required">*</span></label>
+            <label class="form-label">{{ 'auth.verificationCode' | translate }} <span class="required">{{ 'common.required' | translate }}</span></label>
             <input
               type="text"
               class="form-input"
               [class.error]="code?.invalid && code?.touched"
-              placeholder="000000"
+              [placeholder]="'auth.codePlaceholder' | translate"
               formControlName="code"
               maxlength="6"
               inputmode="numeric">
             <div *ngIf="code?.invalid && code?.touched" class="error-message">
               {{ getCodeErrorMessage() }}
             </div>
-            <small class="form-hint">Ingrese el código de 6 dígitos recibido</small>
+            <small class="form-hint">{{ 'auth.codeHint' | translate }}</small>
           </div>
 
           <div class="mfa-actions">
             <div class="resend-link-container">
-              <a href="#" class="resend-link" (click)="$event.preventDefault()">Enviar código de nuevo</a>
+              <a href="#" class="resend-link" (click)="$event.preventDefault()">{{ 'auth.resendCode' | translate }}</a>
             </div>
             <button type="submit" class="btn-primary" [disabled]="!_form.valid || isLoading">
-              <span *ngIf="!isLoading">Verificar y continuar</span>
+              <span *ngIf="!isLoading">{{ 'auth.verifyAndContinue' | translate }}</span>
               <span *ngIf="isLoading">
                 <mat-icon class="spinner">hourglass_empty</mat-icon>
-                Verificando...
+                {{ 'auth.verifying' | translate }}
               </span>
             </button>
           </div>

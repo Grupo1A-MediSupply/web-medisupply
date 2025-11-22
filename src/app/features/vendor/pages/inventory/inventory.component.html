@@ -2,9 +2,9 @@
     <div class="page-header">
       <h1 class="page-title">
         <mat-icon>inventory</mat-icon>
-        Gestión de Inventario
+        {{ 'inventory.management' | translate }}
       </h1>
-      <p class="page-description">Consulta en tiempo real del inventario, estados, localización en bodegas, validación de lote y vencimiento.</p>
+      <p class="page-description">{{ 'inventory.description' | translate }}</p>
     </div>
 
     <div class="inventory-stats">
@@ -14,7 +14,7 @@
             <mat-icon class="stat-icon">inventory_2</mat-icon>
             <div class="stat-info">
               <div class="stat-number">{{getTotalItems()}}</div>
-              <div class="stat-label">Productos Totales</div>
+              <div class="stat-label">{{ 'inventory.totalItems' | translate }}</div>
             </div>
           </div>
         </mat-card-content>
@@ -26,7 +26,7 @@
             <mat-icon class="stat-icon">warning</mat-icon>
             <div class="stat-info">
               <div class="stat-number">{{getLowStockItems()}}</div>
-              <div class="stat-label">Stock Bajo</div>
+              <div class="stat-label">{{ 'inventory.lowStock' | translate }}</div>
             </div>
           </div>
         </mat-card-content>
@@ -38,7 +38,7 @@
             <mat-icon class="stat-icon">schedule</mat-icon>
             <div class="stat-info">
               <div class="stat-number">{{getExpiringItems()}}</div>
-              <div class="stat-label">Por Vencer</div>
+              <div class="stat-label">{{ 'inventory.expiring' | translate }}</div>
             </div>
           </div>
         </mat-card-content>
@@ -49,9 +49,9 @@
       <mat-card-header>
         <mat-card-title>
           <mat-icon>list_alt</mat-icon>
-          Inventario Actual
+          {{ 'inventory.currentInventory' | translate }}
         </mat-card-title>
-        <mat-card-subtitle>Lista completa de productos en inventario</mat-card-subtitle>
+        <mat-card-subtitle>{{ 'inventory.inventoryList' | translate }}</mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
         <div class="table-container">
@@ -59,7 +59,7 @@
             <ng-container matColumnDef="sku">
               <th mat-header-cell *matHeaderCellDef>
                 <mat-icon>tag</mat-icon>
-                SKU
+                {{ 'inventory.sku' | translate }}
               </th>
               <td mat-cell *matCellDef="let item">
                 <span class="sku-code">{{item.sku}}</span>
@@ -69,7 +69,7 @@
             <ng-container matColumnDef="name">
               <th mat-header-cell *matHeaderCellDef>
                 <mat-icon>medical_services</mat-icon>
-                Producto
+                {{ 'inventory.productName' | translate }}
               </th>
               <td mat-cell *matCellDef="let item">
                 <div class="product-details">
@@ -85,7 +85,7 @@
             <ng-container matColumnDef="stock">
               <th mat-header-cell *matHeaderCellDef>
                 <mat-icon>inventory</mat-icon>
-                Stock
+                {{ 'inventory.stock' | translate }}
               </th>
               <td mat-cell *matCellDef="let item">
                 <div class="stock-info">
@@ -98,7 +98,7 @@
             <ng-container matColumnDef="lote">
               <th mat-header-cell *matHeaderCellDef>
                 <mat-icon>qr_code</mat-icon>
-                Lote / Vencimiento
+                {{ 'inventory.lotExpiry' | translate }}
               </th>
               <td mat-cell *matCellDef="let item">
                 <div class="lote-info">
@@ -111,7 +111,7 @@
             <ng-container matColumnDef="location">
               <th mat-header-cell *matHeaderCellDef>
                 <mat-icon>location_on</mat-icon>
-                Ubicación
+                {{ 'inventory.location' | translate }}
               </th>
               <td mat-cell *matCellDef="let item">
                 <div class="location-info">

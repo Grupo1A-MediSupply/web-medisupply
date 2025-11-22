@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../../../core/services/auth.service';
 
 @Component({
@@ -17,7 +18,8 @@ export class ClientLoginComponent {
 
   constructor(
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private translate: TranslateService
   ) {}
 
   get user() { return this._form.get('user'); }
@@ -25,17 +27,17 @@ export class ClientLoginComponent {
 
   getUserErrorMessage(): string {
     if (this.user?.hasError('required')) {
-      return 'El usuario es requerido';
+      return this.translate.instant('auth.usernameRequired');
     }
     return '';
   }
 
   getPassErrorMessage(): string {
     if (this.pass?.hasError('required')) {
-      return 'La contraseña es requerida';
+      return this.translate.instant('auth.passwordRequired');
     }
     if (this.pass?.hasError('minlength')) {
-      return 'La contraseña debe tener al menos 6 caracteres';
+      return this.translate.instant('auth.passwordMinLength');
     }
     return '';
   }
@@ -45,7 +47,7 @@ export class ClientLoginComponent {
 
     if (this._form.invalid) {
       this._form.markAllAsTouched();
-      this.errorMessage = 'Por favor, complete todos los campos correctamente';
+      this.errorMessage = this.translate.instant('auth.completeFields');
       return;
     }
 
@@ -72,11 +74,11 @@ export class ClientLoginComponent {
         if (error.error?.message) {
           this.errorMessage = error.error.message;
         } else if (error.status === 401) {
-          this.errorMessage = 'Credenciales inválidas. Verifique su usuario y contraseña';
+          this.errorMessage = this.translate.instant('auth.invalidCredentials');
         } else if (error.status === 0 || error.status === 500) {
-          this.errorMessage = 'Error del servidor. Por favor, intente más tarde';
+          this.errorMessage = this.translate.instant('auth.serverError');
         } else {
-          this.errorMessage = 'Error al iniciar sesión. Por favor, intente nuevamente';
+          this.errorMessage = this.translate.instant('auth.loginError');
         }
         console.error('Login error:', error);
       }

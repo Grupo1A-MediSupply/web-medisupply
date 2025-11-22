@@ -1,8 +1,132 @@
-  <h2>Carga de Inventario</h2>
-  <p class="small-note">Carga masiva (CSV/Excel) para actualizar inventario, fichas técnicas, certificados y precios.</p>
-  <div class="upload-card">
-    <input type="file" (change)="onFile($event)" />
-    <div style="margin-top:12px">
-      <button mat-stroked-button (click)="downloadTemplate()">Descargar plantilla CSV</button>
+  <div class="upload-page">
+    <div class="page-header">
+      <h1 class="page-title">
+        <mat-icon>cloud_upload</mat-icon>
+        {{ 'upload.title' | translate }}
+      </h1>
+      <p class="page-description">{{ 'upload.subtitle' | translate }}</p>
+    </div>
+
+    <!-- Upload Instructions -->
+    <div class="upload-instructions">
+      <div class="instruction-card">
+        <div class="instruction-header">
+          <mat-icon>info</mat-icon>
+          <h3>{{ 'upload.instructions' | translate }}</h3>
+        </div>
+        <div class="instruction-content">
+          <ol>
+            <li>{{ 'upload.step1' | translate }}</li>
+            <li>{{ 'upload.step2' | translate }}</li>
+            <li>{{ 'upload.step3' | translate }}</li>
+            <li>{{ 'upload.step4' | translate }}</li>
+          </ol>
+          <p class="note">
+            <strong>{{ 'upload.note' | translate }}</strong>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upload Actions -->
+    <div class="upload-actions">
+      <div class="action-card">
+        <div class="action-header">
+          <h3>
+            <mat-icon>download</mat-icon>
+            {{ 'upload.downloadTemplate' | translate }}
+          </h3>
+          <p>{{ 'upload.downloadTemplateDesc' | translate }}</p>
+        </div>
+        <div class="action-buttons">
+          <button mat-raised-button color="primary" (click)="downloadTemplate()" class="download-btn">
+            <mat-icon>file_download</mat-icon>
+            {{ 'upload.downloadTemplateBtn' | translate }}
+          </button>
+        </div>
+      </div>
+
+      <div class="action-card">
+        <div class="action-header">
+          <h3>
+            <mat-icon>cloud_upload</mat-icon>
+            {{ 'upload.uploadFile' | translate }}
+          </h3>
+          <p>{{ 'upload.uploadFileDesc' | translate }}</p>
+        </div>
+        <div class="upload-form">
+          <div class="file-input-container">
+            <input type="file" 
+                   id="fileInput" 
+                   accept=".csv,.xlsx,.xls" 
+                   (change)="onFile($event)"
+                   class="file-input">
+            <label for="fileInput" class="file-input-label">
+              <mat-icon>attach_file</mat-icon>
+              <span *ngIf="!selectedFile">{{ 'upload.selectFile' | translate }}</span>
+              <span *ngIf="selectedFile">{{selectedFile.name}}</span>
+            </label>
+          </div>
+          
+          <div class="upload-info" *ngIf="uploadMessage">
+            <p [ngClass]="{'success-message': showUploadSuccess, 'error-message': !showUploadSuccess && uploadMessage}">
+              {{uploadMessage}}
+            </p>
+          </div>
+
+          <div class="action-buttons">
+            <button mat-raised-button 
+                    color="accent" 
+                    (click)="uploadFile()" 
+                    [disabled]="!selectedFile"
+                    class="upload-btn">
+              <mat-icon>cloud_upload</mat-icon>
+              {{ 'upload.upload' | translate }}
+            </button>
+            
+            <button mat-button 
+                    (click)="clearUpload()" 
+                    [disabled]="!selectedFile"
+                    class="clear-btn">
+              <mat-icon>clear</mat-icon>
+              {{ 'upload.clear' | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- File Format Information -->
+    <div class="format-info">
+      <div class="info-card">
+        <div class="info-header">
+          <mat-icon>help_outline</mat-icon>
+          <h3>{{ 'upload.formatInfo' | translate }}</h3>
+        </div>
+        <div class="info-content">
+          <div class="format-section">
+            <h4>{{ 'upload.supportedFiles' | translate }}</h4>
+            <ul>
+              <li>CSV (.csv)</li>
+              <li>Excel (.xlsx, .xls)</li>
+            </ul>
+          </div>
+          <div class="format-section">
+            <h4>{{ 'upload.requiredFields' | translate }}</h4>
+            <ul>
+              <li><strong>{{ 'upload.name' | translate }}</strong></li>
+              <li><strong>{{ 'upload.stock' | translate }}</strong></li>
+              <li><strong>{{ 'upload.price' | translate }}</strong></li>
+              <li><strong>{{ 'upload.expiry' | translate }}</strong></li>
+              <li><strong>{{ 'upload.lot' | translate }}</strong></li>
+              <li><strong>{{ 'upload.warehouse' | translate }}</strong></li>
+              <li><strong>{{ 'upload.supplier' | translate }}</strong></li>
+              <li><strong>{{ 'upload.category' | translate }}</strong></li>
+              <li><strong>{{ 'upload.description' | translate }}</strong></li>
+              <li><strong>{{ 'upload.batches' | translate }}</strong></li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
   </div>

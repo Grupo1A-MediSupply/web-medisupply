@@ -7,7 +7,7 @@
         </div>
         <div class="logo-text">
           <div class="brand-name">MediSupply</div>
-          <div class="brand-subtitle">Portal de Vendedores</div>
+          <div class="brand-subtitle">{{ 'auth.brandSubtitleVendor' | translate }}</div>
         </div>
       </div>
     </div>
@@ -15,7 +15,7 @@
     <!-- Right Section - Signup Form -->
     <div class="signup-right-section">
       <div class="signup-form-container">
-        <h1 class="signup-title">Registro de Vendedor</h1>
+        <h1 class="signup-title">{{ 'auth.signupTitleVendor' | translate }}</h1>
         
         <!-- Mensajes de error y éxito -->
         <div *ngIf="errorMessage" class="alert alert-error">
@@ -27,15 +27,15 @@
           <mat-icon>check_circle</mat-icon>
           <span>{{ successMessage }}</span>
         </div>
-        
+
         <form [formGroup]="signupForm" (ngSubmit)="createAccount()" class="signup-form">
           <div class="form-group">
-            <label class="form-label">Nombre completo <span class="required">*</span></label>
+            <label class="form-label">{{ 'auth.fullName' | translate }} <span class="required">{{ 'common.required' | translate }}</span></label>
             <input 
               type="text" 
               class="form-input" 
               [class.error]="fullName?.invalid && fullName?.touched"
-              placeholder="Ej: Juan Pérez" 
+              [placeholder]="'auth.fullName' | translate" 
               formControlName="fullName">
             <div *ngIf="fullName?.invalid && fullName?.touched" class="error-message">
               {{ getFullNameErrorMessage() }}
@@ -43,12 +43,12 @@
           </div>
           
           <div class="form-group">
-            <label class="form-label">Correo electrónico <span class="required">*</span></label>
+            <label class="form-label">{{ 'auth.email' | translate }} <span class="required">{{ 'common.required' | translate }}</span></label>
             <input 
               type="email" 
               class="form-input" 
               [class.error]="email?.invalid && email?.touched"
-              placeholder="Ej: vendedor@empresa.com" 
+              [placeholder]="'auth.email' | translate" 
               formControlName="email">
             <div *ngIf="email?.invalid && email?.touched" class="error-message">
               {{ getEmailErrorMessage() }}
@@ -56,12 +56,12 @@
           </div>
           
           <div class="form-group">
-            <label class="form-label">Número de teléfono <span class="required">*</span></label>
+            <label class="form-label">{{ 'auth.phone' | translate }} <span class="required">{{ 'common.required' | translate }}</span></label>
             <input 
               type="tel" 
               class="form-input" 
               [class.error]="phone?.invalid && phone?.touched"
-              placeholder="Ej: +57 300 1234567" 
+              [placeholder]="'auth.phone' | translate" 
               formControlName="phone">
             <div *ngIf="phone?.invalid && phone?.touched" class="error-message">
               {{ getPhoneErrorMessage() }}
@@ -69,12 +69,12 @@
           </div>
           
           <div class="form-group">
-            <label class="form-label">Empresa <span class="required">*</span></label>
+            <label class="form-label">{{ 'auth.company' | translate }} <span class="required">{{ 'common.required' | translate }}</span></label>
             <input 
               type="text" 
               class="form-input" 
               [class.error]="company?.invalid && company?.touched"
-              placeholder="Nombre de la empresa" 
+              [placeholder]="'auth.company' | translate" 
               formControlName="company">
             <div *ngIf="company?.invalid && company?.touched" class="error-message">
               {{ getCompanyErrorMessage() }}
@@ -82,42 +82,42 @@
           </div>
           
           <div class="form-group">
-            <label class="form-label">Usuario <span class="required">*</span></label>
+            <label class="form-label">{{ 'auth.usernameLabel' | translate }} <span class="required">{{ 'common.required' | translate }}</span></label>
             <input 
               type="text" 
               class="form-input" 
               [class.error]="username?.invalid && username?.touched"
-              placeholder="Usuario vendedor" 
+              [placeholder]="'auth.usernameLabel' | translate" 
               formControlName="username">
             <div *ngIf="username?.invalid && username?.touched" class="error-message">
               {{ getUsernameErrorMessage() }}
             </div>
-            <small class="form-hint">Solo letras, números y guiones bajos</small>
+            <small class="form-hint">{{ 'auth.usernameHintVendor' | translate }}</small>
           </div>
           
           <div class="form-group">
-            <label class="form-label">Contraseña <span class="required">*</span></label>
+            <label class="form-label">{{ 'auth.password' | translate }} <span class="required">{{ 'common.required' | translate }}</span></label>
             <input 
               type="password" 
               class="form-input" 
               [class.error]="password?.invalid && password?.touched"
-              placeholder="Mínimo 8 caracteres" 
+              [placeholder]="'auth.passwordMinChars' | translate" 
               formControlName="password">
             <div *ngIf="password?.invalid && password?.touched" class="error-message">
               {{ getPasswordErrorMessage() }}
             </div>
             <small class="form-hint">
-              Debe contener: mayúsculas, minúsculas, números y caracteres especiales
+              {{ 'auth.passwordHint' | translate }}
             </small>
           </div>
           
           <div class="form-group">
-            <label class="form-label">Confirmar contraseña <span class="required">*</span></label>
+            <label class="form-label">{{ 'auth.confirmPassword' | translate }} <span class="required">{{ 'common.required' | translate }}</span></label>
             <input 
               type="password" 
               class="form-input" 
               [class.error]="confirmPassword?.invalid && confirmPassword?.touched"
-              placeholder="Repita su contraseña" 
+              [placeholder]="'auth.repeatPassword' | translate" 
               formControlName="confirmPassword">
             <div *ngIf="confirmPassword?.invalid && confirmPassword?.touched" class="error-message">
               {{ getConfirmPasswordErrorMessage() }}
@@ -126,22 +126,22 @@
           
           <div class="form-actions">
             <button type="submit" class="btn-primary" [disabled]="!signupForm.valid || isLoading">
-              <span *ngIf="!isLoading">Crear cuenta vendedor</span>
+              <span *ngIf="!isLoading">{{ 'auth.createAccountVendor' | translate }}</span>
               <span *ngIf="isLoading">
                 <mat-icon class="spinner">hourglass_empty</mat-icon>
-                Creando cuenta...
+                {{ 'auth.creatingAccount' | translate }}
               </span>
             </button>
             <button type="button" class="btn-secondary" (click)="goToLogin()" [disabled]="isLoading">
-              Iniciar sesión
+              {{ 'auth.login' | translate }}
             </button>
           </div>
         </form>
         
         <div class="signup-info">
-          <p>Al crear una cuenta de vendedor, aceptas nuestros términos y condiciones.</p>
+          <p>{{ 'auth.signupTermsVendor' | translate }}</p>
           <div class="role-switch">
-            <a routerLink="/client/signup" class="role-link">¿Eres cliente? Regístrate aquí</a>
+            <a routerLink="/client/signup" class="role-link">{{ 'auth.areYouClientSignup' | translate }}</a>
           </div>
         </div>
       </div>

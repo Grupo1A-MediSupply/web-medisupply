@@ -3,7 +3,16 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HttpClient } from '@angular/common/http';
+
+// Translation
+import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
+import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+
+// AoT requires an exported function for factories
+export function HttpLoaderFactory(http: HttpClient) {
+  return new TranslateHttpLoader(http, '/assets/i18n/', '.json');
+}
 
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -19,6 +28,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 
 import { AppComponent } from './app.component';
@@ -47,6 +57,8 @@ import { UploadComponent } from './features/vendor/pages/upload/upload.component
 import { OrderCreateComponent } from './features/client/pages/order-create/order-create.component';
 import { InventoryComponent } from './features/vendor/pages/inventory/inventory.component';
 import { RoutesComponent } from './features/vendor/pages/routes/routes.component';
+
+import { LanguageSelectorComponent } from './core/components/language-selector/language-selector.component';
 
 import { AppRoutingModule } from './app-routing.module';
 
@@ -79,7 +91,10 @@ import { AppRoutingModule } from './app-routing.module';
     UploadComponent,
     OrderCreateComponent,
     InventoryComponent,
-    RoutesComponent
+    RoutesComponent,
+    
+    // Core Components
+    LanguageSelectorComponent
   ],
   imports: [
     BrowserModule,
@@ -89,6 +104,14 @@ import { AppRoutingModule } from './app-routing.module';
     HttpClientModule,
     RouterModule,
     AppRoutingModule,
+    TranslateModule.forRoot({
+      loader: {
+        provide: TranslateLoader,
+        useFactory: HttpLoaderFactory,
+        deps: [HttpClient]
+      },
+      defaultLanguage: 'es'
+    }),
     MatSidenavModule,
     MatToolbarModule,
     MatIconModule,
@@ -102,7 +125,11 @@ import { AppRoutingModule } from './app-routing.module';
     MatDialogModule,
     MatFormFieldModule,
     MatSelectModule,
-    MatOptionModule
+    MatOptionModule,
+    MatTooltipModule
+  ],
+  exports: [
+    TranslateModule
   ],
   providers: [],
   bootstrap: [AppComponent]
