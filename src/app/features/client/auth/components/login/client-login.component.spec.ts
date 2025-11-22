@@ -49,13 +49,14 @@ describe('ClientLoginComponent', () => {
     expect(component._form.get('pass')?.hasError('required')).toBeTruthy();
   });
 
-  it('should validate email format for user field', () => {
+  it('should validate username field (no email validation required)', () => {
     const userControl = component._form.get('user');
-    userControl?.setValue('invalid');
-    expect(userControl?.hasError('email')).toBeTruthy();
-
-    userControl?.setValue('test@test.com');
+    userControl?.setValue('testuser');
     expect(userControl?.hasError('email')).toBeFalsy();
+    expect(userControl?.valid).toBeTruthy();
+
+    userControl?.setValue('');
+    expect(userControl?.hasError('required')).toBeTruthy();
   });
 
   it('should validate minimum length for password field', () => {
@@ -129,11 +130,13 @@ describe('ClientLoginComponent', () => {
   });
 
   it('should show validation errors for invalid inputs', () => {
-    component._form.patchValue({ user: 'invalid', pass: '12345' });
+    component._form.patchValue({ user: 'testuser', pass: '12345' });
     component._form.markAllAsTouched();
     fixture.detectChanges();
     
-    expect(component._form.get('user')?.hasError('email')).toBeTruthy();
+    // User field should be valid (no email validation)
+    expect(component._form.get('user')?.hasError('email')).toBeFalsy();
+    // Password should have minlength error
     expect(component._form.get('pass')?.hasError('minlength')).toBeTruthy();
   });
 
