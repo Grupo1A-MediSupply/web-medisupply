@@ -1,0 +1,59 @@
+name: MediSupply Web Pipeline
+
+on:
+  push:
+    branches: [ '**' ]
+  pull_request:
+    branches: [ '**' ]
+
+jobs:
+  ci-pipeline:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: |
+        # Limpiar cache si hay problemas
+        npm cache verify || true
+        # Instalar dependencias
+        npm ci || npm install
+        # Verificar instalación de dependencias críticas
+        if ! npm list @ngx-translate/core @ngx-translate/http-loader > /dev/null 2>&1; then
+          echo "Instalando dependencias faltantes..."
+          npm install @ngx-translate/core@^15.0.0 @ngx-translate/http-loader@^7.0.0
+        fi
+        # Verificar que estén instaladas
+        npm list @ngx-translate/core @ngx-translate/http-loader
+    
+    - name: Run tests with coverage
+      run: npm run test:ci
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+    
+    - name: Build application
+      run: npm run build
+    
+    - name: Archive test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results-node-${{ matrix.node-version }}
+        path: coverage/

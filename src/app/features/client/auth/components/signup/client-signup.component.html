@@ -1,0 +1,162 @@
+  <div class="signup-page">
+    <!-- Left Section - Logo and Branding -->
+    <div class="signup-left-section">
+      <div class="logo-container">
+        <div class="logo-icon">
+          <mat-icon>local_hospital</mat-icon>
+        </div>
+        <div class="logo-text">
+          <div class="brand-name">MediSupply</div>
+          <div class="brand-subtitle">{{ 'auth.brandSubtitleClient' | translate }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Section - Signup Form -->
+    <div class="signup-right-section">
+      <div class="signup-form-container">
+        <h1 class="signup-title">{{ 'auth.signupTitleClient' | translate }}</h1>
+        
+        <!-- Mensajes de error y éxito -->
+        <div *ngIf="errorMessage" class="alert alert-error">
+          <mat-icon>error</mat-icon>
+          <span>{{ errorMessage }}</span>
+        </div>
+        
+        <div *ngIf="successMessage" class="alert alert-success">
+          <mat-icon>check_circle</mat-icon>
+          <span>{{ successMessage }}</span>
+        </div>
+
+        <form [formGroup]="signupForm" (ngSubmit)="createAccount()" class="signup-form">
+          <div class="form-group">
+            <label class="form-label">{{ 'auth.fullName' | translate }} <span class="required">{{ 'common.required' | translate }}</span></label>
+            <input 
+              type="text" 
+              class="form-input" 
+              [class.error]="fullName?.invalid && fullName?.touched"
+              [placeholder]="'auth.fullName' | translate" 
+              formControlName="fullName">
+            <div *ngIf="fullName?.invalid && fullName?.touched" class="error-message">
+              {{ getFullNameErrorMessage() }}
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">{{ 'auth.email' | translate }} <span class="required">{{ 'common.required' | translate }}</span></label>
+            <input 
+              type="email" 
+              class="form-input" 
+              [class.error]="email?.invalid && email?.touched"
+              [placeholder]="'auth.email' | translate" 
+              formControlName="email">
+            <div *ngIf="email?.invalid && email?.touched" class="error-message">
+              {{ getEmailErrorMessage() }}
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">{{ 'auth.phone' | translate }} <span class="required">{{ 'common.required' | translate }}</span></label>
+            <input 
+              type="tel" 
+              class="form-input" 
+              [class.error]="phone?.invalid && phone?.touched"
+              [placeholder]="'auth.phone' | translate" 
+              formControlName="phone">
+            <div *ngIf="phone?.invalid && phone?.touched" class="error-message">
+              {{ getPhoneErrorMessage() }}
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">{{ 'auth.institution' | translate }} <span class="required">{{ 'common.required' | translate }}</span></label>
+            <input 
+              type="text" 
+              class="form-input" 
+              [class.error]="institution?.invalid && institution?.touched"
+              [placeholder]="'auth.institution' | translate" 
+              formControlName="institution">
+            <div *ngIf="institution?.invalid && institution?.touched" class="error-message">
+              {{ getInstitutionErrorMessage() }}
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">{{ 'auth.position' | translate }} <span class="required">{{ 'common.required' | translate }}</span></label>
+            <input 
+              type="text" 
+              class="form-input" 
+              [class.error]="position?.invalid && position?.touched"
+              [placeholder]="'auth.position' | translate" 
+              formControlName="position">
+            <div *ngIf="position?.invalid && position?.touched" class="error-message">
+              {{ getPositionErrorMessage() }}
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">{{ 'auth.usernameLabel' | translate }} <span class="required">{{ 'common.required' | translate }}</span></label>
+            <input 
+              type="text" 
+              class="form-input" 
+              [class.error]="username?.invalid && username?.touched"
+              [placeholder]="'auth.usernameLabel' | translate" 
+              formControlName="username">
+            <div *ngIf="username?.invalid && username?.touched" class="error-message">
+              {{ getUsernameErrorMessage() }}
+            </div>
+            <small class="form-hint">{{ 'auth.usernameHintClient' | translate }}</small>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">{{ 'auth.password' | translate }} <span class="required">{{ 'common.required' | translate }}</span></label>
+            <input 
+              type="password" 
+              class="form-input" 
+              [class.error]="password?.invalid && password?.touched"
+              [placeholder]="'auth.passwordMinChars' | translate" 
+              formControlName="password">
+            <div *ngIf="password?.invalid && password?.touched" class="error-message">
+              {{ getPasswordErrorMessage() }}
+            </div>
+            <small class="form-hint">
+              {{ 'auth.passwordHint' | translate }}
+            </small>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">{{ 'auth.confirmPassword' | translate }} <span class="required">{{ 'common.required' | translate }}</span></label>
+            <input 
+              type="password" 
+              class="form-input" 
+              [class.error]="confirmPassword?.invalid && confirmPassword?.touched"
+              [placeholder]="'auth.repeatPassword' | translate" 
+              formControlName="confirmPassword">
+            <div *ngIf="confirmPassword?.invalid && confirmPassword?.touched" class="error-message">
+              {{ getConfirmPasswordErrorMessage() }}
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" [disabled]="!signupForm.valid || isLoading">
+              <span *ngIf="!isLoading">{{ 'auth.createAccountClient' | translate }}</span>
+              <span *ngIf="isLoading">
+                <mat-icon class="spinner">hourglass_empty</mat-icon>
+                {{ 'auth.creatingAccount' | translate }}
+              </span>
+            </button>
+            <button type="button" class="btn-secondary" (click)="goToLogin()" [disabled]="isLoading">
+              {{ 'auth.login' | translate }}
+            </button>
+          </div>
+        </form>
+        
+        <div class="signup-info">
+          <p>{{ 'auth.signupTermsClient' | translate }}</p>
+          <div class="role-switch">
+            <a routerLink="/vendor/signup" class="role-link">{{ 'auth.areYouVendorSignup' | translate }}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

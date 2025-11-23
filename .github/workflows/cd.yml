@@ -1,0 +1,114 @@
+name: MediSupply CD Pipeline
+
+on:
+  push:
+    branches: [ mains, develops ]
+  workflow_run:
+    workflows: ["MediSupply Web Pipeline"]
+    types: [completed]
+    branches: [ mains, develops ]
+  workflow_dispatch: # Permite ejecución manual
+
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build application
+      run: npm run build
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+    
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.6.0
+    
+    - name: Terraform Init
+      run: |
+        cd terraform
+        terraform init
+    
+    - name: Terraform Plan
+      run: |
+        cd terraform
+        terraform plan -var="environment=develop" -out=tfplan
+    
+    - name: Terraform Apply
+      run: |
+        cd terraform
+        terraform apply -auto-approve tfplan || terraform apply -auto-approve -replace=aws_cloudfront_origin_access_control.website
+    
+    - name: Get Terraform Outputs
+      id: terraform-outputs
+      run: |
+        cd terraform
+        echo "s3_bucket=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT
+        echo "cloudfront_id=$(terraform output -raw cloudfront_distribution_id)" >> $GITHUB_OUTPUT
+        echo "cloudfront_url=$(terraform output -raw cloudfront_domain_name)" >> $GITHUB_OUTPUT
+    
+    - name: Verify S3 Bucket Policy
+      run: |
+        echo "🔍 Verifying S3 bucket policy..."
+        aws s3api get-bucket-policy --bucket ${{ steps.terraform-outputs.outputs.s3_bucket }} || echo "No policy found"
+        echo "🔍 Verifying CloudFront OAC..."
+        aws cloudfront list-origin-access-controls --query 'OriginAccessControlList.Items[?contains(Name, `MediSupply OAC`)]'
+    
+    - name: Check Build Output
+      run: |
+        echo "🔍 Checking build output structure..."
+        ls -la dist/ || echo "No dist directory found"
+        if [ -d "dist/medical-distribution-prototype" ]; then
+          echo "✅ Build output found at dist/medical-distribution-prototype/"
+          ls -la dist/medical-distribution-prototype/
+          if [ -d "dist/medical-distribution-prototype/browser" ]; then
+            echo "✅ Browser directory found"
+            ls -la dist/medical-distribution-prototype/browser/
+          else
+            echo "⚠️ Browser directory not found, using medical-distribution-prototype directly"
+          fi
+        else
+          echo "❌ Build output not found. Available directories:"
+          ls -la dist/ || echo "No dist directory found"
+          exit 1
+        fi
+    
+    - name: Upload to S3
+      run: |
+        if [ -d "dist/medical-distribution-prototype/browser" ]; then
+          echo "📤 Uploading from dist/medical-distribution-prototype/browser/"
+          aws s3 sync dist/medical-distribution-prototype/browser/ s3://${{ steps.terraform-outputs.outputs.s3_bucket }} --delete
+        else
+          echo "📤 Uploading from dist/medical-distribution-prototype/"
+          aws s3 sync dist/medical-distribution-prototype/ s3://${{ steps.terraform-outputs.outputs.s3_bucket }} --delete
+        fi
+    
+    - name: Invalidate CloudFront
+      run: |
+        aws cloudfront create-invalidation --distribution-id ${{ steps.terraform-outputs.outputs.cloudfront_id }} --paths "/*"
+    
+    - name: Deploy Status
+      run: |
+        echo "🚀 Deployment completed successfully!"
+        echo "🌐 CloudFront URL: https://${{ steps.terraform-outputs.outputs.cloudfront_url }}"
+        echo "📦 S3 Bucket: ${{ steps.terraform-outputs.outputs.s3_bucket }}"

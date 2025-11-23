@@ -1,0 +1,80 @@
+  <div class="login-page">
+    <!-- Left Section - Logo and Branding -->
+    <div class="login-left-section">
+      <div class="logo-container">
+        <div class="logo-icon">
+          <mat-icon>local_hospital</mat-icon>
+        </div>
+        <div class="logo-text">
+          <div class="brand-name">MediSupply</div>
+          <div class="brand-subtitle">{{ 'auth.portalClient' | translate }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Section - Login Form -->
+    <div class="login-right-section">
+      <div class="login-form-container">
+        <h1 class="login-title">{{ 'auth.loginTitleClient' | translate }}</h1>
+        
+        <!-- Mensaje de error general -->
+        <div *ngIf="errorMessage" class="alert alert-error">
+          <mat-icon>error</mat-icon>
+          <span>{{ errorMessage }}</span>
+        </div>
+
+        <form [formGroup]="_form" (ngSubmit)="login()" class="login-form">
+          <div class="form-group">
+            <label class="form-label">{{ 'auth.username' | translate }} <span class="required">{{ 'common.required' | translate }}</span></label>
+            <input 
+              type="text" 
+              class="form-input" 
+              [class.error]="user?.invalid && user?.touched"
+              [placeholder]="'auth.usernamePlaceholder' | translate" 
+              formControlName="user">
+            <div *ngIf="user?.invalid && user?.touched" class="error-message">
+              {{ getUserErrorMessage() }}
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">{{ 'auth.password' | translate }} <span class="required">{{ 'common.required' | translate }}</span></label>
+            <input 
+              type="password" 
+              class="form-input" 
+              [class.error]="pass?.invalid && pass?.touched"
+              [placeholder]="'auth.passwordPlaceholder' | translate" 
+              formControlName="pass">
+            <div *ngIf="pass?.invalid && pass?.touched" class="error-message">
+              {{ getPassErrorMessage() }}
+            </div>
+          </div>
+          
+          <div class="forgot-password">
+            <a routerLink="/client/change-password" class="forgot-link">{{ 'auth.forgotPassword' | translate }}</a>
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" [disabled]="!_form.valid || isLoading">
+              <span *ngIf="!isLoading">{{ 'auth.login' | translate }}</span>
+              <span *ngIf="isLoading">
+                <mat-icon class="spinner">hourglass_empty</mat-icon>
+                {{ 'auth.loggingIn' | translate }}
+              </span>
+            </button>
+            <button type="button" class="btn-secondary" (click)="goToSignup()" [disabled]="isLoading">
+              {{ 'auth.loginClient' | translate }}
+            </button>
+          </div>
+        </form>
+        
+        <div class="login-info">
+          <p>{{ 'auth.exclusiveClient' | translate }}</p>
+          <p><strong>{{ 'auth.testUser' | translate }}</strong> cliente</p>
+          <div class="role-switch">
+            <a routerLink="/vendor/login" class="role-link">{{ 'auth.areYouVendor' | translate }}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

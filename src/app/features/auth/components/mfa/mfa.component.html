@@ -1,0 +1,59 @@
+  <div class="mfa-page">
+    <!-- Left Section - Logo and Branding -->
+    <div class="mfa-left-section">
+      <div class="logo-container">
+        <div class="logo-icon">
+          <mat-icon>local_hospital</mat-icon>
+        </div>
+        <div class="logo-text">
+          <div class="brand-name">MediSupply</div>
+          <div class="brand-subtitle">{{ 'auth.brandSubtitle' | translate }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Section - MFA Form -->
+    <div class="mfa-right-section">
+      <div class="mfa-form-container">
+        <h1 class="mfa-title">{{ 'auth.mfaTitle' | translate }}</h1>
+        <p class="mfa-subtitle">{{ 'auth.mfaSubtitle' | translate }}</p>
+
+        <!-- Mensaje de error general -->
+        <div *ngIf="errorMessage" class="alert alert-error">
+          <mat-icon>error</mat-icon>
+          <span>{{ errorMessage }}</span>
+        </div>
+
+        <form [formGroup]="_form" (ngSubmit)="verify()" class="mfa-form">
+          <div class="form-group">
+            <label class="form-label">{{ 'auth.verificationCode' | translate }} <span class="required">{{ 'common.required' | translate }}</span></label>
+            <input
+              type="text"
+              class="form-input"
+              [class.error]="code?.invalid && code?.touched"
+              [placeholder]="'auth.codePlaceholder' | translate"
+              formControlName="code"
+              maxlength="6"
+              inputmode="numeric">
+            <div *ngIf="code?.invalid && code?.touched" class="error-message">
+              {{ getCodeErrorMessage() }}
+            </div>
+            <small class="form-hint">{{ 'auth.codeHint' | translate }}</small>
+          </div>
+
+          <div class="mfa-actions">
+            <div class="resend-link-container">
+              <a href="#" class="resend-link" (click)="$event.preventDefault()">{{ 'auth.resendCode' | translate }}</a>
+            </div>
+            <button type="submit" class="btn-primary" [disabled]="!_form.valid || isLoading">
+              <span *ngIf="!isLoading">{{ 'auth.continue' | translate }}</span>
+              <span *ngIf="isLoading">
+                <mat-icon class="spinner">hourglass_empty</mat-icon>
+                {{ 'auth.verifying' | translate }}
+              </span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>

@@ -1,0 +1,138 @@
+  <div class="orders-page">
+    <div class="page-header">
+      <h1 class="page-title">
+        <mat-icon>assignment</mat-icon>
+        {{ 'orders.orderManagement' | translate }}
+      </h1>
+      <p class="page-description">{{ 'orders.orderManagement' | translate }} - {{ 'orders.description' | translate }}</p>
+    </div>
+
+    <div class="stats-cards">
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon class="stat-icon">assignment</mat-icon>
+            <div class="stat-info">
+              <div class="stat-number">{{orders.length}}</div>
+              <div class="stat-label">{{ 'orders.totalOrders' | translate }}</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon class="stat-icon">pending</mat-icon>
+            <div class="stat-info">
+              <div class="stat-number">{{getPendingOrders()}}</div>
+              <div class="stat-label">{{ 'orders.pending' | translate }}</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon class="stat-icon">check_circle</mat-icon>
+            <div class="stat-info">
+              <div class="stat-number">{{getCompletedOrders()}}</div>
+              <div class="stat-label">{{ 'orders.completed' | translate }}</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <mat-card class="action-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>add_circle</mat-icon>
+          {{ 'orders.createOrder' | translate }}
+        </mat-card-title>
+        <mat-card-subtitle>{{ 'orders.createOrderDesc' | translate }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="action-description">{{ 'orders.createOrderDesc' | translate }}</p>
+        <div class="action-buttons">
+          <button mat-raised-button color="primary" (click)="createOrder()" class="action-button">
+            <mat-icon>add</mat-icon>
+            {{ 'orders.createExampleOrder' | translate }}
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="table-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>list</mat-icon>
+          {{ 'orders.recentOrders' | translate }}
+        </mat-card-title>
+        <mat-card-subtitle>{{ 'orders.allOrdersSystem' | translate }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="table-container">
+          <table mat-table [dataSource]="orders" class="orders-table">
+            <ng-container matColumnDef="id">
+              <th mat-header-cell *matHeaderCellDef>
+                <mat-icon>tag</mat-icon>
+                {{ 'orders.orderIdLabel' | translate }}
+              </th>
+              <td mat-cell *matCellDef="let order">
+                <span class="order-id">{{order.id}}</span>
+              </td>
+            </ng-container>
+            
+            <ng-container matColumnDef="product">
+              <th mat-header-cell *matHeaderCellDef>
+                <mat-icon>inventory</mat-icon>
+                {{ 'orders.product' | translate }}
+              </th>
+              <td mat-cell *matCellDef="let order">
+                <div class="product-info">
+                  <mat-icon class="product-icon">medical_services</mat-icon>
+                  <span>{{order.product}}</span>
+                </div>
+              </td>
+            </ng-container>
+            
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>
+                <mat-icon>info</mat-icon>
+                {{ 'orders.status' | translate }}
+              </th>
+              <td mat-cell *matCellDef="let order">
+                <span class="status-badge" [ngClass]="'status-' + order.status.toLowerCase()">
+                  <mat-icon>{{getStatusIcon(order.status)}}</mat-icon>
+                  {{order.status}}
+                </span>
+              </td>
+            </ng-container>
+            
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>
+                <mat-icon>settings</mat-icon>
+                {{ 'common.actions' | translate }}
+              </th>
+              <td mat-cell *matCellDef="let order">
+                <button mat-icon-button [matTooltip]="'orders.viewDetails' | translate">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button [matTooltip]="'common.edit' | translate">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button [matTooltip]="'common.delete' | translate" color="warn">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+            
+            <tr mat-header-row *matHeaderRowDef="['id', 'product', 'status', 'actions']"></tr>
+            <tr mat-row *matRowDef="let row; columns: ['id', 'product', 'status', 'actions'];" class="order-row"></tr>
+          </table>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>

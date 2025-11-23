@@ -1,0 +1,249 @@
+  <div class="routes-page">
+    <div class="page-header">
+      <h1 class="page-title">
+        <mat-icon>route</mat-icon>
+        {{ 'routes.management' | translate }}
+      </h1>
+      <p class="page-description">{{ 'routes.description' | translate }}</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-cards">
+      <div class="stat-card">
+        <div class="stat-content">
+          <mat-icon class="stat-icon">route</mat-icon>
+          <div class="stat-info">
+            <div class="stat-number">{{getTotalRoutes()}}</div>
+            <div class="stat-label">{{ 'routes.totalRoutes' | translate }}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-content">
+          <mat-icon class="stat-icon">pending</mat-icon>
+          <div class="stat-info">
+            <div class="stat-number">{{getPendingRoutes()}}</div>
+            <div class="stat-label">{{ 'routes.noRoute' | translate }}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-content">
+          <mat-icon class="stat-icon">local_shipping</mat-icon>
+          <div class="stat-info">
+            <div class="stat-number">{{getActiveRoutes()}}</div>
+            <div class="stat-label">{{ 'routes.inTransit' | translate }}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-content">
+          <mat-icon class="stat-icon">assignment_return</mat-icon>
+          <div class="stat-info">
+            <div class="stat-number">{{getReturnRequests()}}</div>
+            <div class="stat-label">{{ 'routes.returns' | translate }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Orders without Route -->
+    <div class="section-card" *ngIf="getOrdersWithoutRoute().length > 0">
+      <div class="card-header">
+        <h3>
+          <mat-icon>pending_actions</mat-icon>
+          {{ 'routes.pendingOrders' | translate }}
+        </h3>
+        <p>{{ 'routes.pendingOrdersDesc' | translate }}</p>
+      </div>
+      <div class="table-container">
+        <table class="orders-table">
+          <thead>
+            <tr>
+              <th>{{ 'orders.orderId' | translate }}</th>
+              <th>{{ 'routes.client' | translate }}</th>
+              <th>{{ 'routes.address' | translate }}</th>
+              <th>{{ 'orders.date' | translate }}</th>
+              <th>{{ 'common.actions' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let order of getOrdersWithoutRoute()">
+              <td>{{order.id}}</td>
+              <td>{{order.client}}</td>
+              <td>{{order.address}}</td>
+              <td>{{order.date}}</td>
+              <td>
+                <button mat-raised-button color="primary" (click)="generateOptimalRoutes(order)">
+                  <mat-icon>route</mat-icon>
+                  {{ 'routes.generateRoutes' | translate }}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Route Generation Modal -->
+    <div class="route-generation-modal" *ngIf="showRouteGeneration">
+      <div class="modal-overlay" (click)="closeRouteGeneration()"></div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>{{ 'routes.optimalRoutes' | translate }}</h2>
+          <button mat-icon-button (click)="closeRouteGeneration()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+        
+        <div class="modal-body">
+          <div class="order-info">
+            <h3>{{ 'orders.orderId' | translate }}: {{selectedOrder?.id}}</h3>
+            <p><strong>{{ 'routes.client' | translate }}:</strong> {{selectedOrder?.client}}</p>
+            <p><strong>{{ 'routes.address' | translate }}:</strong> {{selectedOrder?.address}}</p>
+          </div>
+
+          <!-- Map Container -->
+          <div class="map-container">
+            <div class="map-placeholder">
+              <mat-icon>map</mat-icon>
+              <h3>{{ 'routes.routeMap' | translate }}</h3>
+              <p>{{ 'routes.routeMapDesc' | translate }}</p>
+            </div>
+          </div>
+
+          <!-- Route Options -->
+          <div class="route-options">
+            <h3>{{ 'routes.suggestedRoutes' | translate }}</h3>
+            <div class="route-cards">
+              <div class="route-card" *ngFor="let route of suggestedRoutes; let i = index">
+                <div class="route-header">
+                  <h4>{{ 'routes.route' | translate }} {{i + 1}}</h4>
+                  <span class="route-distance">{{route.distance}} {{ 'routes.distance' | translate }}</span>
+                </div>
+                <div class="route-details">
+                  <p><strong>{{ 'routes.estimatedDuration' | translate }}</strong> {{route.duration}}</p>
+                  <p><strong>{{ 'routes.estimatedFuel' | translate }}</strong> {{route.fuel}} L</p>
+                  <p><strong>{{ 'routes.stops' | translate }}</strong> {{route.stops}} {{ 'routes.locations' | translate }}</p>
+                </div>
+                <div class="route-actions">
+                  <button mat-raised-button color="primary" (click)="selectRoute(route)">
+                    <mat-icon>check</mat-icon>
+                    {{ 'routes.selectRoute' | translate }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Vehicle Assignment -->
+          <div class="vehicle-assignment" *ngIf="selectedRoute">
+            <h3>{{ 'routes.vehicleAssignment' | translate }}</h3>
+            <div class="form-group">
+              <label class="form-label">{{ 'routes.selectTruck' | translate }}</label>
+              <mat-select [(value)]="selectedVehicle" class="form-select">
+                <mat-option *ngFor="let vehicle of availableVehicles" [value]="vehicle">
+                  {{vehicle.id}} - {{vehicle.type}} ({{vehicle.capacity}})
+                </mat-option>
+              </mat-select>
+            </div>
+            <div class="form-actions">
+              <button mat-raised-button color="primary" (click)="assignRoute()" [disabled]="!selectedVehicle">
+                <mat-icon>local_shipping</mat-icon>
+                {{ 'routes.assignRoute' | translate }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Routes -->
+    <div class="section-card">
+      <div class="card-header">
+        <h3>
+          <mat-icon>local_shipping</mat-icon>
+          {{ 'routes.activeRoutes' | translate }}
+        </h3>
+        <p>{{ 'routes.activeRoutesDesc' | translate }}</p>
+      </div>
+      <div class="routes-grid">
+        <div class="route-item" *ngFor="let route of getActiveRoutesList()">
+          <div class="route-header">
+            <h4>{{route.id}}</h4>
+            <span class="route-status" [ngClass]="'status-' + route.status.toLowerCase()">
+              {{route.status}}
+            </span>
+          </div>
+          <div class="route-info">
+            <p><strong>{{ 'routes.vehicle' | translate }}:</strong> {{route.vehicle}}</p>
+            <p><strong>{{ 'routes.driver' | translate }}:</strong> {{route.driver}}</p>
+            <p><strong>{{ 'routes.progress' | translate }}:</strong> {{route.progress}}%</p>
+          </div>
+          <div class="route-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="route.progress"></div>
+            </div>
+          </div>
+          <div class="route-actions">
+            <button mat-icon-button [matTooltip]="'routes.viewTracking' | translate">
+              <mat-icon>gps_fixed</mat-icon>
+            </button>
+            <button mat-icon-button [matTooltip]="'routes.viewDetails' | translate">
+              <mat-icon>visibility</mat-icon>
+            </button>
+            <button mat-icon-button [matTooltip]="'routes.markDelivered' | translate" (click)="markAsDelivered(route)">
+              <mat-icon>check_circle</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delivered Orders with Returns -->
+    <div class="section-card" *ngIf="getDeliveredWithReturns().length > 0">
+      <div class="card-header">
+        <h3>
+          <mat-icon>assignment_return</mat-icon>
+          {{ 'routes.deliveredWithReturns' | translate }}
+        </h3>
+        <p>{{ 'routes.deliveredWithReturnsDesc' | translate }}</p>
+      </div>
+      <div class="table-container">
+        <table class="orders-table">
+          <thead>
+            <tr>
+              <th>{{ 'orders.orderId' | translate }}</th>
+              <th>{{ 'routes.client' | translate }}</th>
+              <th>{{ 'routes.deliveryDate' | translate }}</th>
+              <th>{{ 'routes.returnReason' | translate }}</th>
+              <th>{{ 'routes.returnStatus' | translate }}</th>
+              <th>{{ 'common.actions' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let order of getDeliveredWithReturns()">
+              <td>{{order.id}}</td>
+              <td>{{order.client}}</td>
+              <td>{{order.deliveryDate}}</td>
+              <td>{{order.returnReason}}</td>
+              <td>
+                <span class="status-badge status-return-requested">
+                  {{order.returnStatus}}
+                </span>
+              </td>
+              <td>
+                <button mat-raised-button color="warn" (click)="processReturn(order)">
+                  <mat-icon>assignment_return</mat-icon>
+                  {{ 'routes.processReturn' | translate }}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>

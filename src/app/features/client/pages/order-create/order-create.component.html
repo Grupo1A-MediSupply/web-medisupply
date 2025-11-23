@@ -1,0 +1,222 @@
+<div class="order-create-container">
+  <h2 class="page-title">{{ 'orders.createOrder' | translate }}</h2>
+  
+  <mat-card class="order-form-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>shopping_cart</mat-icon>
+        {{ 'orders.orderForm' | translate }}
+      </mat-card-title>
+      <mat-card-subtitle>{{ 'orders.orderFormSubtitle' | translate }}</mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content [formGroup]="orderForm">
+      <!-- Client Information -->
+      <div class="form-section">
+        <h3>{{ 'orders.clientInfo' | translate }}</h3>
+        <div class="form-group">
+          <label class="form-label">{{ 'orders.institutionName' | translate }} <span class="required">{{ 'common.required' | translate }}</span></label>
+          <input 
+            type="text" 
+            class="form-input" 
+            [class.error]="orderForm.get('institutionName')?.invalid && orderForm.get('institutionName')?.touched"
+            formControlName="institutionName" 
+            [placeholder]="'orders.institutionName' | translate">
+          <div *ngIf="orderForm.get('institutionName')?.invalid && orderForm.get('institutionName')?.touched" class="error-message">
+            {{ getErrorMessage('institutionName') }}
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ 'orders.deliveryAddress' | translate }} <span class="required">{{ 'common.required' | translate }}</span></label>
+          <textarea 
+            class="form-input" 
+            [class.error]="orderForm.get('deliveryAddress')?.invalid && orderForm.get('deliveryAddress')?.touched"
+            formControlName="deliveryAddress" 
+            [placeholder]="'orders.deliveryAddress' | translate" 
+            rows="3"></textarea>
+          <div *ngIf="orderForm.get('deliveryAddress')?.invalid && orderForm.get('deliveryAddress')?.touched" class="error-message">
+            {{ getErrorMessage('deliveryAddress') }}
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ 'orders.deliveryDate' | translate }} <span class="required">{{ 'common.required' | translate }}</span></label>
+          <input 
+            type="date" 
+            class="form-input" 
+            [class.error]="orderForm.get('deliveryDate')?.invalid && orderForm.get('deliveryDate')?.touched"
+            formControlName="deliveryDate">
+          <div *ngIf="orderForm.get('deliveryDate')?.invalid && orderForm.get('deliveryDate')?.touched" class="error-message">
+            {{ getErrorMessage('deliveryDate') }}
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ 'orders.contact' | translate }}</label>
+          <input 
+            type="text" 
+            class="form-input" 
+            [class.error]="orderForm.get('contact')?.invalid && orderForm.get('contact')?.touched"
+            formControlName="contact" 
+            [placeholder]="'orders.contact' | translate">
+          <div *ngIf="orderForm.get('contact')?.invalid && orderForm.get('contact')?.touched" class="error-message">
+            {{ getErrorMessage('contact') }}
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ 'orders.phone' | translate }}</label>
+          <input 
+            type="tel" 
+            class="form-input" 
+            [class.error]="orderForm.get('phone')?.invalid && orderForm.get('phone')?.touched"
+            formControlName="phone" 
+            [placeholder]="'orders.phone' | translate">
+          <div *ngIf="orderForm.get('phone')?.invalid && orderForm.get('phone')?.touched" class="error-message">
+            {{ getErrorMessage('phone') }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Products Section -->
+      <div class="form-section">
+        <div class="section-header">
+          <h3>{{ 'orders.products' | translate }} ({{ 'orders.maxProducts' | translate }})</h3>
+          <button mat-stroked-button (click)="updateInventoryStock()" class="refresh-btn">
+            <mat-icon>refresh</mat-icon>
+            {{ 'inventory.updateInventory' | translate }}
+          </button>
+        </div>
+        
+        <div class="products-container" formArrayName="products">
+          <div class="product-item" *ngFor="let product of productsArray.controls; let i = index" [formGroupName]="i">
+            <div class="product-select">
+              <label class="form-label">{{ 'orders.product' | translate }} {{i + 1}} <span class="required">{{ 'common.required' | translate }}</span></label>
+              <select 
+                class="form-input product-dropdown" 
+                [class.error]="product.get('product')?.invalid && product.get('product')?.touched"
+                formControlName="product" 
+                (change)="onProductChange(i)">
+                <option value="">{{ 'orders.product' | translate }}</option>
+                <option *ngFor="let item of getAvailableProducts()" [value]="item.name" [disabled]="item.stock === 0">
+                  {{item.name}} - {{ 'inventory.stock' | translate }}: {{item.stock}} {{ 'inventory.units' | translate }} - ${{item.price | number:'1.2-2'}}
+                </option>
+              </select>
+              <div *ngIf="product.get('product')?.invalid && product.get('product')?.touched" class="error-message">
+                {{ getProductErrorMessage(i, 'product') }}
+              </div>
+              <div class="product-info" *ngIf="product.get('product')?.value">
+                <small class="stock-info">
+                  <span [ngClass]="getStockClass(getProductStock(product.get('product')?.value))">
+                    {{ 'inventory.availableStock' | translate }}: {{getProductStock(product.get('product')?.value)}} {{ 'inventory.units' | translate }}
+                  </span>
+                </small>
+              </div>
+            </div>
+            
+            <div class="quantity-select">
+              <label class="form-label">{{ 'orders.quantity' | translate }} <span class="required">{{ 'common.required' | translate }}</span></label>
+              <input 
+                type="number" 
+                class="form-input" 
+                [class.error]="product.get('quantity')?.invalid && product.get('quantity')?.touched"
+                formControlName="quantity" 
+                min="1" 
+                [max]="getProductStock(product.get('product')?.value)" 
+                [placeholder]="'orders.quantity' | translate">
+              <div *ngIf="product.get('quantity')?.invalid && product.get('quantity')?.touched" class="error-message">
+                {{ getProductErrorMessage(i, 'quantity') }}
+              </div>
+              <div *ngIf="product.get('product')?.value && product.get('quantity')?.value > getProductStock(product.get('product')?.value)" class="error-message">
+                {{ 'orders.quantityExceedsStock' | translate }} ({{getProductStock(product.get('product')?.value)}} {{ 'inventory.units' | translate }})
+              </div>
+            </div>
+            
+            <button mat-icon-button color="warn" (click)="removeProduct(i)" class="remove-btn" *ngIf="productsArray.length > 1">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+          
+          <button mat-stroked-button (click)="addProduct()" [disabled]="productsArray.length >= 5" class="add-product-btn">
+            <mat-icon>add</mat-icon>
+            {{ 'orders.addProduct' | translate }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Notes Section -->
+      <div class="form-section">
+        <h3>{{ 'orders.notes' | translate }}</h3>
+        <div class="form-group">
+          <label class="form-label">{{ 'orders.additionalNotes' | translate }}</label>
+          <textarea 
+            class="form-input" 
+            [class.error]="orderForm.get('notes')?.invalid && orderForm.get('notes')?.touched"
+            formControlName="notes" 
+            [placeholder]="'orders.additionalNotes' | translate" 
+            rows="3"></textarea>
+          <div *ngIf="orderForm.get('notes')?.invalid && orderForm.get('notes')?.touched" class="error-message">
+            {{ getErrorMessage('notes') }}
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+    
+    <mat-card-actions class="form-actions">
+      <button mat-button (click)="clearForm()" class="clear-btn">
+        <mat-icon>clear</mat-icon>
+        {{ 'orders.clear' | translate }}
+      </button>
+      <button mat-raised-button color="primary" (click)="createOrder()" [disabled]="!isFormValid()" class="create-btn">
+        <mat-icon>shopping_cart</mat-icon>
+        {{ 'orders.create' | translate }}
+      </button>
+    </mat-card-actions>
+  </mat-card>
+
+  <!-- Success Modal -->
+  <div class="success-modal-overlay" *ngIf="showSuccessModal" (click)="closeSuccessModal()">
+    <div class="success-modal" (click)="$event.stopPropagation()">
+      <div class="success-modal-header">
+        <div class="success-icon">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+        <h2>{{ 'orders.orderCreated' | translate }}</h2>
+      </div>
+      
+      <div class="success-modal-content" *ngIf="createdOrder">
+        <div class="order-details">
+          <div class="detail-item">
+            <label>{{ 'orders.orderId' | translate }}:</label>
+            <span class="order-id">{{createdOrder.id}}</span>
+          </div>
+          <div class="detail-item">
+            <label>{{ 'orders.institution' | translate }}:</label>
+            <span>{{createdOrder.institutionName}}</span>
+          </div>
+          <div class="detail-item">
+            <label>{{ 'orders.products' | translate }}:</label>
+            <span>{{createdOrder.product}}</span>
+          </div>
+          <div class="detail-item">
+            <label>{{ 'orders.deliveryDateLabel' | translate }}</label>
+            <span>{{createdOrder.deliveryDate}}</span>
+          </div>
+          <div class="detail-item">
+            <label>{{ 'orders.address' | translate }}:</label>
+            <span>{{createdOrder.deliveryAddress}}</span>
+          </div>
+        </div>
+        
+        <div class="success-message">
+          <p>{{ 'orders.orderCreatedMessage' | translate }}</p>
+        </div>
+      </div>
+      
+      <div class="success-modal-actions">
+        <button mat-raised-button color="primary" (click)="closeSuccessModal()" class="close-btn">
+          <mat-icon>done</mat-icon>
+          {{ 'orders.understood' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
