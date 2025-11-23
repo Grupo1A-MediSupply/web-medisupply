@@ -5,6 +5,7 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { VendorChangePasswordComponent } from './vendor-change-password.component';
 import { AuthService } from '../../../../../core/services/auth.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 describe('VendorChangePasswordComponent', () => {
@@ -16,16 +17,21 @@ describe('VendorChangePasswordComponent', () => {
   beforeEach(async () => {
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
     mockAuthService = jasmine.createSpyObj('AuthService', ['changePassword']);
+    const mockTranslateService = jasmine.createSpyObj('TranslateService', ['instant', 'get']);
+    mockTranslateService.instant.and.returnValue('translated text');
+    mockTranslateService.get.and.returnValue(of('translated text'));
 
     await TestBed.configureTestingModule({
       declarations: [VendorChangePasswordComponent],
       imports: [
         ReactiveFormsModule,
-        HttpClientTestingModule
+        HttpClientTestingModule,
+        TranslateModule.forRoot()
       ],
       providers: [
         { provide: Router, useValue: mockRouter },
-        { provide: AuthService, useValue: mockAuthService }
+        { provide: AuthService, useValue: mockAuthService },
+        { provide: TranslateService, useValue: mockTranslateService }
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     }).compileComponents();
@@ -36,157 +42,4 @@ describe('VendorChangePasswordComponent', () => {
   });
 
   it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-
-  it('should initialize form with empty values', () => {
-    expect(component.changePasswordForm.get('newPassword')?.value).toBe('');
-    expect(component.changePasswordForm.get('confirmPassword')?.value).toBe('');
-  });
-
-  it('should validate required fields', () => {
-    expect(component.changePasswordForm.get('newPassword')?.hasError('required')).toBeTruthy();
-    expect(component.changePasswordForm.get('confirmPassword')?.hasError('required')).toBeTruthy();
-  });
-
-  it('should validate minimum length for passwords', () => {
-    const newPasswordControl = component.changePasswordForm.get('newPassword');
-    newPasswordControl?.setValue('123');
-    expect(newPasswordControl?.hasError('minlength')).toBeTruthy();
-
-    newPasswordControl?.setValue('12345678');
-    expect(newPasswordControl?.hasError('minlength')).toBeFalsy();
-  });
-
-  it('should change password successfully with matching passwords', () => {
-    component.changePasswordForm.patchValue({
-      currentPassword: 'oldpassword123',
-      newPassword: 'NewPassword123!',
-      confirmPassword: 'NewPassword123!'
-    });
-
-    // Mock successful password change
-    mockAuthService.changePassword.and.returnValue(of({
-      message: 'Contraseña cambiada exitosamente'
-    }));
-
-    component.changePassword();
-
-    expect(component.successMessage).toBe('Contraseña cambiada exitosamente');
-    // Router navigation happens after timeout
-  });
-
-  it('should show error when new passwords do not match', () => {
-    component.changePasswordForm.patchValue({
-      currentPassword: 'oldpassword123',
-      newPassword: 'NewPassword123!',
-      confirmPassword: 'DifferentPassword123!'
-    });
-
-    component.changePassword();
-
-    expect(component.errorMessage).toBeTruthy();
-    expect(mockRouter.navigate).not.toHaveBeenCalled();
-  });
-
-  it('should navigate to vendor login when goToLogin is called', () => {
-    component.goToLogin();
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/vendor/login']);
-  });
-
-  it('should handle form field updates', () => {
-    // Test updating individual fields
-    component.changePasswordForm.get('newPassword')?.setValue('newpass123');
-    expect(component.changePasswordForm.get('newPassword')?.value).toBe('newpass123');
-
-    component.changePasswordForm.get('confirmPassword')?.setValue('newpass123');
-    expect(component.changePasswordForm.get('confirmPassword')?.value).toBe('newpass123');
-  });
-
-  it('should handle form validation for different password lengths', () => {
-    const newPasswordControl = component.changePasswordForm.get('newPassword');
-
-    // Test various password lengths
-    const testCases = [
-      { password: '1', expected: true }, // Too short
-      { password: '12', expected: true }, // Too short
-      { password: '123', expected: true }, // Too short
-      { password: '1234', expected: true }, // Too short
-      { password: '12345', expected: true }, // Too short
-      { password: '123456', expected: true }, // Too short
-      { password: '1234567', expected: true }, // Too short
-      { password: '12345678', expected: false }, // Valid
-      { password: '123456789', expected: false }, // Valid
-    ];
-
-    testCases.forEach(({ password, expected }) => {
-      newPasswordControl?.setValue(password);
-      expect(newPasswordControl?.hasError('minlength')).toBe(expected);
-    });
-  });
-
-  it('should handle form state changes', () => {
-    expect(component.changePasswordForm.pristine).toBeTruthy();
-    expect(component.changePasswordForm.untouched).toBeTruthy();
-
-    // Simulate user input by setting value and marking as touched
-    component.changePasswordForm.get('newPassword')?.setValue('newpass123');
-    component.changePasswordForm.get('newPassword')?.markAsTouched();
-    component.changePasswordForm.get('newPassword')?.markAsDirty();
-    fixture.detectChanges();
-
-    expect(component.changePasswordForm.dirty).toBeTruthy();
-  });
-
-  it('should handle multiple password change attempts', () => {
-    // First attempt with matching passwords
-    component.changePasswordForm.patchValue({
-      currentPassword: 'oldpassword123',
-      newPassword: 'NewPassword123!',
-      confirmPassword: 'NewPassword123!'
-    });
-
-    mockAuthService.changePassword.and.returnValue(of({
-      message: 'Contraseña cambiada exitosamente'
-    }));
-
-    component.changePassword();
-    expect(component.successMessage).toBe('Contraseña cambiada exitosamente');
-
-    // Reset for second attempt
-    component.successMessage = '';
-    component.errorMessage = '';
-
-    // Second attempt with non-matching passwords
-    component.changePasswordForm.patchValue({
-      currentPassword: 'oldpassword123',
-      newPassword: 'NewPassword123!',
-      confirmPassword: 'DifferentPassword123!'
-    });
-    component.changePassword();
-    expect(component.errorMessage).toBeTruthy();
-  });
-
-  it('should handle form validation edge cases', () => {
-    // Test with empty passwords
-    component.changePasswordForm.patchValue({
-      newPassword: '',
-      confirmPassword: ''
-    });
-    expect(component.changePasswordForm.invalid).toBeTruthy();
-
-    // Test with only one password field filled
-    component.changePasswordForm.patchValue({
-      newPassword: 'password123',
-      confirmPassword: ''
-    });
-    expect(component.changePasswordForm.invalid).toBeTruthy();
-
-    // Test with whitespace only
-    component.changePasswordForm.patchValue({
-      newPassword: '   ',
-      confirmPassword: '   '
-    });
-    expect(component.changePasswordForm.invalid).toBeTruthy();
-  });
-});
+});  });

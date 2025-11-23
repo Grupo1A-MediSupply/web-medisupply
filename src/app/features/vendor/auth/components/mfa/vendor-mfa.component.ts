@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../../../../core/services/auth.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-vendor-mfa',
@@ -22,20 +23,21 @@ export class VendorMfaComponent {
 
   constructor(
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private translate: TranslateService
   ) {}
 
   get code() { return this._form.get('code'); }
 
   getCodeErrorMessage(): string {
     if (this.code?.hasError('required')) {
-      return 'El código es requerido';
+      return this.translate.instant('auth.codeRequired');
     }
     if (this.code?.hasError('minlength') || this.code?.hasError('maxlength')) {
-      return 'El código debe tener exactamente 6 dígitos';
+      return this.translate.instant('auth.codeInvalid');
     }
     if (this.code?.hasError('pattern')) {
-      return 'Solo se permiten números';
+      return this.translate.instant('auth.codeInvalid');
     }
     return '';
   }
@@ -45,7 +47,7 @@ export class VendorMfaComponent {
 
     if (this._form.invalid) {
       this._form.markAllAsTouched();
-      this.errorMessage = 'Por favor, ingrese un código válido de 6 dígitos';
+      this.errorMessage = this.translate.instant('auth.codeInvalid');
       return;
     }
 
@@ -55,7 +57,7 @@ export class VendorMfaComponent {
     const code = this._form.value.code || '';
 
     if (!userId) {
-      this.errorMessage = 'Error: No se encontró información de usuario. Por favor, inicie sesión nuevamente';
+      this.errorMessage = this.translate.instant('auth.loginError');
       this.isLoading = false;
       this.router.navigate(['/vendor/login']);
       return;
@@ -76,11 +78,11 @@ export class VendorMfaComponent {
         if (error.error?.message) {
           this.errorMessage = error.error.message;
         } else if (error.status === 400 || error.status === 401) {
-          this.errorMessage = 'Código MFA inválido. Por favor, verifique e intente nuevamente';
+          this.errorMessage = this.translate.instant('auth.codeInvalid');
         } else if (error.status === 0 || error.status === 500) {
-          this.errorMessage = 'Error del servidor. Por favor, intente más tarde';
+          this.errorMessage = this.translate.instant('auth.serverError');
         } else {
-          this.errorMessage = 'Error al verificar el código. Por favor, intente nuevamente';
+          this.errorMessage = this.translate.instant('auth.loginError');
         }
         console.error('MFA verification error:', error);
       }

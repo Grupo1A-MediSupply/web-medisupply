@@ -1,0 +1,1019 @@
+{
+  "description": "Especificación completa de respuestas del Backend para la aplicación MediSupply",
+  "version": "1.0.0",
+  "baseUrls": {
+    "auth": "https://auth-service-swn62v7z2q-uc.a.run.app",
+    "product": "https://product-service-swn62v7z2q-uc.a.run.app",
+    "order": "https://order-service-swn62v7z2q-uc.a.run.app",
+    "logistics": "https://logistics-service-swn62v7z2q-uc.a.run.app",
+    "notifications": "https://notifications-service-swn62v7z2q-uc.a.run.app"
+  },
+  "authentication": {
+    "header": "Authorization: Bearer <token>",
+    "note": "Todos los endpoints (excepto auth) requieren el token JWT en el header"
+  },
+  "services": {
+    "auth": {
+      "description": "Servicio de autenticación y gestión de usuarios",
+      "endpoints": {
+        "POST /auth/signup": {
+          "request": {
+            "email": "string (required)",
+            "password": "string (required, min 6 chars)",
+            "role": "string (required, 'vendor' | 'client')",
+            "name": "string (required)",
+            "phone": "string (optional)",
+            "address": "string (optional)",
+            "institutionName": "string (optional, para clientes)"
+          },
+          "successResponse": {
+            "statusCode": 201,
+            "body": {
+              "message": "Usuario registrado exitosamente",
+              "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+              "user": {
+                "id": "507f1f77bcf86cd799439011",
+                "email": "vendor@example.com",
+                "role": "vendor",
+                "name": "Juan Pérez"
+              }
+            }
+          },
+          "errorResponse": {
+            "statusCode": 400,
+            "body": {
+              "error": "El email ya está registrado",
+              "message": "Ya existe un usuario con este email"
+            }
+          }
+        },
+        "POST /auth/login": {
+          "request": {
+            "email": "string (required)",
+            "password": "string (required)"
+          },
+          "successResponseWithMFA": {
+            "statusCode": 200,
+            "body": {
+              "message": "Código MFA enviado",
+              "mfaRequired": true,
+              "userId": "507f1f77bcf86cd799439011",
+              "mfaCode": "123456"
+            },
+            "note": "mfaCode solo en desarrollo, no en producción"
+          },
+          "successResponseWithoutMFA": {
+            "statusCode": 200,
+            "body": {
+              "message": "Login exitoso",
+              "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+              "user": {
+                "id": "507f1f77bcf86cd799439011",
+                "email": "vendor@example.com",
+                "role": "vendor",
+                "name": "Juan Pérez"
+              },
+              "mfaRequired": false
+            }
+          },
+          "errorResponse": {
+            "statusCode": 401,
+            "body": {
+              "error": "Credenciales inválidas",
+              "message": "Email o contraseña incorrectos"
+            }
+          }
+        },
+        "POST /auth/mfa/verify": {
+          "request": {
+            "userId": "string (required)",
+            "code": "string (required, 6 dígitos)"
+          },
+          "successResponse": {
+            "statusCode": 200,
+            "body": {
+              "message": "MFA verificado exitosamente",
+              "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+              "user": {
+                "id": "507f1f77bcf86cd799439011",
+                "email": "vendor@example.com",
+                "role": "vendor",
+                "name": "Juan Pérez"
+              }
+            }
+          },
+          "errorResponse": {
+            "statusCode": 400,
+            "body": {
+              "error": "Código MFA inválido",
+              "message": "El código ingresado es incorrecto o ha expirado"
+            }
+          }
+        },
+        "POST /auth/change-password": {
+          "request": {
+            "currentPassword": "string (required)",
+            "newPassword": "string (required, min 6 chars)"
+          },
+          "successResponse": {
+            "statusCode": 200,
+            "body": {
+              "message": "Contraseña cambiada exitosamente"
+            }
+          },
+          "errorResponse": {
+            "statusCode": 400,
+            "body": {
+              "error": "Contraseña actual incorrecta",
+              "message": "La contraseña actual no es válida"
+            }
+          }
+        },
+        "GET /auth/profile": {
+          "successResponse": {
+            "statusCode": 200,
+            "body": {
+              "user": {
+                "id": "507f1f77bcf86cd799439011",
+                "email": "vendor@example.com",
+                "role": "vendor",
+                "name": "Juan Pérez",
+                "phone": "+57 300 123 4567",
+                "address": "Calle 10 #20-30, Bogotá",
+                "institutionName": null
+              }
+            }
+          }
+        }
+      }
+    },
+    "product": {
+      "description": "Servicio de gestión de productos e inventario",
+      "endpoints": {
+        "GET /products": {
+          "queryParams": {
+            "search": "string (optional)",
+            "category": "string (optional)",
+            "lowStock": "boolean (optional)"
+          },
+          "successResponse": {
+            "statusCode": 200,
+            "body": {
+              "products": [
+                {
+                  "_id": "507f1f77bcf86cd799439011",
+                  "name": "Insulina",
+                  "stock": 45,
+                  "price": 25.50,
+                  "expiry": "2025-12-15T00:00:00.000Z",
+                  "lot": "INS-2024-001",
+                  "warehouse": "Bodega Principal - Zona A",
+                  "supplier": "MedSupply Corp",
+                  "category": "Medicamento",
+                  "description": "Insulina de acción rápida para tratamiento de diabetes",
+                  "batches": [
+                    {
+                      "batch": "INS-2024-001-A",
+                      "quantity": 25,
+                      "expiry": "2025-12-15T00:00:00.000Z",
+                      "location": "Estante A1"
+                    },
+                    {
+                      "batch": "INS-2024-001-B",
+                      "quantity": 20,
+                      "expiry": "2025-12-20T00:00:00.000Z",
+                      "location": "Estante A2"
+                    }
+                  ],
+                  "vendorId": "507f1f77bcf86cd799439012"
+                },
+                {
+                  "_id": "507f1f77bcf86cd799439013",
+                  "name": "Jeringas",
+                  "stock": 8,
+                  "price": 0.50,
+                  "expiry": "2026-01-20T00:00:00.000Z",
+                  "lot": "JER-2024-002",
+                  "warehouse": "Bodega Secundaria - Zona B",
+                  "supplier": "MedEquip Solutions",
+                  "category": "Equipo Médico",
+                  "description": "Jeringas estériles desechables de 10ml",
+                  "batches": [
+                    {
+                      "batch": "JER-2024-002-A",
+                      "quantity": 8,
+                      "expiry": "2026-01-20T00:00:00.000Z",
+                      "location": "Estante B3"
+                    }
+                  ],
+                  "vendorId": "507f1f77bcf86cd799439012"
+                }
+              ]
+            }
+          }
+        },
+        "GET /products/:id": {
+          "successResponse": {
+            "statusCode": 200,
+            "body": {
+              "product": {
+                "_id": "507f1f77bcf86cd799439011",
+                "name": "Insulina",
+                "stock": 45,
+                "price": 25.50,
+                "expiry": "2025-12-15T00:00:00.000Z",
+                "lot": "INS-2024-001",
+                "warehouse": "Bodega Principal - Zona A",
+                "supplier": "MedSupply Corp",
+                "category": "Medicamento",
+                "description": "Insulina de acción rápida para tratamiento de diabetes",
+                "batches": [
+                  {
+                    "batch": "INS-2024-001-A",
+                    "quantity": 25,
+                    "expiry": "2025-12-15T00:00:00.000Z",
+                    "location": "Estante A1"
+                  }
+                ],
+                "vendorId": "507f1f77bcf86cd799439012"
+              }
+            }
+          }
+        },
+        "POST /products": {
+          "request": {
+            "name": "string (required)",
+            "stock": "number (required)",
+            "price": "number (required)",
+            "expiry": "string (required, ISO date)",
+            "lot": "string (required)",
+            "warehouse": "string (required)",
+            "supplier": "string (required)",
+            "category": "string (required)",
+            "description": "string (required)",
+            "batches": "array (optional)"
+          },
+          "successResponse": {
+            "statusCode": 201,
+            "body": {
+              "message": "Producto creado exitosamente",
+              "product": {
+                "_id": "507f1f77bcf86cd799439011",
+                "name": "Insulina",
+                "stock": 45,
+                "price": 25.50,
+                "expiry": "2025-12-15T00:00:00.000Z",
+                "lot": "INS-2024-001",
+                "warehouse": "Bodega Principal - Zona A",
+                "supplier": "MedSupply Corp",
+                "category": "Medicamento",
+                "description": "Insulina de acción rápida",
+                "batches": [],
+                "vendorId": "507f1f77bcf86cd799439012"
+              }
+            }
+          }
+        },
+        "PUT /products/:id": {
+          "request": {
+            "name": "string (optional)",
+            "stock": "number (optional)",
+            "price": "number (optional)",
+            "expiry": "string (optional)",
+            "lot": "string (optional)",
+            "warehouse": "string (optional)",
+            "supplier": "string (optional)",
+            "category": "string (optional)",
+            "description": "string (optional)",
+            "batches": "array (optional)"
+          },
+          "successResponse": {
+            "statusCode": 200,
+            "body": {
+              "message": "Producto actualizado exitosamente",
+              "product": {
+                "_id": "507f1f77bcf86cd799439011",
+                "name": "Insulina Actualizada",
+                "stock": 50,
+                "price": 25.50,
+                "expiry": "2025-12-15T00:00:00.000Z",
+                "lot": "INS-2024-001",
+                "warehouse": "Bodega Principal - Zona A",
+                "supplier": "MedSupply Corp",
+                "category": "Medicamento",
+                "description": "Insulina de acción rápida",
+                "batches": [],
+                "vendorId": "507f1f77bcf86cd799439012"
+              }
+            }
+          }
+        },
+        "DELETE /products/:id": {
+          "successResponse": {
+            "statusCode": 200,
+            "body": {
+              "message": "Producto eliminado exitosamente"
+            }
+          }
+        },
+        "POST /products/bulk-upload": {
+          "request": {
+            "products": [
+              {
+                "name": "string",
+                "stock": "number",
+                "price": "number",
+                "expiry": "string",
+                "lot": "string",
+                "warehouse": "string",
+                "supplier": "string",
+                "category": "string",
+                "description": "string"
+              }
+            ]
+          },
+          "successResponse": {
+            "statusCode": 201,
+            "body": {
+              "message": "Productos cargados exitosamente",
+              "products": [
+                {
+                  "_id": "507f1f77bcf86cd799439011",
+                  "name": "Insulina",
+                  "stock": 45,
+                  "price": 25.50,
+                  "expiry": "2025-12-15T00:00:00.000Z",
+                  "lot": "INS-2024-001",
+                  "warehouse": "Bodega Principal - Zona A",
+                  "supplier": "MedSupply Corp",
+                  "category": "Medicamento",
+                  "description": "Insulina de acción rápida",
+                  "vendorId": "507f1f77bcf86cd799439012"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "order": {
+      "description": "Servicio de gestión de pedidos",
+      "endpoints": {
+        "GET /orders": {
+          "queryParams": {
+            "status": "string (optional, 'Creado' | 'Programado' | 'En Tránsito' | 'Completado' | 'Pendiente' | 'Cancelado')"
+          },
+          "successResponse": {
+            "statusCode": 200,
+            "body": {
+              "orders": [
+                {
+                  "_id": "507f1f77bcf86cd799439011",
+                  "orderNumber": "ORD-1001",
+                  "clientId": "507f1f77bcf86cd799439020",
+                  "vendorId": "507f1f77bcf86cd799439012",
+                  "products": [
+                    {
+                      "productId": "507f1f77bcf86cd799439013",
+                      "productName": "Insulina",
+                      "quantity": 10,
+                      "price": 25.50
+                    },
+                    {
+                      "productId": "507f1f77bcf86cd799439014",
+                      "productName": "Jeringas",
+                      "quantity": 50,
+                      "price": 0.50
+                    }
+                  ],
+                  "status": "Creado",
+                  "deliveryAddress": "Calle 10 #20-30, Bogotá",
+                  "deliveryDate": "2025-09-25T00:00:00.000Z",
+                  "contactName": "Dr. María González",
+                  "contactPhone": "300-123-4567",
+                  "notes": "Entrega urgente para sala de emergencias",
+                  "routeId": null,
+                  "returnRequested": false,
+                  "returnReason": null,
+                  "returnStatus": null,
+                  "totalAmount": 280.00,
+                  "createdAt": "2025-09-22T10:00:00.000Z",
+                  "updatedAt": "2025-09-22T10:00:00.000Z"
+                },
+                {
+                  "_id": "507f1f77bcf86cd799439015",
+                  "orderNumber": "ORD-1000",
+                  "clientId": "507f1f77bcf86cd799439021",
+                  "vendorId": "507f1f77bcf86cd799439012",
+                  "products": [
+                    {
+                      "productId": "507f1f77bcf86cd799439016",
+                      "productName": "Equipo de monitoreo",
+                      "quantity": 2,
+                      "price": 150.00
+                    }
+                  ],
+                  "status": "Programado",
+                  "deliveryAddress": "Av 68 #45-12, Bogotá",
+                  "deliveryDate": "2025-09-24T00:00:00.000Z",
+                  "contactName": "Enf. Carlos López",
+                  "contactPhone": "300-987-6543",
+                  "notes": "Instalación requerida",
+                  "routeId": "507f1f77bcf86cd799439030",
+                  "returnRequested": false,
+                  "totalAmount": 300.00,
+                  "createdAt": "2025-09-21T08:00:00.000Z",
+                  "updatedAt": "2025-09-21T08:00:00.000Z"
+                }
+              ]
+            }
+          }
+        },
+        "GET /orders/:id": {
+          "successResponse": {
+            "statusCode": 200,
+            "body": {
+              "order": {
+                "_id": "507f1f77bcf86cd799439011",
+                "orderNumber": "ORD-1001",
+                "clientId": "507f1f77bcf86cd799439020",
+                "vendorId": "507f1f77bcf86cd799439012",
+                "products": [
+                  {
+                    "productId": "507f1f77bcf86cd799439013",
+                    "productName": "Insulina",
+                    "quantity": 10,
+                    "price": 25.50
+                  }
+                ],
+                "status": "Creado",
+                "deliveryAddress": "Calle 10 #20-30, Bogotá",
+                "deliveryDate": "2025-09-25T00:00:00.000Z",
+                "contactName": "Dr. María González",
+                "contactPhone": "300-123-4567",
+                "notes": "Entrega urgente",
+                "routeId": null,
+                "returnRequested": false,
+                "totalAmount": 255.00,
+                "createdAt": "2025-09-22T10:00:00.000Z",
+                "updatedAt": "2025-09-22T10:00:00.000Z"
+              }
+            }
+          }
+        },
+        "POST /orders": {
+          "request": {
+            "clientId": "string (required)",
+            "vendorId": "string (required)",
+            "products": [
+              {
+                "productId": "string (required)",
+                "productName": "string (required)",
+                "quantity": "number (required)",
+                "price": "number (required)"
+              }
+            ],
+            "deliveryAddress": "string (required)",
+            "deliveryDate": "string (required, ISO date)",
+            "contactName": "string (optional)",
+            "contactPhone": "string (optional)",
+            "notes": "string (optional)"
+          },
+          "successResponse": {
+            "statusCode": 201,
+            "body": {
+              "message": "Pedido creado exitosamente",
+              "order": {
+                "_id": "507f1f77bcf86cd799439011",
+                "orderNumber": "ORD-1001",
+                "clientId": "507f1f77bcf86cd799439020",
+                "vendorId": "507f1f77bcf86cd799439012",
+                "products": [
+                  {
+                    "productId": "507f1f77bcf86cd799439013",
+                    "productName": "Insulina",
+                    "quantity": 10,
+                    "price": 25.50
+                  }
+                ],
+                "status": "Creado",
+                "deliveryAddress": "Calle 10 #20-30, Bogotá",
+                "deliveryDate": "2025-09-25T00:00:00.000Z",
+                "contactName": "Dr. María González",
+                "contactPhone": "300-123-4567",
+                "notes": "Entrega urgente",
+                "routeId": null,
+                "returnRequested": false,
+                "totalAmount": 255.00,
+                "createdAt": "2025-09-22T10:00:00.000Z",
+                "updatedAt": "2025-09-22T10:00:00.000Z"
+              }
+            }
+          }
+        },
+        "PUT /orders/:id": {
+          "request": {
+            "status": "string (optional)",
+            "deliveryAddress": "string (optional)",
+            "deliveryDate": "string (optional)",
+            "contactName": "string (optional)",
+            "contactPhone": "string (optional)",
+            "notes": "string (optional)",
+            "routeId": "string (optional)"
+          },
+          "successResponse": {
+            "statusCode": 200,
+            "body": {
+              "message": "Pedido actualizado exitosamente",
+              "order": {
+                "_id": "507f1f77bcf86cd799439011",
+                "orderNumber": "ORD-1001",
+                "status": "Programado",
+                "routeId": "507f1f77bcf86cd799439030",
+                "updatedAt": "2025-09-22T11:00:00.000Z"
+              }
+            }
+          }
+        },
+        "DELETE /orders/:id": {
+          "successResponse": {
+            "statusCode": 200,
+            "body": {
+              "message": "Pedido eliminado exitosamente"
+            }
+          }
+        },
+        "POST /orders/:id/return": {
+          "request": {
+            "reason": "string (required)"
+          },
+          "successResponse": {
+            "statusCode": 200,
+            "body": {
+              "message": "Solicitud de devolución creada exitosamente",
+              "order": {
+                "_id": "507f1f77bcf86cd799439011",
+                "orderNumber": "ORD-1001",
+                "returnRequested": true,
+                "returnReason": "Producto defectuoso",
+                "returnStatus": "Pendiente",
+                "updatedAt": "2025-09-22T12:00:00.000Z"
+              }
+            }
+          }
+        }
+      }
+    },
+    "logistics": {
+      "description": "Servicio de gestión de rutas y logística",
+      "endpoints": {
+        "GET /routes": {
+          "queryParams": {
+            "status": "string (optional, 'Programado' | 'En Tránsito' | 'Completado' | 'Cancelado')"
+          },
+          "successResponse": {
+            "statusCode": 200,
+            "body": {
+              "routes": [
+                {
+                  "_id": "507f1f77bcf86cd799439030",
+                  "routeNumber": "R-501",
+                  "vendorId": "507f1f77bcf86cd799439012",
+                  "vehicleId": "507f1f77bcf86cd799439040",
+                  "vehicleType": "Camión 12T",
+                  "driverName": "Juan Pérez",
+                  "driverPhone": "300-111-2222",
+                  "stops": [
+                    {
+                      "orderId": "507f1f77bcf86cd799439011",
+                      "address": "Calle 10 #20-30, Bogotá",
+                      "coordinates": {
+                        "lat": 4.6500,
+                        "lng": -74.1000
+                      },
+                      "sequence": 1
+                    },
+                    {
+                      "orderId": "507f1f77bcf86cd799439015",
+                      "address": "Av 68 #45-12, Bogotá",
+                      "coordinates": {
+                        "lat": 4.6200,
+                        "lng": -74.0900
+                      },
+                      "sequence": 2
+                    }
+                  ],
+                  "status": "En Tránsito",
+                  "startTime": "2025-09-22T08:00:00.000Z",
+                  "endTime": null,
+                  "estimatedDistance": 12.5,
+                  "estimatedDuration": 45,
+                  "estimatedFuel": 8.2,
+                  "actualDistance": 8.5,
+                  "actualDuration": 30,
+                  "actualFuel": null,
+                  "progress": 65,
+                  "createdAt": "2025-09-22T07:00:00.000Z",
+                  "updatedAt": "2025-09-22T10:00:00.000Z"
+                },
+                {
+                  "_id": "507f1f77bcf86cd799439031",
+                  "routeNumber": "R-502",
+                  "vendorId": "507f1f77bcf86cd799439012",
+                  "vehicleId": "507f1f77bcf86cd799439041",
+                  "vehicleType": "Camión 8T",
+                  "driverName": "María García",
+                  "driverPhone": "300-333-4444",
+                  "stops": [
+                    {
+                      "orderId": "507f1f77bcf86cd799439016",
+                      "address": "Calle 100 #15-20, Bogotá",
+                      "coordinates": {
+                        "lat": 4.7000,
+                        "lng": -74.0500
+                      },
+                      "sequence": 1
+                    }
+                  ],
+                  "status": "Completado",
+                  "startTime": "2025-09-20T08:00:00.000Z",
+                  "endTime": "2025-09-20T12:00:00.000Z",
+                  "estimatedDistance": 15.2,
+                  "estimatedDuration": 52,
+                  "estimatedFuel": 9.8,
+                  "actualDistance": 14.8,
+                  "actualDuration": 48,
+                  "actualFuel": 9.5,
+                  "progress": 100,
+                  "createdAt": "2025-09-20T07:00:00.000Z",
+                  "updatedAt": "2025-09-20T12:00:00.000Z"
+                }
+              ]
+            }
+          }
+        },
+        "GET /routes/:id": {
+          "successResponse": {
+            "statusCode": 200,
+            "body": {
+              "route": {
+                "_id": "507f1f77bcf86cd799439030",
+                "routeNumber": "R-501",
+                "vendorId": "507f1f77bcf86cd799439012",
+                "vehicleId": "507f1f77bcf86cd799439040",
+                "vehicleType": "Camión 12T",
+                "driverName": "Juan Pérez",
+                "driverPhone": "300-111-2222",
+                "stops": [
+                  {
+                    "orderId": "507f1f77bcf86cd799439011",
+                    "address": "Calle 10 #20-30, Bogotá",
+                    "coordinates": {
+                      "lat": 4.6500,
+                      "lng": -74.1000
+                    },
+                    "sequence": 1
+                  }
+                ],
+                "status": "En Tránsito",
+                "startTime": "2025-09-22T08:00:00.000Z",
+                "estimatedDistance": 12.5,
+                "estimatedDuration": 45,
+                "estimatedFuel": 8.2,
+                "progress": 65,
+                "createdAt": "2025-09-22T07:00:00.000Z",
+                "updatedAt": "2025-09-22T10:00:00.000Z"
+              }
+            }
+          }
+        },
+        "POST /routes": {
+          "request": {
+            "vendorId": "string (required)",
+            "vehicleId": "string (required)",
+            "vehicleType": "string (required)",
+            "driverName": "string (required)",
+            "driverPhone": "string (optional)",
+            "stops": [
+              {
+                "orderId": "string (required)",
+                "address": "string (required)",
+                "coordinates": {
+                  "lat": "number (required)",
+                  "lng": "number (required)"
+                },
+                "sequence": "number (required)"
+              }
+            ],
+            "estimatedDistance": "number (required)",
+            "estimatedDuration": "number (required)",
+            "estimatedFuel": "number (required)"
+          },
+          "successResponse": {
+            "statusCode": 201,
+            "body": {
+              "message": "Ruta creada exitosamente",
+              "route": {
+                "_id": "507f1f77bcf86cd799439030",
+                "routeNumber": "R-501",
+                "vendorId": "507f1f77bcf86cd799439012",
+                "vehicleId": "507f1f77bcf86cd799439040",
+                "vehicleType": "Camión 12T",
+                "driverName": "Juan Pérez",
+                "stops": [],
+                "status": "Programado",
+                "estimatedDistance": 12.5,
+                "estimatedDuration": 45,
+                "estimatedFuel": 8.2,
+                "progress": 0,
+                "createdAt": "2025-09-22T07:00:00.000Z",
+                "updatedAt": "2025-09-22T07:00:00.000Z"
+              }
+            }
+          }
+        },
+        "PUT /routes/:id": {
+          "request": {
+            "status": "string (optional)",
+            "progress": "number (optional, 0-100)",
+            "actualDistance": "number (optional)",
+            "actualDuration": "number (optional)",
+            "actualFuel": "number (optional)",
+            "endTime": "string (optional, ISO date)"
+          },
+          "successResponse": {
+            "statusCode": 200,
+            "body": {
+              "message": "Ruta actualizada exitosamente",
+              "route": {
+                "_id": "507f1f77bcf86cd799439030",
+                "status": "Completado",
+                "progress": 100,
+                "actualDistance": 12.3,
+                "actualDuration": 42,
+                "actualFuel": 8.0,
+                "endTime": "2025-09-22T12:00:00.000Z",
+                "updatedAt": "2025-09-22T12:00:00.000Z"
+              }
+            }
+          }
+        },
+        "DELETE /routes/:id": {
+          "successResponse": {
+            "statusCode": 200,
+            "body": {
+              "message": "Ruta eliminada exitosamente"
+            }
+          }
+        },
+        "POST /routes/generate-optimal": {
+          "request": {
+            "orderIds": ["string (required)"],
+            "vehicleType": "string (optional)"
+          },
+          "successResponse": {
+            "statusCode": 200,
+            "body": {
+              "suggestedRoutes": [
+                {
+                  "id": "R-OPT-1",
+                  "distance": "12.5",
+                  "duration": "45 min",
+                  "fuel": "8.2",
+                  "stops": 3,
+                  "route": [
+                    "Almacén",
+                    "Hospital San Rafael",
+                    "Clínica Los Andes",
+                    "Centro Médico"
+                  ],
+                  "coordinates": [
+                    [4.6097, -74.0817],
+                    [4.6500, -74.1000],
+                    [4.6200, -74.0900],
+                    [4.6400, -74.0800]
+                  ]
+                },
+                {
+                  "id": "R-OPT-2",
+                  "distance": "15.2",
+                  "duration": "52 min",
+                  "fuel": "9.8",
+                  "stops": 3,
+                  "route": [
+                    "Almacén",
+                    "Centro Médico",
+                    "Hospital San Rafael",
+                    "Clínica Los Andes"
+                  ],
+                  "coordinates": [
+                    [4.6097, -74.0817],
+                    [4.6400, -74.0800],
+                    [4.6500, -74.1000],
+                    [4.6200, -74.0900]
+                  ]
+                }
+              ],
+              "orders": [
+                {
+                  "_id": "507f1f77bcf86cd799439011",
+                  "orderNumber": "ORD-1001",
+                  "deliveryAddress": "Calle 10 #20-30, Bogotá",
+                  "status": "Sin Ruta"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "notifications": {
+      "description": "Servicio de notificaciones",
+      "endpoints": {
+        "GET /notifications": {
+          "queryParams": {
+            "read": "boolean (optional)",
+            "type": "string (optional, 'order' | 'route' | 'inventory' | 'system')"
+          },
+          "successResponse": {
+            "statusCode": 200,
+            "body": {
+              "notifications": [
+                {
+                  "_id": "507f1f77bcf86cd799439050",
+                  "userId": "507f1f77bcf86cd799439012",
+                  "type": "order",
+                  "title": "Nuevo pedido recibido",
+                  "message": "Se ha recibido un nuevo pedido ORD-1001",
+                  "read": false,
+                  "data": {
+                    "orderId": "507f1f77bcf86cd799439011",
+                    "orderNumber": "ORD-1001"
+                  },
+                  "createdAt": "2025-09-22T10:00:00.000Z"
+                },
+                {
+                  "_id": "507f1f77bcf86cd799439051",
+                  "userId": "507f1f77bcf86cd799439012",
+                  "type": "inventory",
+                  "title": "Stock bajo",
+                  "message": "El producto Insulina tiene stock bajo (45 unidades)",
+                  "read": false,
+                  "data": {
+                    "productId": "507f1f77bcf86cd799439011",
+                    "productName": "Insulina",
+                    "stock": 45
+                  },
+                  "createdAt": "2025-09-21T15:00:00.000Z"
+                }
+              ]
+            }
+          }
+        },
+        "GET /notifications/:id": {
+          "successResponse": {
+            "statusCode": 200,
+            "body": {
+              "notification": {
+                "_id": "507f1f77bcf86cd799439050",
+                "userId": "507f1f77bcf86cd799439012",
+                "type": "order",
+                "title": "Nuevo pedido recibido",
+                "message": "Se ha recibido un nuevo pedido ORD-1001",
+                "read": false,
+                "data": {
+                  "orderId": "507f1f77bcf86cd799439011",
+                  "orderNumber": "ORD-1001"
+                },
+                "createdAt": "2025-09-22T10:00:00.000Z"
+              }
+            }
+          }
+        },
+        "PUT /notifications/:id/read": {
+          "successResponse": {
+            "statusCode": 200,
+            "body": {
+              "message": "Notificación marcada como leída",
+              "notification": {
+                "_id": "507f1f77bcf86cd799439050",
+                "userId": "507f1f77bcf86cd799439012",
+                "type": "order",
+                "title": "Nuevo pedido recibido",
+                "message": "Se ha recibido un nuevo pedido ORD-1001",
+                "read": true,
+                "createdAt": "2025-09-22T10:00:00.000Z"
+              }
+            }
+          }
+        },
+        "PUT /notifications/read-all": {
+          "successResponse": {
+            "statusCode": 200,
+            "body": {
+              "message": "Todas las notificaciones marcadas como leídas"
+            }
+          }
+        },
+        "DELETE /notifications/:id": {
+          "successResponse": {
+            "statusCode": 200,
+            "body": {
+              "message": "Notificación eliminada exitosamente"
+            }
+          }
+        }
+      }
+    },
+    "reports": {
+      "description": "Servicio de reportes (usando endpoint del Order Service)",
+      "endpoints": {
+        "GET /reports": {
+          "successResponse": {
+            "statusCode": 200,
+            "body": {
+              "ordersByStatus": {
+                "Creado": 5,
+                "Programado": 3,
+                "En Tránsito": 2,
+                "Completado": 15,
+                "Pendiente": 1
+              },
+              "inventoryStatus": {
+                "normalStock": 45,
+                "lowStock": 8,
+                "expiringSoon": 3,
+                "expired": 0
+              },
+              "returnsByReason": {
+                "Producto Defectuoso": 5,
+                "Pedido Incorrecto": 3,
+                "Daño en Transporte": 2,
+                "Cliente No Satisfecho": 1
+              },
+              "routesStats": {
+                "total": 20,
+                "active": 3,
+                "completed": 15,
+                "pending": 2
+              },
+              "totalReturns": 11
+            }
+          }
+        }
+      }
+    }
+  },
+  "errorResponses": {
+    "400": {
+      "description": "Bad Request - Error de validación o datos inválidos",
+      "example": {
+        "error": "Error de validación",
+        "message": "Los datos proporcionados no son válidos",
+        "details": [
+          {
+            "field": "email",
+            "message": "El email es requerido"
+          }
+        ]
+      }
+    },
+    "401": {
+      "description": "Unauthorized - Token inválido o ausente",
+      "example": {
+        "error": "No autorizado",
+        "message": "Token inválido o expirado"
+      }
+    },
+    "403": {
+      "description": "Forbidden - Sin permisos para acceder al recurso",
+      "example": {
+        "error": "Acceso denegado",
+        "message": "No tienes permisos para realizar esta acción"
+      }
+    },
+    "404": {
+      "description": "Not Found - Recurso no encontrado",
+      "example": {
+        "error": "No encontrado",
+        "message": "El recurso solicitado no existe"
+      }
+    },
+    "500": {
+      "description": "Internal Server Error - Error del servidor",
+      "example": {
+        "error": "Error del servidor",
+        "message": "Ha ocurrido un error interno. Por favor intenta más tarde"
+      }
+    }
+  },
+  "notes": {
+    "authentication": "Todos los endpoints (excepto /auth/*) requieren el header 'Authorization: Bearer <token>'",
+    "dates": "Todas las fechas deben estar en formato ISO 8601 (YYYY-MM-DDTHH:mm:ss.sssZ)",
+    "pagination": "Los endpoints de listado pueden soportar paginación con query params: ?page=1&limit=10",
+    "filtering": "Los endpoints de listado soportan filtros mediante query params",
+    "cors": "Todos los servicios deben tener CORS configurado para permitir el dominio del frontend",
+    "validation": "Todos los campos requeridos deben ser validados en el backend antes de procesar la petición"
+  }
+}
+

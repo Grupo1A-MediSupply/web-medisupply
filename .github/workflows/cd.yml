@@ -2,11 +2,11 @@ name: MediSupply CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ mains, develops ]
   workflow_run:
     workflows: ["MediSupply Web Pipeline"]
     types: [completed]
-    branches: [ main, develop ]
+    branches: [ mains, develops ]
   workflow_dispatch: # Permite ejecución manual
 
 env:

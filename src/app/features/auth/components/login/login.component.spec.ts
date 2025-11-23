@@ -3,26 +3,26 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { ClientChangePasswordComponent } from './client-change-password.component';
-import { AuthService } from '../../../../../core/services/auth.service';
+import { LoginComponent } from './login.component';
+import { AuthService } from '../../../../core/services/auth.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
-describe('ClientChangePasswordComponent', () => {
-  let component: ClientChangePasswordComponent;
-  let fixture: ComponentFixture<ClientChangePasswordComponent>;
+describe('LoginComponent', () => {
+  let component: LoginComponent;
+  let fixture: ComponentFixture<LoginComponent>;
   let mockRouter: jasmine.SpyObj<Router>;
   let mockAuthService: jasmine.SpyObj<AuthService>;
 
   beforeEach(async () => {
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
-    mockAuthService = jasmine.createSpyObj('AuthService', ['changePassword']);
+    mockAuthService = jasmine.createSpyObj('AuthService', ['login']);
     const mockTranslateService = jasmine.createSpyObj('TranslateService', ['instant', 'get']);
     mockTranslateService.instant.and.returnValue('translated text');
     mockTranslateService.get.and.returnValue(of('translated text'));
 
     await TestBed.configureTestingModule({
-      declarations: [ClientChangePasswordComponent],
+      declarations: [LoginComponent],
       imports: [
         ReactiveFormsModule,
         HttpClientTestingModule,
@@ -36,10 +36,12 @@ describe('ClientChangePasswordComponent', () => {
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(ClientChangePasswordComponent);
+    fixture = TestBed.createComponent(LoginComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
   it('should create', () => {
-});  });
+    expect(component).toBeTruthy();
+  });
+});
